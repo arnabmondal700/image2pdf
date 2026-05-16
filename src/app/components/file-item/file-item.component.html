@@ -1,4 +1,4 @@
-<div 
+<div
   class="file-item"
   draggable="true"
   [class.dragging]="isDragging"
@@ -18,6 +18,13 @@
     (click)="onRemove()"
     title="Remove file"
   >
-    ✕
+    x
+  </button>
+  <button
+    class="edit-btn"
+    (click)="onEdit()"
+    title="Edit image"
+  >
+    Edit
   </button>
 </div>

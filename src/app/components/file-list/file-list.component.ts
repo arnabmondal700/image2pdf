@@ -13,6 +13,7 @@ import { FileObject } from '../../services/file.service';
 export class FileListComponent {
   @Input() uploadedFiles: FileObject[] = [];
   @Output() fileRemoved = new EventEmitter<number>();
+  @Output() fileEditRequested = new EventEmitter<number>();
   @Output() fileReordered = new EventEmitter<{ from: number; to: number }>();
 
   draggedIndex: number | null = null;
@@ -20,6 +21,10 @@ export class FileListComponent {
 
   onFileRemove(index: number) {
     this.fileRemoved.emit(index);
+  }
+
+  onFileEdit(index: number) {
+    this.fileEditRequested.emit(index);
   }
 
   onDragStart(index: number) {

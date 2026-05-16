@@ -14,6 +14,7 @@
           [isDragging]="draggedIndex === $index"
           [isDragOver]="dragoverIndex === $index"
           (removeFile)="onFileRemove($event)"
+          (editFile)="onFileEdit($event)"
           (dragStart)="onDragStart($event)"
           (dragOver)="onDragOver($event)"
           (dragLeave)="onDragLeave()"

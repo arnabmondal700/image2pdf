@@ -14,6 +14,7 @@ export class FileItemComponent {
   @Input() isDragging: boolean = false;
   @Input() isDragOver: boolean = false;
   @Output() removeFile = new EventEmitter<number>();
+  @Output() editFile = new EventEmitter<number>();
   @Output() dragStart = new EventEmitter<number>();
   @Output() dragOver = new EventEmitter<number>();
   @Output() dragLeave = new EventEmitter<void>();
@@ -56,5 +57,9 @@ export class FileItemComponent {
 
   onRemove() {
     this.removeFile.emit(this.index);
+  }
+
+  onEdit() {
+    this.editFile.emit(this.index);
   }
 }

@@ -1,0 +1,40 @@
+<div class="modal-backdrop" (click)="close()">
+  <section class="editor-modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog">
+    <header class="editor-header">
+      <div>
+        <h2>Edit image</h2>
+        <p>{{ file?.name }}</p>
+      </div>
+      <button class="icon-btn close-btn" type="button" title="Close editor" (click)="close()">x</button>
+    </header>
+
+    <div class="canvas-wrap">
+      <canvas
+        #editorCanvas
+        width="760"
+        height="500"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerUp($event)"
+      ></canvas>
+    </div>
+
+    <footer class="editor-actions">
+      <div class="tool-group">
+        <button class="tool-btn" type="button" (click)="rotateLeft()" [disabled]="!isLoaded">
+          Rotate left
+        </button>
+        <button class="tool-btn" type="button" (click)="rotateRight()" [disabled]="!isLoaded">
+          Rotate right
+        </button>
+      </div>
+      <div class="action-group">
+        <button class="secondary-btn" type="button" (click)="close()">Cancel</button>
+        <button class="primary-btn" type="button" (click)="applyEdit()" [disabled]="!isLoaded || !isCropValid()">
+          Apply
+        </button>
+      </div>
+    </footer>
+  </section>
+</div>

@@ -4,6 +4,7 @@ import { AppHeaderComponent } from './components/app-header/app-header.component
 import { DragDropZoneComponent } from './components/drag-drop-zone/drag-drop-zone.component';
 import { FileListComponent } from './components/file-list/file-list.component';
 import { GeneratePDFButtonComponent } from './components/generate-pdf-button/generate-pdf-button.component';
+import { ImageEditorModalComponent } from './components/image-editor-modal/image-editor-modal.component';
 import { FileService, FileObject } from './services/file.service';
 import { PDFService } from './services/pdf.service';
 
@@ -17,7 +18,8 @@ import { PDFService } from './services/pdf.service';
     AppHeaderComponent,
     DragDropZoneComponent,
     FileListComponent,
-    GeneratePDFButtonComponent
+    GeneratePDFButtonComponent,
+    ImageEditorModalComponent
   ]
 })
 export class App {
@@ -28,6 +30,12 @@ export class App {
   uploadedFiles: FileObject[] = [];
   isGenerating: boolean = false;
   isDragging: boolean = false;
+  editingFileIndex: number | null = null;
+
+  get editingFile(): FileObject | null {
+    if (this.editingFileIndex === null) return null;
+    return this.uploadedFiles[this.editingFileIndex] ?? null;
+  }
 
   // Handle files from drag-drop or file input
   onFilesSelected(files: FileList | File[]) {
@@ -45,6 +53,26 @@ export class App {
   // Remove a file from the list
   onFileRemoved(index: number) {
     this.uploadedFiles = this.fileService.removeFile(this.uploadedFiles, index);
+    if (this.editingFileIndex === index) {
+      this.closeImageEditor();
+    }
+  }
+
+  onFileEditRequested(index: number) {
+    this.editingFileIndex = index;
+  }
+
+  onImageEditApplied(event: { index: number; url: string }) {
+    if (!this.uploadedFiles[event.index]) return;
+
+    this.uploadedFiles = this.uploadedFiles.map((item, index) =>
+      index === event.index ? { ...item, url: event.url } : item
+    );
+    this.closeImageEditor();
+  }
+
+  closeImageEditor() {
+    this.editingFileIndex = null;
   }
 
   // Handle file reordering

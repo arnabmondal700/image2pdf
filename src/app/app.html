@@ -9,12 +9,13 @@
       (filesSelected)="onFilesSelected($event)"
       (openFileDialog)="onDragLeaveZone()"
     ></drag-drop-zone>
-    {{uploadedFiles.length}}
+
 
     <!-- File List -->
     <file-list
       [uploadedFiles]="uploadedFiles"
       (fileRemoved)="onFileRemoved($event)"
+      (fileEditRequested)="onFileEditRequested($event)"
       (fileReordered)="onFileReordered($event)"
     ></file-list>
 
@@ -25,4 +26,13 @@
       (generateClicked)="onGeneratePDF()"
     ></generate-pdf-button>
   </div>
+
+  @if (editingFile && editingFileIndex !== null) {
+    <image-editor-modal
+      [file]="editingFile"
+      [index]="editingFileIndex"
+      (editApplied)="onImageEditApplied($event)"
+      (closed)="closeImageEditor()"
+    ></image-editor-modal>
+  }
 </div>

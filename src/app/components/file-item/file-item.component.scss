@@ -60,8 +60,8 @@
     white-space: nowrap;
   }
 
-  .remove-btn {
-    background-color: #ff6b6b;
+  .remove-btn,
+  .edit-btn {
     border: none;
     color: white;
     border-radius: 4px;
@@ -73,12 +73,28 @@
     margin-left: 0.5rem;
 
     &:hover {
-      background-color: #ff5252;
       transform: scale(1.05);
     }
 
     &:active {
       transform: scale(0.95);
+    }
+  }
+
+  .remove-btn {
+    background-color: #ff6b6b;
+
+    &:hover {
+      background-color: #ff5252;
+    }
+  }
+
+  .edit-btn {
+    background-color: #4a90e2;
+    font-size: 0.9rem;
+
+    &:hover {
+      background-color: #357abd;
     }
   }
 }
