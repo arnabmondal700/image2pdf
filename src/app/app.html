@@ -1,31 +1,80 @@
-<div class="app-container">
-  <div class="app-card">
-    <!-- Header -->
+<main class="app-shell">
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <section class="app-card">
     <app-header></app-header>
 
-    <!-- Drag and Drop Zone -->
-    <drag-drop-zone
-      [isDragging]="isDragging"
-      (filesSelected)="onFilesSelected($event)"
-      (openFileDialog)="onDragLeaveZone()"
-    ></drag-drop-zone>
+    <div class="workspace-grid">
+      <section class="workspace-main" aria-label="Image upload workspace">
+        <drag-drop-zone
+          [isDragging]="isDragging"
+          (filesSelected)="onFilesSelected($event)"
+          (openFileDialog)="onDragLeaveZone()"
+        ></drag-drop-zone>
 
+        <file-list
+          [uploadedFiles]="uploadedFiles"
+          (fileRemoved)="onFileRemoved($event)"
+          (fileEditRequested)="onFileEditRequested($event)"
+          (fileReordered)="onFileReordered($event)"
+        ></file-list>
+      </section>
 
-    <!-- File List -->
-    <file-list
-      [uploadedFiles]="uploadedFiles"
-      (fileRemoved)="onFileRemoved($event)"
-      (fileEditRequested)="onFileEditRequested($event)"
-      (fileReordered)="onFileReordered($event)"
-    ></file-list>
+      <aside class="settings-panel" aria-label="PDF settings">
+        <div class="panel-heading">
+          <span class="eyebrow">Export controls</span>
+          <h2>PDF settings</h2>
+          <p>Choose the page layout and output compression before downloading.</p>
+        </div>
 
-    <!-- Action Button -->
-    <generate-pdf-button
-      [uploadedFiles]="uploadedFiles"
-      [isGenerating]="isGenerating"
-      (generateClicked)="onGeneratePDF()"
-    ></generate-pdf-button>
-  </div>
+        <div class="settings-grid">
+          <label class="setting-field">
+            <span>Page size</span>
+            <select name="pageSize" [(ngModel)]="pdfSettings.pageSize">
+              <option value="a4">A4</option>
+              <option value="letter">Letter</option>
+              <option value="legal">Legal</option>
+            </select>
+          </label>
+
+          <label class="setting-field">
+            <span>Orientation</span>
+            <select name="orientation" [(ngModel)]="pdfSettings.orientation">
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </label>
+
+          <label class="setting-field">
+            <span>Quality</span>
+            <select name="quality" [(ngModel)]="pdfSettings.quality">
+              <option value="FAST">Compact</option>
+              <option value="MEDIUM">Balanced</option>
+              <option value="SLOW">High quality</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="export-summary">
+          <div>
+            <strong>{{ uploadedFiles.length }}</strong>
+            <span>{{ uploadedFiles.length === 1 ? 'image ready' : 'images ready' }}</span>
+          </div>
+          <div>
+            <strong>{{ pdfSettings.pageSize | uppercase }}</strong>
+            <span>{{ pdfSettings.orientation }}</span>
+          </div>
+        </div>
+
+        <generate-pdf-button
+          [uploadedFiles]="uploadedFiles"
+          [isGenerating]="isGenerating"
+          (generateClicked)="onGeneratePDF()"
+        ></generate-pdf-button>
+      </aside>
+    </div>
+  </section>
 
   @if (editingFile && editingFileIndex !== null) {
     <image-editor-modal
@@ -35,4 +84,4 @@
       (closed)="closeImageEditor()"
     ></image-editor-modal>
   }
-</div>
+</main>

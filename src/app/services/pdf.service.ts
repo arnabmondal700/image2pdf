@@ -2,6 +2,16 @@ import { Injectable } from '@angular/core';
 import { jsPDF } from 'jspdf';
 import { FileObject } from './file.service';
 
+export type PDFPageSize = 'a4' | 'letter' | 'legal';
+export type PDFOrientation = 'portrait' | 'landscape';
+export type PDFQuality = 'FAST' | 'MEDIUM' | 'SLOW';
+
+export interface PDFSettings {
+  pageSize: PDFPageSize;
+  orientation: PDFOrientation;
+  quality: PDFQuality;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -9,32 +19,43 @@ export class PDFService {
   /**
    * Generate PDF from uploaded images and trigger download
    */
-  generatePDF(uploadedFiles: FileObject[], fileName: string = 'My_Converted_Images.pdf'): void {
+  generatePDF(
+    uploadedFiles: FileObject[],
+    fileName: string = 'My_Converted_Images.pdf',
+    settings: PDFSettings = { pageSize: 'a4', orientation: 'portrait', quality: 'MEDIUM' }
+  ): void {
     if (uploadedFiles.length === 0) {
       console.warn('No files to convert to PDF');
       return;
     }
 
     try {
-      // Create a new PDF document (default is A4, portrait)
-      const pdf = new jsPDF();
+      const pdf = new jsPDF({
+        orientation: settings.orientation,
+        unit: 'mm',
+        format: settings.pageSize
+      });
 
       uploadedFiles.forEach(({ url: imgData }, index) => {
-        // Add a new page for every image after the first one
         if (index > 0) {
           pdf.addPage();
         }
 
-        // Calculate dimensions to fit the image nicely on an A4 page
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 8;
+        const maxWidth = pdfWidth - margin * 2;
+        const maxHeight = pdfHeight - margin * 2;
+        const scale = Math.min(maxWidth / imgProps.width, maxHeight / imgProps.height);
+        const imageWidth = imgProps.width * scale;
+        const imageHeight = imgProps.height * scale;
+        const x = (pdfWidth - imageWidth) / 2;
+        const y = (pdfHeight - imageHeight) / 2;
 
-        // Add the image to the current PDF page
-        pdf.addImage(imgData, imgProps.fileType, 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(imgData, imgProps.fileType, x, y, imageWidth, imageHeight, undefined, settings.quality);
       });
 
-      // Download the final PDF
       pdf.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);

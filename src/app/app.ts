@@ -1,12 +1,13 @@
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AppHeaderComponent } from './components/app-header/app-header.component';
 import { DragDropZoneComponent } from './components/drag-drop-zone/drag-drop-zone.component';
 import { FileListComponent } from './components/file-list/file-list.component';
 import { GeneratePDFButtonComponent } from './components/generate-pdf-button/generate-pdf-button.component';
 import { ImageEditorModalComponent } from './components/image-editor-modal/image-editor-modal.component';
 import { FileService, FileObject } from './services/file.service';
-import { PDFService } from './services/pdf.service';
+import { PDFService, PDFSettings } from './services/pdf.service';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,7 @@ import { PDFService } from './services/pdf.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     AppHeaderComponent,
     DragDropZoneComponent,
     FileListComponent,
@@ -31,6 +33,11 @@ export class App {
   isGenerating: boolean = false;
   isDragging: boolean = false;
   editingFileIndex: number | null = null;
+  pdfSettings: PDFSettings = {
+    pageSize: 'a4',
+    orientation: 'portrait',
+    quality: 'MEDIUM'
+  };
 
   get editingFile(): FileObject | null {
     if (this.editingFileIndex === null) return null;
@@ -99,7 +106,7 @@ export class App {
 
     this.isGenerating = true;
     try {
-      this.pdfService.generatePDF(this.uploadedFiles);
+      this.pdfService.generatePDF(this.uploadedFiles, 'My_Converted_Images.pdf', this.pdfSettings);
       this.uploadedFiles = [];
     } catch (error) {
       console.error('Failed to generate PDF:', error);

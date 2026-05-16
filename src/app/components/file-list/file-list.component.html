@@ -1,11 +1,15 @@
 @if (uploadedFiles.length > 0) {
-  <div class="file-list-section">
+  <section class="file-list-section">
     <div class="file-list-header">
-      <h2 class="file-list-title">
-        <span class="file-count-badge">{{ uploadedFiles.length }}</span>
-        {{ uploadedFiles.length === 1 ? 'Image' : 'Images' }} Ready
-      </h2>
+      <div>
+        <span class="eyebrow">Preview queue</span>
+        <h2 class="file-list-title">
+          {{ uploadedFiles.length }} {{ uploadedFiles.length === 1 ? 'image' : 'images' }}
+        </h2>
+      </div>
+      <span class="file-count-badge">{{ uploadedFiles.length }}</span>
     </div>
+
     <div class="file-list">
       @for (file of uploadedFiles; track $index) {
         <file-item
@@ -23,5 +27,5 @@
         ></file-item>
       }
     </div>
-  </div>
+  </section>
 }
