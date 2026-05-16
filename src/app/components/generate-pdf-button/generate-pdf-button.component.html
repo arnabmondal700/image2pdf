@@ -1,0 +1,18 @@
+<div class="actions">
+  <button 
+    class="btn btn-primary"
+    (click)="onGenerateClick()" 
+    [disabled]="isDisabled()"
+  >
+    @if (isGenerating) {
+      <span class="button-text">
+        <span class="spinner"></span>
+        Generating PDF...
+      </span>
+    } @else {
+      <span class="button-text">
+        📥 Download PDF
+      </span>
+    }
+  </button>
+</div>

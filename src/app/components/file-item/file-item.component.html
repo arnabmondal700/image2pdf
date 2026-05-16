@@ -1,0 +1,23 @@
+<div 
+  class="file-item"
+  draggable="true"
+  [class.dragging]="isDragging"
+  [class.dragover]="isDragOver"
+  (dragstart)="onDragStart($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+  (dragend)="onDragEnd($event)"
+>
+  <div class="file-item-content">
+    <span class="file-index">{{ index + 1 }}</span>
+    <span class="file-name">{{ file?.name }}</span>
+  </div>
+  <button
+    class="remove-btn"
+    (click)="onRemove()"
+    title="Remove file"
+  >
+    ✕
+  </button>
+</div>

@@ -1,0 +1,26 @@
+<div 
+  class="drop-zone"
+  [class.dragging]="isDragging"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+  (click)="triggerFileInput(); $event.stopPropagation()"
+>
+  <div class="drop-zone-content">
+    <div class="drop-icon">🖼️</div>
+    <p class="drop-title">Drag and drop images here</p>
+    <p class="drop-text">
+      or <span class="click-link">click to select files</span>
+    </p>
+    <p class="drop-hint">PNG, JPEG (Max 10MB each)</p>
+  </div>
+</div>
+
+<input 
+  #fileInput
+  type="file" 
+  multiple 
+  accept="image/png, image/jpeg, image/jpg" 
+  (change)="onFilesSelected($event)"
+  class="hidden-input"
+>

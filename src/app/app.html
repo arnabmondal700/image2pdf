@@ -1,0 +1,28 @@
+<div class="app-container">
+  <div class="app-card">
+    <!-- Header -->
+    <app-header></app-header>
+
+    <!-- Drag and Drop Zone -->
+    <drag-drop-zone
+      [isDragging]="isDragging"
+      (filesSelected)="onFilesSelected($event)"
+      (openFileDialog)="onDragLeaveZone()"
+    ></drag-drop-zone>
+    {{uploadedFiles.length}}
+
+    <!-- File List -->
+    <file-list
+      [uploadedFiles]="uploadedFiles"
+      (fileRemoved)="onFileRemoved($event)"
+      (fileReordered)="onFileReordered($event)"
+    ></file-list>
+
+    <!-- Action Button -->
+    <generate-pdf-button
+      [uploadedFiles]="uploadedFiles"
+      [isGenerating]="isGenerating"
+      (generateClicked)="onGeneratePDF()"
+    ></generate-pdf-button>
+  </div>
+</div>
