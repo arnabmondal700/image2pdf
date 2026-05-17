@@ -5,6 +5,35 @@
   <section class="app-card">
     <app-header></app-header>
 
+    @if (validationErrors.length > 0) {
+      <div class="validation-error-banner" role="alert">
+        <div class="error-content">
+          <strong>Could not import {{ validationErrors.length }} file(s):</strong>
+          <ul>
+            @for (error of validationErrors; track error.fileName) {
+              <li>
+                <span class="error-file">{{ error.fileName }}</span>
+                @switch (error.reason) {
+                  @case ('unsupported-type') {
+                    <span class="error-message">Unsupported file type. Please use PNG or JPEG.</span>
+                  }
+                  @case ('exceeds-size-limit') {
+                    <span class="error-message">File exceeds 10 MB limit.</span>
+                  }
+                  @case ('read-error') {
+                    <span class="error-message">Failed to read file.</span>
+                  }
+                  @case ('pdf-generation-error') {
+                    <span class="error-message">Failed to generate PDF. Try fewer images or different settings.</span>
+                  }
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+
     <div class="workspace-grid">
       <section class="workspace-main" aria-label="Image upload workspace">
         <drag-drop-zone
@@ -21,58 +50,13 @@
         ></file-list>
       </section>
 
-      <aside class="settings-panel" aria-label="PDF settings">
-        <div class="panel-heading">
-          <span class="eyebrow">Export controls</span>
-          <h2>PDF settings</h2>
-          <p>Choose the page layout and output compression before downloading.</p>
-        </div>
-
-        <div class="settings-grid">
-          <label class="setting-field">
-            <span>Page size</span>
-            <select name="pageSize" [(ngModel)]="pdfSettings.pageSize">
-              <option value="a4">A4</option>
-              <option value="letter">Letter</option>
-              <option value="legal">Legal</option>
-            </select>
-          </label>
-
-          <label class="setting-field">
-            <span>Orientation</span>
-            <select name="orientation" [(ngModel)]="pdfSettings.orientation">
-              <option value="portrait">Portrait</option>
-              <option value="landscape">Landscape</option>
-            </select>
-          </label>
-
-          <label class="setting-field">
-            <span>Quality</span>
-            <select name="quality" [(ngModel)]="pdfSettings.quality">
-              <option value="FAST">Compact</option>
-              <option value="MEDIUM">Balanced</option>
-              <option value="SLOW">High quality</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="export-summary">
-          <div>
-            <strong>{{ uploadedFiles.length }}</strong>
-            <span>{{ uploadedFiles.length === 1 ? 'image ready' : 'images ready' }}</span>
-          </div>
-          <div>
-            <strong>{{ pdfSettings.pageSize | uppercase }}</strong>
-            <span>{{ pdfSettings.orientation }}</span>
-          </div>
-        </div>
-
-        <generate-pdf-button
-          [uploadedFiles]="uploadedFiles"
-          [isGenerating]="isGenerating"
-          (generateClicked)="onGeneratePDF()"
-        ></generate-pdf-button>
-      </aside>
+      <pdf-settings-panel
+        [pdfSettings]="pdfSettings"
+        [uploadedFiles]="uploadedFiles"
+        [isGenerating]="isGenerating"
+        (settingsChanged)="onPDFSettingsChanged($event)"
+        (generateClicked)="onGeneratePDF()"
+      ></pdf-settings-panel>
     </div>
   </section>
 

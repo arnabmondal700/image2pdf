@@ -1,15 +1,48 @@
 import { Injectable } from '@angular/core';
 import { jsPDF } from 'jspdf';
 import { FileObject } from './file.service';
+import {
+  calculatePageLayout,
+  calculateImageDimensions,
+  calculateImagePosition,
+  coerceImagesPerPage,
+  getOrientedPageDimensions,
+  sanitizeMargins
+} from '../utils/pdf-layout-engine';
 
 export type PDFPageSize = 'a4' | 'letter' | 'legal';
 export type PDFOrientation = 'portrait' | 'landscape';
 export type PDFQuality = 'FAST' | 'MEDIUM' | 'SLOW';
+export type PDFImageFit = 'contain' | 'cover' | 'stretch';
+export type PDFImageAlignment = 'center' | 'top' | 'bottom';
+export type PDFImagesPerPage = 1 | 2 | 4;
 
 export interface PDFSettings {
   pageSize: PDFPageSize;
   orientation: PDFOrientation;
   quality: PDFQuality;
+  marginTop?: number;
+  marginBottom?: number;
+  marginLeft?: number;
+  marginRight?: number;
+  imageFit?: PDFImageFit;
+  imageAlignment?: PDFImageAlignment;
+  backgroundColor?: string;
+  imagesPerPage?: PDFImagesPerPage;
+}
+
+interface ResolvedPDFSettings {
+  pageSize: PDFPageSize;
+  orientation: PDFOrientation;
+  quality: PDFQuality;
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
+  imageFit: PDFImageFit;
+  imageAlignment: PDFImageAlignment;
+  backgroundColor: string;
+  imagesPerPage: PDFImagesPerPage;
 }
 
 @Injectable({
@@ -22,44 +55,167 @@ export class PDFService {
   generatePDF(
     uploadedFiles: FileObject[],
     fileName: string = 'My_Converted_Images.pdf',
-    settings: PDFSettings = { pageSize: 'a4', orientation: 'portrait', quality: 'MEDIUM' }
+    settings: PDFSettings = { 
+      pageSize: 'a4', 
+      orientation: 'portrait', 
+      quality: 'MEDIUM',
+      marginTop: 8,
+      marginBottom: 8,
+      marginLeft: 8,
+      marginRight: 8,
+      imageFit: 'contain',
+      imageAlignment: 'center',
+      backgroundColor: '#ffffff',
+      imagesPerPage: 1
+    }
   ): void {
     if (uploadedFiles.length === 0) {
-      console.warn('No files to convert to PDF');
       return;
     }
 
+    const finalSettings = this.resolveSettings(settings);
+
     try {
       const pdf = new jsPDF({
-        orientation: settings.orientation,
+        orientation: finalSettings.orientation,
         unit: 'mm',
-        format: settings.pageSize
+        format: finalSettings.pageSize
       });
 
-      uploadedFiles.forEach(({ url: imgData }, index) => {
-        if (index > 0) {
+      const pageDims = getOrientedPageDimensions(finalSettings.pageSize, finalSettings.orientation);
+      const safeMargins = sanitizeMargins(
+        {
+          top: finalSettings.marginTop,
+          bottom: finalSettings.marginBottom,
+          left: finalSettings.marginLeft,
+          right: finalSettings.marginRight
+        },
+        pageDims.width,
+        pageDims.height
+      );
+      const pageLayout = calculatePageLayout(
+        finalSettings.imagesPerPage,
+        pageDims.width,
+        pageDims.height,
+        safeMargins,
+        4
+      );
+
+      let currentFileIndex = 0;
+      let isFirstPage = true;
+
+      while (currentFileIndex < uploadedFiles.length) {
+        if (!isFirstPage) {
           pdf.addPage();
         }
+        isFirstPage = false;
+        this.fillPageBackground(pdf, pageDims.width, pageDims.height, finalSettings.backgroundColor);
 
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const margin = 8;
-        const maxWidth = pdfWidth - margin * 2;
-        const maxHeight = pdfHeight - margin * 2;
-        const scale = Math.min(maxWidth / imgProps.width, maxHeight / imgProps.height);
-        const imageWidth = imgProps.width * scale;
-        const imageHeight = imgProps.height * scale;
-        const x = (pdfWidth - imageWidth) / 2;
-        const y = (pdfHeight - imageHeight) / 2;
+        for (let cellIndex = 0; cellIndex < pageLayout.length && currentFileIndex < uploadedFiles.length; cellIndex++) {
+          const cell = pageLayout[cellIndex];
+          const fileData = uploadedFiles[currentFileIndex];
+          const imgProps = pdf.getImageProperties(fileData.url);
 
-        pdf.addImage(imgData, imgProps.fileType, x, y, imageWidth, imageHeight, undefined, settings.quality);
-      });
+          const imageDims = calculateImageDimensions(
+            cell.width,
+            cell.height,
+            imgProps.width,
+            imgProps.height,
+            finalSettings.imageFit
+          );
+
+          const position = calculateImagePosition(
+            cell.x,
+            cell.y,
+            cell.width,
+            cell.height,
+            imageDims.width,
+            imageDims.height,
+            finalSettings.imageAlignment
+          );
+
+          this.addImageToCell(
+            pdf,
+            fileData.url,
+            imgProps.fileType,
+            position,
+            imageDims,
+            cell,
+            finalSettings
+          );
+
+          currentFileIndex++;
+        }
+      }
 
       pdf.save(fileName);
     } catch (error) {
-      console.error('Error generating PDF:', error);
       throw error;
     }
+  }
+
+  private resolveSettings(settings: PDFSettings): ResolvedPDFSettings {
+    return {
+      pageSize: settings.pageSize,
+      orientation: settings.orientation,
+      quality: settings.quality,
+      marginTop: this.coerceMargin(settings.marginTop, 8),
+      marginBottom: this.coerceMargin(settings.marginBottom, 8),
+      marginLeft: this.coerceMargin(settings.marginLeft, 8),
+      marginRight: this.coerceMargin(settings.marginRight, 8),
+      imageFit: settings.imageFit ?? 'contain',
+      imageAlignment: settings.imageAlignment ?? 'center',
+      backgroundColor: this.coerceHexColor(settings.backgroundColor),
+      imagesPerPage: coerceImagesPerPage(settings.imagesPerPage)
+    };
+  }
+
+  private coerceMargin(value: unknown, fallback: number): number {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? Math.max(0, numericValue) : fallback;
+  }
+
+  private coerceHexColor(value: unknown): string {
+    return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#ffffff';
+  }
+
+  private fillPageBackground(pdf: jsPDF, pageWidth: number, pageHeight: number, color: string): void {
+    pdf.setFillColor(color);
+    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+  }
+
+  private addImageToCell(
+    pdf: jsPDF,
+    imageData: string,
+    imageType: string,
+    position: { x: number; y: number },
+    imageDims: { width: number; height: number },
+    cell: { x: number; y: number; width: number; height: number },
+    settings: ResolvedPDFSettings
+  ): void {
+    const addImage = () => {
+      pdf.addImage(
+        imageData,
+        imageType,
+        position.x,
+        position.y,
+        imageDims.width,
+        imageDims.height,
+        undefined,
+        settings.quality
+      );
+    };
+
+    if (settings.imageFit !== 'cover') {
+      addImage();
+      return;
+    }
+
+    pdf.saveGraphicsState();
+    pdf.rect(cell.x, cell.y, cell.width, cell.height);
+    pdf.clip();
+    pdf.discardPath();
+    addImage();
+    pdf.restoreGraphicsState();
   }
 }

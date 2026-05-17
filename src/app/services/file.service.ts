@@ -3,6 +3,18 @@ import { Injectable } from '@angular/core';
 export interface FileObject {
   name: string;
   url: string;
+  size: number;
+  type: string;
+}
+
+export interface FileValidationError {
+  fileName: string;
+  reason: 'unsupported-type' | 'exceeds-size-limit' | 'read-error' | 'pdf-generation-error';
+}
+
+export interface ProcessFilesResult {
+  successful: FileObject[];
+  errors: FileValidationError[];
 }
 
 @Injectable({
@@ -15,44 +27,47 @@ export class FileService {
   /**
    * Validate if a file is an allowed image type and size
    */
-  validateFile(file: File): boolean {
+  private validateFile(file: File): { valid: boolean; error?: FileValidationError } {
     if (!this.allowedTypes.includes(file.type)) {
-      console.warn(`File type ${file.type} not allowed`);
-      return false;
+      return {
+        valid: false,
+        error: { fileName: file.name, reason: 'unsupported-type' }
+      };
     }
     if (file.size > this.maxFileSize) {
-      console.warn(`File size exceeds 10MB limit`);
-      return false;
+      return {
+        valid: false,
+        error: { fileName: file.name, reason: 'exceeds-size-limit' }
+      };
     }
-    return true;
+    return { valid: true };
   }
 
   /**
    * Process FileList into FileObject array with DataURL conversion
    */
-  processFiles(files: FileList | File[]): Promise<FileObject[]> {
-    return new Promise((resolve, reject) => {
+  processFiles(files: FileList | File[]): Promise<ProcessFilesResult> {
+    return new Promise((resolve) => {
       const processedFiles: FileObject[] = [];
+      const errors: FileValidationError[] = [];
       let loadedCount = 0;
       const totalFiles = files.length;
 
-      console.log('processFiles called with', totalFiles, 'files');
-
       if (!files || totalFiles === 0) {
-        console.log('No files provided');
-        resolve([]);
+        resolve({ successful: [], errors: [] });
         return;
       }
 
-      Array.from(files).forEach((file, index) => {
-        console.log(`Processing file ${index}:`, file.name, file.type);
-
-        if (!this.validateFile(file)) {
-          console.warn(`File ${file.name} failed validation`);
+      Array.from(files).forEach((file) => {
+        const validation = this.validateFile(file);
+        
+        if (!validation.valid) {
+          if (validation.error) {
+            errors.push(validation.error);
+          }
           loadedCount++;
           if (loadedCount === totalFiles) {
-            console.log('All files processed, resolving:', processedFiles);
-            resolve(processedFiles);
+            resolve({ successful: processedFiles, errors });
           }
           return;
         }
@@ -61,25 +76,26 @@ export class FileService {
         
         reader.onload = (e: ProgressEvent<FileReader>) => {
           const result = e.target?.result as string;
-          console.log(`File ${file.name} loaded successfully`);
           processedFiles.push({
             name: file.name,
-            url: result
+            url: result,
+            size: file.size,
+            type: file.type
           });
           loadedCount++;
-          console.log(`Loaded ${loadedCount}/${totalFiles} files`);
           if (loadedCount === totalFiles) {
-            console.log('All files processed, resolving:', processedFiles);
-            resolve(processedFiles);
+            resolve({ successful: processedFiles, errors });
           }
         };
 
-        reader.onerror = (error) => {
-          console.error(`Failed to read file ${file.name}:`, error);
+        reader.onerror = () => {
+          errors.push({
+            fileName: file.name,
+            reason: 'read-error'
+          });
           loadedCount++;
           if (loadedCount === totalFiles) {
-            console.log('All files processed (with errors), resolving:', processedFiles);
-            resolve(processedFiles);
+            resolve({ successful: processedFiles, errors });
           }
         };
 

@@ -6,7 +6,8 @@ import { DragDropZoneComponent } from './components/drag-drop-zone/drag-drop-zon
 import { FileListComponent } from './components/file-list/file-list.component';
 import { GeneratePDFButtonComponent } from './components/generate-pdf-button/generate-pdf-button.component';
 import { ImageEditorModalComponent } from './components/image-editor-modal/image-editor-modal.component';
-import { FileService, FileObject } from './services/file.service';
+import { PdfSettingsPanelComponent } from './components/pdf-settings-panel/pdf-settings-panel.component';
+import { FileService, FileObject, FileValidationError } from './services/file.service';
 import { PDFService, PDFSettings } from './services/pdf.service';
 
 @Component({
@@ -20,8 +21,8 @@ import { PDFService, PDFSettings } from './services/pdf.service';
     AppHeaderComponent,
     DragDropZoneComponent,
     FileListComponent,
-    GeneratePDFButtonComponent,
-    ImageEditorModalComponent
+    ImageEditorModalComponent,
+    PdfSettingsPanelComponent
   ]
 })
 export class App {
@@ -33,10 +34,19 @@ export class App {
   isGenerating: boolean = false;
   isDragging: boolean = false;
   editingFileIndex: number | null = null;
+  validationErrors: FileValidationError[] = [];
   pdfSettings: PDFSettings = {
     pageSize: 'a4',
     orientation: 'portrait',
-    quality: 'MEDIUM'
+    quality: 'MEDIUM',
+    marginTop: 8,
+    marginBottom: 8,
+    marginLeft: 8,
+    marginRight: 8,
+    imageFit: 'contain',
+    imageAlignment: 'center',
+    backgroundColor: '#ffffff',
+    imagesPerPage: 1
   };
 
   get editingFile(): FileObject | null {
@@ -46,14 +56,19 @@ export class App {
 
   // Handle files from drag-drop or file input
   onFilesSelected(files: FileList | File[]) {
-    console.log('onFilesSelected called with', files.length, 'files');
-    this.fileService.processFiles(files).then((newFiles) => {
-      console.log('processFiles resolved with', newFiles.length, 'new files');
-      this.uploadedFiles = [...this.uploadedFiles, ...newFiles];
-      console.log('uploadedFiles updated, total:', this.uploadedFiles.length);
+    this.fileService.processFiles(files).then((result) => {
+      this.uploadedFiles = [...this.uploadedFiles, ...result.successful];
+      this.validationErrors = result.errors;
+      
+      // Clear validation errors after 5 seconds
+      if (this.validationErrors.length > 0) {
+        setTimeout(() => {
+          this.validationErrors = [];
+          this.cdr.detectChanges();
+        }, 5000);
+      }
+      
       this.cdr.detectChanges();
-    }).catch((error) => {
-      console.error('Error processing files:', error);
     });
   }
 
@@ -91,6 +106,11 @@ export class App {
     );
   }
 
+  // Handle PDF settings changes
+  onPDFSettingsChanged(settings: PDFSettings) {
+    this.pdfSettings = settings;
+  }
+
   // Update dragging state for drop zone
   onDragOverZone() {
     this.isDragging = true;
@@ -109,7 +129,15 @@ export class App {
       this.pdfService.generatePDF(this.uploadedFiles, 'My_Converted_Images.pdf', this.pdfSettings);
       this.uploadedFiles = [];
     } catch (error) {
-      console.error('Failed to generate PDF:', error);
+      this.validationErrors = [{
+        fileName: 'PDF',
+        reason: 'pdf-generation-error'
+      }];
+      
+      setTimeout(() => {
+        this.validationErrors = [];
+        this.cdr.detectChanges();
+      }, 5000);
     } finally {
       this.isGenerating = false;
     }
