@@ -8,6 +8,7 @@ interface MockPdfInstance {
   clip: ReturnType<typeof vi.fn>;
   discardPath: ReturnType<typeof vi.fn>;
   getImageProperties: ReturnType<typeof vi.fn>;
+  output: ReturnType<typeof vi.fn>;
   rect: ReturnType<typeof vi.fn>;
   restoreGraphicsState: ReturnType<typeof vi.fn>;
   save: ReturnType<typeof vi.fn>;
@@ -22,6 +23,7 @@ vi.mock('jspdf', () => ({
     clip = vi.fn();
     discardPath = vi.fn();
     getImageProperties = vi.fn(() => ({ width: 200, height: 100, fileType: 'JPEG' }));
+    output = vi.fn(() => new Blob(['pdf'], { type: 'application/pdf' }));
     rect = vi.fn();
     restoreGraphicsState = vi.fn();
     save = vi.fn();

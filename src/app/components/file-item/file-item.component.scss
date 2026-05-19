@@ -18,16 +18,12 @@
     transform: translateY(-2px);
   }
 
-  &.dragging {
-    cursor: grabbing;
-    opacity: 0.58;
-    transform: scale(0.98);
-  }
+}
 
-  &.dragover {
-    border-color: rgba(99, 102, 241, 0.82);
-    box-shadow: 0 0 0 4px var(--focus-ring), 0 18px 42px rgba(49, 46, 129, 0.16);
-  }
+:host.cdk-drag-dragging .file-item {
+  cursor: grabbing;
+  opacity: 0.58;
+  transform: scale(0.98);
 }
 
 .thumb-wrap {

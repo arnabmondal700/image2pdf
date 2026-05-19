@@ -48,6 +48,11 @@
           (fileEditRequested)="onFileEditRequested($event)"
           (fileReordered)="onFileReordered($event)"
         ></file-list>
+
+        <pdf-preview
+          [uploadedFiles]="uploadedFiles"
+          [pdfSettings]="pdfSettings"
+        ></pdf-preview>
       </section>
 
       <pdf-settings-panel

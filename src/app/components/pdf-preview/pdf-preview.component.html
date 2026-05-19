@@ -1,0 +1,55 @@
+<section class="pdf-preview" aria-label="PDF preview">
+  <div class="preview-header">
+    <div>
+      <span class="eyebrow">Live preview</span>
+      <h2>PDF output</h2>
+    </div>
+
+    @if (totalPages > 0) {
+      <div class="preview-controls">
+        <button type="button" (click)="previousPage()" [disabled]="selectedPage <= 1" title="Previous page">
+          ‹
+        </button>
+        <span>{{ selectedPage }} / {{ totalPages }}</span>
+        <button type="button" (click)="nextPage()" [disabled]="selectedPage >= totalPages" title="Next page">
+          ›
+        </button>
+        <button type="button" (click)="zoomOut()" [disabled]="zoom <= 0.4" title="Zoom out">
+          -
+        </button>
+        <button type="button" (click)="zoomIn()" [disabled]="zoom >= 1.6" title="Zoom in">
+          +
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (uploadedFiles.length === 0) {
+    <div class="preview-empty">
+      <p>Add images to preview the generated PDF.</p>
+    </div>
+  } @else {
+    <div class="preview-body">
+      @if (thumbnails.length > 1) {
+        <div class="thumbnail-strip" aria-label="PDF page thumbnails">
+          @for (thumbnail of thumbnails; track thumbnail.pageNumber) {
+            <button
+              type="button"
+              class="thumbnail-button"
+              [class.active]="thumbnail.pageNumber === selectedPage"
+              (click)="selectPage(thumbnail.pageNumber)"
+              [title]="'Preview page ' + thumbnail.pageNumber"
+            >
+              <img [src]="thumbnail.url" [alt]="'Page ' + thumbnail.pageNumber + ' thumbnail'">
+              <span>{{ thumbnail.pageNumber }}</span>
+            </button>
+          }
+        </div>
+      }
+
+      <div class="canvas-shell" [class.rendering]="isRendering">
+        <canvas #previewCanvas></canvas>
+      </div>
+    </div>
+  }
+</section>

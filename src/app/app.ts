@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { AppHeaderComponent } from './components/app-header/app-header.component';
 import { DragDropZoneComponent } from './components/drag-drop-zone/drag-drop-zone.component';
 import { FileListComponent } from './components/file-list/file-list.component';
-import { GeneratePDFButtonComponent } from './components/generate-pdf-button/generate-pdf-button.component';
 import { ImageEditorModalComponent } from './components/image-editor-modal/image-editor-modal.component';
 import { PdfSettingsPanelComponent } from './components/pdf-settings-panel/pdf-settings-panel.component';
+import { PdfPreviewComponent } from './components/pdf-preview/pdf-preview.component';
 import { FileService, FileObject, FileValidationError } from './services/file.service';
+import { ImageOptimizerService } from './services/image-optimizer.service';
 import { PDFService, PDFSettings } from './services/pdf.service';
 
 @Component({
@@ -22,11 +23,13 @@ import { PDFService, PDFSettings } from './services/pdf.service';
     DragDropZoneComponent,
     FileListComponent,
     ImageEditorModalComponent,
+    PdfPreviewComponent,
     PdfSettingsPanelComponent
   ]
 })
 export class App {
   private fileService = inject(FileService);
+  private imageOptimizer = inject(ImageOptimizerService);
   private pdfService = inject(PDFService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -121,12 +124,13 @@ export class App {
   }
 
   // Generate PDF
-  onGeneratePDF() {
+  async onGeneratePDF() {
     if (this.uploadedFiles.length === 0) return;
 
     this.isGenerating = true;
     try {
-      this.pdfService.generatePDF(this.uploadedFiles, 'My_Converted_Images.pdf', this.pdfSettings);
+      const optimizedFiles = await this.imageOptimizer.optimizeFiles(this.uploadedFiles, this.pdfSettings.quality);
+      this.pdfService.generatePDF(optimizedFiles, 'My_Converted_Images.pdf', this.pdfSettings);
       this.uploadedFiles = [];
     } catch (error) {
       this.validationErrors = [{

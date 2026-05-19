@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { moveItemInArray } from '@angular/cdk/drag-drop';
 
 export interface FileObject {
   name: string;
@@ -117,13 +118,7 @@ export class FileService {
     }
 
     const newFiles = [...files];
-    const draggedFile = newFiles[draggedIndex];
-    newFiles.splice(draggedIndex, 1);
-
-    // Adjust drop index if dragging from above
-    const adjustedDropIndex =
-      draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
-    newFiles.splice(adjustedDropIndex, 0, draggedFile);
+    moveItemInArray(newFiles, draggedIndex, dropIndex);
 
     return newFiles;
   }

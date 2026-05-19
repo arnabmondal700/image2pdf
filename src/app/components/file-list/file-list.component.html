@@ -10,20 +10,20 @@
       <span class="file-count-badge">{{ uploadedFiles.length }}</span>
     </div>
 
-    <div class="file-list">
+    <div
+      class="file-list"
+      cdkDropList
+      [cdkDropListData]="uploadedFiles"
+      cdkDropListOrientation="mixed"
+      (cdkDropListDropped)="onDrop($event)"
+    >
       @for (file of uploadedFiles; track $index) {
         <file-item
+          cdkDrag
           [file]="file"
           [index]="$index"
-          [isDragging]="draggedIndex === $index"
-          [isDragOver]="dragoverIndex === $index"
           (removeFile)="onFileRemove($event)"
           (editFile)="onFileEdit($event)"
-          (dragStart)="onDragStart($event)"
-          (dragOver)="onDragOver($event)"
-          (dragLeave)="onDragLeave()"
-          (drop)="onDrop($event)"
-          (dragEnd)="onDragEnd()"
         ></file-item>
       }
     </div>

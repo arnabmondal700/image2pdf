@@ -52,7 +52,7 @@ describe('FileService', () => {
 
     const reordered = service.reorderFiles(files, 0, 2);
 
-    expect(reordered.map((file) => file.name)).toEqual(['two.png', 'one.png', 'three.png']);
+    expect(reordered.map((file) => file.name)).toEqual(['two.png', 'three.png', 'one.png']);
     expect(files.map((file) => file.name)).toEqual(['one.png', 'two.png', 'three.png']);
   });
 });

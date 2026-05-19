@@ -73,6 +73,19 @@ export class PDFService {
       return;
     }
 
+    const pdf = this.createPDF(uploadedFiles, settings);
+    pdf.save(fileName);
+  }
+
+  createPDFBlob(uploadedFiles: FileObject[], settings: PDFSettings): Blob {
+    if (uploadedFiles.length === 0) {
+      return new Blob([], { type: 'application/pdf' });
+    }
+
+    return this.createPDF(uploadedFiles, settings).output('blob');
+  }
+
+  private createPDF(uploadedFiles: FileObject[], settings: PDFSettings): jsPDF {
     const finalSettings = this.resolveSettings(settings);
 
     try {
@@ -148,7 +161,7 @@ export class PDFService {
         }
       }
 
-      pdf.save(fileName);
+      return pdf;
     } catch (error) {
       throw error;
     }
