@@ -144,6 +144,7 @@ export class App {
       }, 5000);
     } finally {
       this.isGenerating = false;
+      this.cdr.detectChanges();
     }
   }
 }

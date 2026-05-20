@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   inject,
@@ -29,6 +30,7 @@ interface PreviewThumbnail {
 export class PdfPreviewComponent implements AfterViewInit, OnChanges, OnDestroy {
   private pdfService = inject(PDFService);
   private ngZone = inject(NgZone);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() uploadedFiles: FileObject[] = [];
   @Input() pdfSettings: PDFSettings | null = null;
@@ -68,6 +70,9 @@ export class PdfPreviewComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.isRefreshing = true;
     await this.refreshPreview();
     this.isRefreshing = false;
+
+    // Notify Angular that the component has changed after async refresh
+    this.cdr.markForCheck();
 
     // If inputs changed while we were refreshing, refresh again
     if (this.pendingRefresh) {
