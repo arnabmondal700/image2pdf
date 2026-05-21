@@ -10,6 +10,7 @@ import { PdfPreviewComponent } from './components/pdf-preview/pdf-preview.compon
 import { FileService, FileObject, FileValidationError } from './services/file.service';
 import { ImageOptimizerService } from './services/image-optimizer.service';
 import { PDFService, PDFSettings } from './services/pdf.service';
+import { PdfSettingsStorageService } from './services/pdf-settings-storage.service';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +32,7 @@ export class App {
   private fileService = inject(FileService);
   private imageOptimizer = inject(ImageOptimizerService);
   private pdfService = inject(PDFService);
+  private settingsStorage = inject(PdfSettingsStorageService);
   private cdr = inject(ChangeDetectorRef);
 
   uploadedFiles: FileObject[] = [];
@@ -38,19 +40,25 @@ export class App {
   isDragging: boolean = false;
   editingFileIndex: number | null = null;
   validationErrors: FileValidationError[] = [];
-  pdfSettings: PDFSettings = {
-    pageSize: 'a4',
-    orientation: 'portrait',
-    quality: 'MEDIUM',
-    marginTop: 8,
-    marginBottom: 8,
-    marginLeft: 8,
-    marginRight: 8,
-    imageFit: 'contain',
-    imageAlignment: 'center',
-    backgroundColor: '#ffffff',
-    imagesPerPage: 1
-  };
+  pdfSettings: PDFSettings;
+
+  constructor() {
+    // Load saved settings or use defaults
+    const savedSettings = this.settingsStorage.loadSettings();
+    this.pdfSettings = savedSettings || {
+      pageSize: 'a4',
+      orientation: 'portrait',
+      quality: 'MEDIUM',
+      marginTop: 8,
+      marginBottom: 8,
+      marginLeft: 8,
+      marginRight: 8,
+      imageFit: 'contain',
+      imageAlignment: 'center',
+      backgroundColor: '#ffffff',
+      imagesPerPage: 1
+    };
+  }
 
   get editingFile(): FileObject | null {
     if (this.editingFileIndex === null) return null;
@@ -112,6 +120,8 @@ export class App {
   // Handle PDF settings changes
   onPDFSettingsChanged(settings: PDFSettings) {
     this.pdfSettings = settings;
+    // Auto-save settings to browser storage
+    this.settingsStorage.saveSettings(settings);
   }
 
   // Update dragging state for drop zone

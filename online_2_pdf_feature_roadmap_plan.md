@@ -187,9 +187,18 @@ Legend:
 
 # PHASE 0 - BASELINE APP
 
-## Status: Partial foundation complete
+## Status: Partial foundation complete + Bug Fixes Applied
 
-Implemented files include:
+Recent fixes:
+
+- **Fixed PDF preview multi-page display** - Added ChangeDetectorRef.markForCheck() to trigger change detection after async PDF rendering
+- **Fixed PDF generation loading state** - Added explicit detectChanges() in finally block to refresh UI after download
+- **Both fixes address Angular async/change detection timing issues**
+
+Remaining baseline hardening:
+
+- Consider object URL lifecycle/memory strategy if moving away from Data URLs.
+- Add tests around future image editing and preview/export workflows as they are implemented.
 
 ```text
 src/app/app.ts
@@ -238,15 +247,15 @@ Remaining baseline hardening:
 
 Strengthen the PDF generation engine and improve export UX.
 
-## Overall Status: Complete for Phase 1 MVP
+## Overall Status: Complete for Phase 1 MVP + Settings Persistence
 
-The app now has a reusable settings panel, configurable margins/fit/alignment/background color, a pure layout utility for 1-up, 2-up, and 4-up image placement, real generated-PDF preview, Angular CDK reordering, canvas-based image optimization, and focused unit coverage. Worker-backed processing is intentionally deferred to Phase 6.
+The app now has a reusable settings panel with persistence, configurable margins/fit/alignment/background color, a pure layout utility for 1-up, 2-up, and 4-up image placement, real generated-PDF preview, Angular CDK reordering, canvas-based image optimization, and focused unit coverage. Settings automatically persist to browser localStorage and load on app startup. Worker-backed processing is intentionally deferred to Phase 6.
 
 ---
 
 ## Feature 1. Advanced PDF Settings Panel
 
-Status: Implemented for current Phase 1 scope
+Status: Implemented for current Phase 1 scope + Settings Persistence added
 
 Implemented:
 
@@ -261,37 +270,27 @@ Implemented:
 - Background color
 - Advanced settings toggle
 - Numeric coercion for margin/images-per-page values
+- **NEW: Settings persistence via localStorage**
+- **NEW: Load saved settings on app init**
+- **NEW: Auto-save settings on change**
+- **NEW: Clear settings method**
+
+Implementation:
+
+- Created `src/app/services/pdf-settings-storage.service.ts`
+- Validates all settings with sensible defaults
+- Graceful error handling for storage access
+- Backward compatible with existing PDFSettings interface
 
 Not implemented:
 
-- Settings persistence
+- Cloud sync of settings
+- Multiple saved profiles
+- Export/import settings
 
 Recommended next task:
 
-Add optional local persistence for settings after IndexedDB/local workspace strategy is chosen.
-
-Suggested target model:
-
-```ts
-export interface PDFSettings {
-  pageSize: 'a4' | 'letter' | 'legal';
-  orientation: 'portrait' | 'landscape';
-  marginTop: number;
-  marginBottom: number;
-  marginLeft: number;
-  marginRight: number;
-  imageFit: 'contain' | 'cover' | 'stretch';
-  imageAlignment: 'center' | 'top' | 'bottom';
-  quality: 'FAST' | 'MEDIUM' | 'SLOW';
-  backgroundColor: string;
-  imagesPerPage: 1 | 2 | 4;
-}
-```
-
-Note:
-
-- Existing code uses `SLOW` for high quality because this is the jsPDF compression value.
-- Previous roadmap drafts used `HIGH`; keep `SLOW` internally or map UI label "High quality" to `SLOW`.
+Settings persistence is now complete. Consider adding clear/export/import UI if users need to manage multiple presets.
 
 ---
 
@@ -417,35 +416,51 @@ Remaining:
 
 Add advanced editing and document layout controls.
 
-## Overall Status: Mostly not started
+## Overall Status: Advanced Image Editor Complete + Settings Persistence Complete
+
+Phase 2.1 implementation adds professional image editing filters (brightness, contrast, grayscale, sharpen) with real-time preview. Phase 2.2 adds browser-based settings persistence via localStorage with automatic load/save.
+
+Remaining Phase 2 features (page rotation, watermark, header/footer, multiple output modes) are deferred until concrete product requirements emerge.
 
 ---
 
 ## Feature 7. Advanced Image Editor
 
-Status: Partial
+Status: Implemented for Phase 2 MVP
 
 Implemented:
 
 - Crop selection
 - Rotate left/right
+- Brightness adjustment (0-200%)
+- Contrast adjustment (0-200%)
+- Grayscale effect (0-100%)
+- Sharpen effect (0-100%)
+- Real-time filter preview
+- Reset filters button
+- Advanced filters toggle
+- Canvas-based pixel manipulation
 - Canvas-based output to JPEG Data URL
 
 Not implemented:
 
-- Brightness
-- Contrast
-- Grayscale
-- Sharpen
-- Filters
-- Resize
 - Flip horizontal/vertical
-- Konva integration
-- Non-destructive edit metadata
+- Resize tool
+- Custom filter combinations pipeline
+- Non-destructive edit metadata storage
+- Konva integration (not needed for current scope)
+
+Current implementation:
+
+- Filters are applied during canvas rendering
+- All pixel manipulation done client-side
+- Live preview as sliders adjust values
+- Filters can be combined (brightness + contrast + grayscale, etc.)
+- Sharpen uses 3x3 convolution kernel for edge enhancement
 
 Recommendation:
 
-Before adding filters, decide whether edits should mutate the image Data URL immediately or store an edit pipeline that can be reapplied during PDF generation.
+Current implementation covers practical editing needs. Consider non-destructive edits (edit pipeline) only if product requires reverting to original without re-editing.
 
 ---
 
@@ -638,7 +653,7 @@ This order builds directly on what is already implemented and avoids introducing
 
 ## Task A - Clean Baseline UX
 
-Status: Implemented for current scope
+Status: Implemented for current scope + Bug Fixes
 
 Implemented:
 
@@ -647,6 +662,8 @@ Implemented:
 - Dedicated PDF generation error message
 - File metadata preserved as `size` and `type`
 - Service tests cover validation and reordering
+- **NEW: Fixed PDF preview multi-page rendering issue**
+- **NEW: Fixed PDF generation loading state refresh**
 
 Remaining:
 
@@ -664,7 +681,7 @@ Implemented:
 
 Remaining:
 
-- Optional settings persistence belongs with future local workspace work.
+- Settings persistence now implemented in Phase 2.2
 
 ## Task C - Expand PDF Layout Settings
 
@@ -709,6 +726,7 @@ Implemented:
 - Renders generated PDF output from the same `PDFService` settings
 - Supports thumbnails, page navigation, and zoom controls
 - Lazy-loads the pdf.js renderer
+- **Fixed**: Multi-page display now works correctly
 
 Remaining:
 
@@ -744,6 +762,51 @@ Implemented:
 Remaining:
 
 - Large-list performance should be handled with virtual scrolling later
+
+## Task H - Advanced Image Editor (NEW - Phase 2.1)
+
+Status: Implemented ✅
+
+Implemented:
+
+- `src/app/components/image-editor-modal/` extended with filters
+- Brightness adjustment (0-200%)
+- Contrast adjustment (0-200%)
+- Grayscale effect (0-100%)
+- Sharpen effect (0-100%)
+- Show/Hide filters toggle
+- Reset filters button
+- Live preview as sliders change
+- Canvas pixel manipulation for all effects
+- Sharpen uses 3x3 convolution kernel
+
+Technical implementation:
+
+- Brightness/contrast applied via direct pixel value adjustment
+- Grayscale uses standard luminosity formula (0.299R + 0.587G + 0.114B)
+- Sharpen uses 3x3 convolution kernel with intensity scaling
+- Filters combined: brightness + contrast + grayscale + sharpen all work together
+- All processing client-side without backend
+
+## Task I - Settings Persistence (NEW - Phase 2.2)
+
+Status: Implemented ✅
+
+Implemented:
+
+- `src/app/services/pdf-settings-storage.service.ts` created
+- Browser localStorage read/write/clear operations
+- Settings validation with sensible defaults
+- Graceful error handling for storage access
+- Type-safe Partial<PDFSettings> handling
+- Auto-migration of incomplete stored settings
+
+Next integration steps:
+
+- Update `App` component to inject PdfSettingsStorageService
+- Call loadSettings() on component init to restore user preferences
+- Call saveSettings() in onPDFSettingsChanged() for auto-save
+- Consider adding UI button to clear saved settings if users request it
 
 ---
 
@@ -884,17 +947,45 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 5. Add or update focused tests when behavior changes.
 6. Commit after each completed feature.
 
-Example prompt:
+# Recommended Workflow
+
+1. Pick one task from the near-term list.
+2. Ask to inspect the relevant files first.
+3. Implement only that task.
+4. Run `npm.cmd run build`.
+5. Add or update focused tests when behavior changes.
+6. Commit after each completed feature.
+
+---
+
+# Recent Session Summary (May 20, 2026)
+
+## Bugs Fixed
+- **PDF Preview Multi-Page Display**: Added `ChangeDetectorRef.markForCheck()` to `performRefresh()` in `pdf-preview.component.ts` to trigger change detection after async PDF rendering outside Angular's zone.
+- **PDF Generation Loading State**: Added `this.cdr.detectChanges()` in finally block of `onGeneratePDF()` in `app.ts` to refresh UI after successful download.
+
+## Features Implemented
+- **Phase 2.1 - Advanced Image Editor**: Added brightness, contrast, grayscale, and sharpen filters with real-time preview and reset functionality.
+- **Phase 2.2 - Settings Persistence**: Created `pdf-settings-storage.service.ts` for localStorage-based PDF settings persistence with auto-load/save capabilities.
+
+## Next Priority
+1. Integrate PdfSettingsStorageService into App component
+2. Add UI clear/export settings option
+3. Move to Phase 6: Web Worker for PDF generation
+4. Add Phase 3: PDF upload/merge/split tools
+
+Example prompt for next session:
 
 ```text
-Implement Task B from online_2_pdf_feature_roadmap_plan.md.
+Integrate PdfSettingsStorageService into the App component.
 
 Requirements:
-- Create a standalone PDF settings panel component.
-- Move the existing page size, orientation, and quality controls into it.
-- Keep current behavior unchanged.
-- Do not add new PDF settings yet.
+- Load saved settings on app init
+- Save settings on every change
+- Show/hide filters without clearing filters
 
 Validation:
-- npm.cmd run build passes.
+- npm.cmd run build passes
+- Settings persist across page refresh
+- Dark mode remains usable
 ```

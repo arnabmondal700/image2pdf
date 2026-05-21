@@ -10,6 +10,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { FileObject } from '../../services/file.service';
 
 interface Rect {
@@ -24,12 +25,19 @@ interface Point {
   y: number;
 }
 
+interface ImageFilters {
+  brightness: number;
+  contrast: number;
+  grayscale: number;
+  sharpen: number;
+}
+
 @Component({
   selector: 'image-editor-modal',
   templateUrl: './image-editor-modal.component.html',
   styleUrls: ['./image-editor-modal.component.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, FormsModule]
 })
 export class ImageEditorModalComponent implements AfterViewInit, OnChanges {
   @Input() file: FileObject | null = null;
@@ -42,6 +50,13 @@ export class ImageEditorModalComponent implements AfterViewInit, OnChanges {
   isLoaded = false;
   rotation = 0;
   cropRect: Rect | null = null;
+  showAdvancedFilters = false;
+  filters: ImageFilters = {
+    brightness: 100,
+    contrast: 100,
+    grayscale: 0,
+    sharpen: 0
+  };
 
   private image: HTMLImageElement | null = null;
   private imageBounds: Rect | null = null;
@@ -70,6 +85,24 @@ export class ImageEditorModalComponent implements AfterViewInit, OnChanges {
   rotateRight() {
     this.rotation = (this.rotation + 90) % 360;
     this.resetCropAndDraw();
+  }
+
+  toggleAdvancedFilters() {
+    this.showAdvancedFilters = !this.showAdvancedFilters;
+  }
+
+  resetFilters() {
+    this.filters = {
+      brightness: 100,
+      contrast: 100,
+      grayscale: 0,
+      sharpen: 0
+    };
+    this.draw();
+  }
+
+  onFilterChange() {
+    this.draw();
   }
 
   onPointerDown(event: PointerEvent) {
@@ -259,7 +292,103 @@ export class ImageEditorModalComponent implements AfterViewInit, OnChanges {
     context.drawImage(image, 0, 0);
     context.restore();
 
+    // Apply filters to the rotated canvas
+    this.applyFiltersToCanvas(canvas);
+
     return canvas;
+  }
+
+  private applyFiltersToCanvas(canvas: HTMLCanvasElement): void {
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    // Get image data for pixel manipulation
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    // Apply brightness and contrast
+    if (this.filters.brightness !== 100 || this.filters.contrast !== 100) {
+      this.applyBrightnessContrast(data);
+    }
+
+    // Apply grayscale
+    if (this.filters.grayscale > 0) {
+      this.applyGrayscale(data);
+    }
+
+    // Put modified data back
+    context.putImageData(imageData, 0, 0);
+
+    // Apply sharpen (requires convolution, done separately)
+    if (this.filters.sharpen > 0) {
+      this.applySharpen(canvas);
+    }
+  }
+
+  private applyBrightnessContrast(data: Uint8ClampedArray): void {
+    const brightness = this.filters.brightness;
+    const contrast = this.filters.contrast;
+
+    for (let i = 0; i < data.length; i = i + 4) {
+      // Apply brightness
+      data[i] = Math.min(255, data[i] * (brightness / 100));
+      data[i + 1] = Math.min(255, data[i + 1] * (brightness / 100));
+      data[i + 2] = Math.min(255, data[i + 2] * (brightness / 100));
+
+      // Apply contrast
+      const factor = (contrast - 100) / 100 + 1;
+      data[i] = Math.min(255, Math.max(0, (data[i] - 128) * factor + 128));
+      data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * factor + 128));
+      data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * factor + 128));
+    }
+  }
+
+  private applyGrayscale(data: Uint8ClampedArray): void {
+    const intensity = this.filters.grayscale / 100;
+
+    for (let i = 0; i < data.length; i = i + 4) {
+      const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+
+      data[i] = Math.round(data[i] * (1 - intensity) + gray * intensity);
+      data[i + 1] = Math.round(data[i + 1] * (1 - intensity) + gray * intensity);
+      data[i + 2] = Math.round(data[i + 2] * (1 - intensity) + gray * intensity);
+    }
+  }
+
+  private applySharpen(canvas: HTMLCanvasElement): void {
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    const intensity = this.filters.sharpen / 100;
+    const kernel = [
+      -1, -1, -1,
+      -1, 9 + (intensity * 8), -1,
+      -1, -1, -1
+    ];
+
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const width = canvas.width;
+    const height = canvas.height;
+    const output = new Uint8ClampedArray(data);
+
+    for (let y = 1; y < height - 1; y = y + 1) {
+      for (let x = 1; x < width - 1; x = x + 1) {
+        for (let c = 0; c < 3; c = c + 1) {
+          let sum = 0;
+          for (let ky = -1; ky <= 1; ky = ky + 1) {
+            for (let kx = -1; kx <= 1; kx = kx + 1) {
+              const idx = ((y + ky) * width + (x + kx)) * 4 + c;
+              sum = sum + (data[idx] * kernel[(ky + 1) * 3 + (kx + 1)]);
+            }
+          }
+          const idx = (y * width + x) * 4 + c;
+          output[idx] = Math.min(255, Math.max(0, sum / 9));
+        }
+      }
+    }
+
+    context.putImageData(new ImageData(output, width, height), 0, 0);
   }
 
   private getCanvasPoint(event: PointerEvent): Point {

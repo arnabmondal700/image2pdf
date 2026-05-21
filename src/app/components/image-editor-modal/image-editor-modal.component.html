@@ -20,6 +20,58 @@
       ></canvas>
     </div>
 
+    @if (showAdvancedFilters) {
+      <div class="filters-panel">
+        <div class="filter-group">
+          <label>Brightness: {{ filters.brightness }}%</label>
+          <input
+            type="range"
+            min="0"
+            max="200"
+            [(ngModel)]="filters.brightness"
+            (change)="onFilterChange()"
+            class="filter-slider"
+          >
+        </div>
+        <div class="filter-group">
+          <label>Contrast: {{ filters.contrast }}%</label>
+          <input
+            type="range"
+            min="0"
+            max="200"
+            [(ngModel)]="filters.contrast"
+            (change)="onFilterChange()"
+            class="filter-slider"
+          >
+        </div>
+        <div class="filter-group">
+          <label>Grayscale: {{ filters.grayscale }}%</label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            [(ngModel)]="filters.grayscale"
+            (change)="onFilterChange()"
+            class="filter-slider"
+          >
+        </div>
+        <div class="filter-group">
+          <label>Sharpen: {{ filters.sharpen }}%</label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            [(ngModel)]="filters.sharpen"
+            (change)="onFilterChange()"
+            class="filter-slider"
+          >
+        </div>
+        <button class="secondary-btn" type="button" (click)="resetFilters()" [disabled]="!isLoaded">
+          Reset Filters
+        </button>
+      </div>
+    }
+
     <footer class="editor-actions">
       <div class="tool-group">
         <button class="tool-btn" type="button" (click)="rotateLeft()" [disabled]="!isLoaded">
@@ -27,6 +79,9 @@
         </button>
         <button class="tool-btn" type="button" (click)="rotateRight()" [disabled]="!isLoaded">
           Rotate right
+        </button>
+        <button class="tool-btn" type="button" (click)="toggleAdvancedFilters()" [disabled]="!isLoaded">
+          {{ showAdvancedFilters ? 'Hide' : 'Show' }} Filters
         </button>
       </div>
       <div class="action-group">
