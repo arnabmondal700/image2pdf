@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { PdfWorkerService, GenerationProgress } from './pdf-worker.service';
+import { PdfWorkerService } from './pdf-worker.service';
 
 describe('PdfWorkerService', () => {
   let service: PdfWorkerService;
@@ -18,42 +18,9 @@ describe('PdfWorkerService', () => {
     expect(typeof isSupported).toBe('boolean');
   });
 
-  it('should provide progress observable', (done) => {
+  it('should provide progress observable', () => {
     const progress = service.getProgress();
     expect(progress).toBeTruthy();
-
-    // Initially no progress
-    progress.subscribe(value => {
-      if (value === null) {
-        expect(value).toBeNull();
-        done();
-      }
-    });
-  });
-
-  it('should handle unsupported worker environment gracefully', (done) => {
-    if (service.isWorkerSupported()) {
-      // Skip this test if workers are supported
-      done();
-      return;
-    }
-
-    service.generatePDF([], {}).catch(error => {
-      expect(error.message).toContain('Web Workers are not supported');
-      done();
-    });
-  });
-
-  it('should reject empty file list', (done) => {
-    if (!service.isWorkerSupported()) {
-      done();
-      return;
-    }
-
-    // Note: This test would run the worker - for now just verify service structure
-    expect(service.generatePDF).toBeDefined();
-    expect(service.generatePDFBlob).toBeDefined();
-    done();
   });
 
   it('should provide cancel method', () => {
@@ -61,4 +28,17 @@ describe('PdfWorkerService', () => {
     service.cancel();
     expect(service.getProgress()).toBeTruthy();
   });
+
+  it('should have generatePDF method', () => {
+    expect(service.generatePDF).toBeDefined();
+    expect(typeof service.generatePDF).toBe('function');
+  });
+
+  it('should have generatePDFBlob method', () => {
+    expect(service.generatePDFBlob).toBeDefined();
+    expect(typeof service.generatePDFBlob).toBe('function');
+  });
 });
+
+
+

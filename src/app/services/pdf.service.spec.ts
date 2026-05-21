@@ -38,9 +38,11 @@ vi.mock('jspdf', () => ({
 
 import { FileObject } from './file.service';
 import { PDFService } from './pdf.service';
+import { PdfWorkerService } from './pdf-worker.service';
 
 describe('PDFService', () => {
   let service: PDFService;
+  let mockWorkerService: Partial<PdfWorkerService>;
   const files: FileObject[] = [
     { name: 'one.jpg', url: 'data:image/jpeg;base64,one', size: 1, type: 'image/jpeg' },
     { name: 'two.jpg', url: 'data:image/jpeg;base64,two', size: 1, type: 'image/jpeg' },
@@ -49,7 +51,14 @@ describe('PDFService', () => {
 
   beforeEach(() => {
     mockPdfInstances.length = 0;
-    service = new PDFService();
+    mockWorkerService = {
+      isWorkerSupported: vi.fn(() => false),
+      getProgress: vi.fn(),
+      generatePDF: vi.fn(),
+      generatePDFBlob: vi.fn(),
+      cancel: vi.fn()
+    };
+    service = new PDFService(mockWorkerService as PdfWorkerService);
   });
 
   it('applies background color and saves the generated PDF', () => {
