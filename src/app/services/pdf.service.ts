@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { jsPDF } from 'jspdf';
 import { FileObject } from './file.service';
+import { PdfWorkerService } from './pdf-worker.service';
 import {
   calculatePageLayout,
   calculateImageDimensions,
@@ -49,10 +50,12 @@ interface ResolvedPDFSettings {
   providedIn: 'root'
 })
 export class PDFService {
+  constructor(private workerService: PdfWorkerService) {}
   /**
    * Generate PDF from uploaded images and trigger download
+   * Uses Web Worker if available for better performance, falls back to main thread
    */
-  generatePDF(
+  async generatePDF(
     uploadedFiles: FileObject[],
     fileName: string = 'My_Converted_Images.pdf',
     settings: PDFSettings = { 
@@ -68,20 +71,64 @@ export class PDFService {
       backgroundColor: '#ffffff',
       imagesPerPage: 1
     }
-  ): void {
+  ): Promise<void> {
     if (uploadedFiles.length === 0) {
       return;
     }
 
+    // Try to use Web Worker if available
+    if (this.workerService.isWorkerSupported()) {
+      try {
+        await this.workerService.generatePDF(
+          uploadedFiles.map(f => ({
+            name: f.name,
+            type: f.type,
+            size: f.size,
+            url: f.url
+          })),
+          settings,
+          fileName
+        );
+        return;
+      } catch (error) {
+        console.error('Worker generation failed, falling back to main thread:', error);
+        // Fall through to main thread generation
+      }
+    }
+
+    // Fallback to main thread generation
     const pdf = this.createPDF(uploadedFiles, settings);
     pdf.save(fileName);
   }
 
-  createPDFBlob(uploadedFiles: FileObject[], settings: PDFSettings): Blob {
+  /**
+   * Create a PDF blob from uploaded images
+   * Uses Web Worker if available for better performance
+   */
+  async createPDFBlob(uploadedFiles: FileObject[], settings: PDFSettings): Promise<Blob> {
     if (uploadedFiles.length === 0) {
       return new Blob([], { type: 'application/pdf' });
     }
 
+    // Try to use Web Worker if available
+    if (this.workerService.isWorkerSupported()) {
+      try {
+        return await this.workerService.generatePDFBlob(
+          uploadedFiles.map(f => ({
+            name: f.name,
+            type: f.type,
+            size: f.size,
+            url: f.url
+          })),
+          settings
+        );
+      } catch (error) {
+        console.error('Worker blob generation failed, falling back to main thread:', error);
+        // Fall through to main thread generation
+      }
+    }
+
+    // Fallback to main thread generation
     return this.createPDF(uploadedFiles, settings).output('blob');
   }
 

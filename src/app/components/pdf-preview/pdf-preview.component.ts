@@ -125,7 +125,7 @@ export class PdfPreviewComponent implements AfterViewInit, OnChanges, OnDestroy 
     try {
       await this.ngZone.runOutsideAngular(async () => {
         this.pdfDocument?.destroy?.();
-        const blob = this.pdfService.createPDFBlob(this.uploadedFiles, this.pdfSettings!);
+        const blob = await this.pdfService.createPDFBlob(this.uploadedFiles, this.pdfSettings!);
         const data = await blob.arrayBuffer();
         const pdfjsLib = await this.loadPdfjs();
         const loadingTask = pdfjsLib.getDocument({ data });

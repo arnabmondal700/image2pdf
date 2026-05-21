@@ -140,7 +140,7 @@ export class App {
     this.isGenerating = true;
     try {
       const optimizedFiles = await this.imageOptimizer.optimizeFiles(this.uploadedFiles, this.pdfSettings.quality);
-      this.pdfService.generatePDF(optimizedFiles, 'My_Converted_Images.pdf', this.pdfSettings);
+      await this.pdfService.generatePDF(optimizedFiles, 'My_Converted_Images.pdf', this.pdfSettings);
       this.uploadedFiles = [];
     } catch (error) {
       this.validationErrors = [{
