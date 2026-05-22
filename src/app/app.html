@@ -5,6 +5,15 @@
   <section class="app-card">
     <app-header></app-header>
 
+    @if (generalError) {
+      <div class="error-banner" role="alert">
+        <div class="error-content">
+          <strong>Error:</strong>
+          <p>{{ generalError }}</p>
+        </div>
+      </div>
+    }
+
     @if (validationErrors.length > 0) {
       <div class="validation-error-banner" role="alert">
         <div class="error-content">
@@ -15,7 +24,7 @@
                 <span class="error-file">{{ error.fileName }}</span>
                 @switch (error.reason) {
                   @case ('unsupported-type') {
-                    <span class="error-message">Unsupported file type. Please use PNG or JPEG.</span>
+                    <span class="error-message">Unsupported file type. Please use PNG, JPEG, or PDF.</span>
                   }
                   @case ('exceeds-size-limit') {
                     <span class="error-message">File exceeds 10 MB limit.</span>
@@ -24,12 +33,22 @@
                     <span class="error-message">Failed to read file.</span>
                   }
                   @case ('pdf-generation-error') {
-                    <span class="error-message">Failed to generate PDF. Try fewer images or different settings.</span>
+                    <span class="error-message">Failed to process PDF. Try a different file or contact support.</span>
                   }
                 }
               </li>
             }
           </ul>
+        </div>
+      </div>
+    }
+
+    @if (isProcessingPdf) {
+      <div class="processing-indicator" role="status" aria-live="polite">
+        <div class="processing-content">
+          <div class="spinner"></div>
+          <p>Processing PDF: <strong>{{ processingPdfFileName }}</strong></p>
+          <p class="processing-hint">Extracting pages as images...</p>
         </div>
       </div>
     }

@@ -6,6 +6,7 @@ export interface FileObject {
   url: string;
   size: number;
   type: string;
+  fileType?: 'image' | 'pdf'; // NEW: Track if image or PDF
 }
 
 export interface FileValidationError {
@@ -22,14 +23,42 @@ export interface ProcessFilesResult {
   providedIn: 'root'
 })
 export class FileService {
-  private readonly allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+  private readonly allowedImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+  private readonly allowedPdfTypes = ['application/pdf'];
   private readonly maxFileSize = 10 * 1024 * 1024; // 10MB
 
   /**
-   * Validate if a file is an allowed image type and size
+   * Get all allowed file types (images + PDFs)
+   */
+  getAllowedTypes(): string[] {
+    return [...this.allowedImageTypes, ...this.allowedPdfTypes];
+  }
+
+  /**
+   * Detect if file is image or PDF
+   */
+  detectFileType(mimeType: string): 'image' | 'pdf' | null {
+    if (this.allowedImageTypes.includes(mimeType)) {
+      return 'image';
+    }
+    if (this.allowedPdfTypes.includes(mimeType)) {
+      return 'pdf';
+    }
+    return null;
+  }
+
+  /**
+   * Check if file type is supported (image or PDF)
+   */
+  isFileTypeSupported(mimeType: string): boolean {
+    return this.getAllowedTypes().includes(mimeType);
+  }
+
+  /**
+   * Validate if a file is an allowed type (image or PDF) and size
    */
   private validateFile(file: File): { valid: boolean; error?: FileValidationError } {
-    if (!this.allowedTypes.includes(file.type)) {
+    if (!this.isFileTypeSupported(file.type)) {
       return {
         valid: false,
         error: { fileName: file.name, reason: 'unsupported-type' }
@@ -77,11 +106,13 @@ export class FileService {
         
         reader.onload = (e: ProgressEvent<FileReader>) => {
           const result = e.target?.result as string;
+          const fileType = this.detectFileType(file.type);
           processedFiles.push({
             name: file.name,
             url: result,
             size: file.size,
-            type: file.type
+            type: file.type,
+            fileType: fileType || 'image' // Default to image if detection fails
           });
           loadedCount++;
           if (loadedCount === totalFiles) {
