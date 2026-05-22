@@ -2,92 +2,69 @@
 
 > Status-aware roadmap for the current Angular image-to-PDF application.
 >
-> Last implementation audit: 2026-05-17
+> Last implementation audit: 2026-05-22
 >
-> Verified during audit:
-> - `npm.cmd run build` passes
-> - `npm.cmd test -- --watch=false` passes
-> - Production build emits bundle/CommonJS warnings from jsPDF dependency chain
-> - Initial bundle is currently about 787 kB raw, above the 500 kB warning budget
-> - PDF preview renderer is lazy-loaded as a separate pdf.js chunk
-> - No backend, worker, OCR, PDF manipulation, storage, or PWA systems are implemented yet
+> Verified during audit by source analysis:
+> - `src/app/tools/image-to-pdf/image-to-pdf.component.ts` shows image + PDF upload handling
+> - `src/app/services/pdf.service.ts` and `src/app/services/pdf-worker.service.ts` implement worker-backed generation
+> - `src/app/services/pdf-settings-storage.service.ts` persists settings to `localStorage`
+> - `src/app/components/pdf-preview/pdf-preview.component.ts` uses `pdfjs-dist` preview and local worker support
 
 ---
 
 ## Current Implementation Snapshot
 
-The application is currently a focused browser-only image-to-PDF converter.
+The application is now a browser-first image-to-PDF tool with advanced settings, worker-based generation, and PDF upload extraction.
 
 Implemented:
 
 - Angular standalone application structure
-- Drag-and-drop/image-picker upload flow for PNG/JPEG/JPG files
-- Per-file validation for type and 10 MB maximum size
-- Image previews in a queue
-- File removal
-- Native HTML drag-and-drop reordering
-- Basic image editor modal with crop and rotate controls
-- PDF generation with jsPDF
-- One, two, or four images per PDF page
+- Drag-and-drop and file picker upload flow for image and PDF files
+- Per-file validation for supported MIME types and 10 MB maximum size
+- Image preview queue with removal and reorder
+- Native HTML/Angular CDK drag-and-drop reordering
+- Image editor modal with crop, rotate, brightness, contrast, grayscale, and sharpen controls
+- PDF generation using `jsPDF`
+- Worker-backed PDF generation and blob creation via `PdfWorkerService`
+- 1-up, 2-up, and 4-up PDF page layouts
 - Page size setting: A4, Letter, Legal
 - Orientation setting: portrait, landscape
-- jsPDF compression/quality setting: FAST, MEDIUM, SLOW
-- Reusable PDF settings panel component
+- Compression/quality presets: FAST, MEDIUM, SLOW
 - Configurable per-side margins
-- Image fit mode setting: contain, cover, stretch
-- Vertical image alignment setting: top, center, bottom
-- Pure PDF layout utility for 1-up, 2-up, and 4-up layouts
-- Background color setting applied to generated PDF pages
-- Numeric coercion for margin and images-per-page settings
-- Margin sanitization to preserve a printable area
-- Cover fit clipping so overflow is constrained to each layout cell
-- Real PDF preview with page rendering, thumbnails, zoom, and page navigation
-- Angular CDK drag-and-drop reordering
-- Canvas-based image optimization/compression before PDF generation
-- File validation result model with user-facing error banner
-- Dedicated PDF generation error message
-- Uploaded file metadata for size and MIME type
-- Modern responsive UI shell
-- System-driven dark mode CSS variables
-- Unit tests for app creation/title, file handling, PDF generation behavior, and layout utilities
+- Image fit modes: contain, cover, stretch
+- Image vertical alignment: top, center, bottom
+- Background color fill for generated pages
+- Settings persistence via `PdfSettingsStorageService`
+- Reusable PDF settings panel component
+- Margin sanitization and printable area preservation
+- Pure layout engine in `src/app/utils/pdf-layout-engine.ts`
+- Real generated-PDF preview with thumbnails, zoom, and page navigation
+- Lazy-loaded `pdfjs-dist` renderer with public worker asset
+- PDF upload extraction via `PdfExtractionService` (PDF pages converted into image files)
+- File metadata tracking for name, type, size, and URL
+- Error handling for file validation and PDF generation
+- Responsive UI with a mobile-friendly shell
 
 Partially implemented:
 
-- Image editing supports crop and rotate only.
-- Dark mode follows `prefers-color-scheme`, but there is no manual theme engine.
-- Loading state exists for PDF generation, but generation is synchronous and not worker-backed.
-- Image optimization runs on the main thread; worker-backed processing remains a Phase 6 performance task.
-- PDF preview is implemented for generated image PDFs, not arbitrary uploaded PDFs.
+- Image editor is functional, but the edit history and non-destructive undo model are not implemented
+- PDF page rotation metadata exists for image rotation but not for a dedicated page-rotation UI
+- Worker-based generation is present, but progress/cancel UI is not surfaced in the current tool panel
+- PDF preview is implemented for generated image PDFs; arbitrary PDF editing and merge/split preview is not yet supported
 
 Not implemented:
 
-- PDF upload, merge, split, rearrangement, compression, encryption, or password protection
-- OCR, scan enhancement, smart page detection
-- Web Workers
-- IndexedDB persistence
-- ZIP export
-- Tool-based routes/dashboard
-- PWA/offline install support
-- Virtual scrolling
-- Upload queue/progress/retry/cancel
-
-Current package reality:
-
-```text
-Installed runtime libraries:
-- Angular
-- Angular CDK
-- jsPDF
-- pdfjs-dist
-- RxJS
-
-Not installed yet:
-- pdf-lib
-- tesseract.js
-- jszip
-- dexie
-- konva
-```
+- PDF merge, split, rearrange, or page-level document editing
+- Password protection, encryption, or PDF-specific compression beyond `jsPDF` presets
+- Watermark, header/footer, or document template engine
+- ZIP export or multiple-output PDFs
+- OCR / scan enhancement / intelligent page detection
+- IndexedDB persistence or offline storage of files/settings
+- PWA install/offline support
+- Virtual scrolling for large file queues
+- Upload queue progress/retry/cancel flows
+- Cloud sync, user profiles, or settings import/export
+- `pdf-lib`, `tesseract.js`, `jszip`, `dexie`, and `konva` are not currently used
 
 ---
 
@@ -171,7 +148,7 @@ Known current validation note:
 
 - `npm run build` may fail in PowerShell because script execution blocks `npm.ps1`.
 - Use `npm.cmd run build` on this Windows environment.
-- Current production build passes but warns that the initial bundle exceeds the 500 kB warning budget and that jsPDF-related dependencies include CommonJS modules.
+- The current implementation includes a worker-backed PDF generator and PDF page extraction, so regressions in these subsystems should be validated carefully.
 
 ---
 
@@ -187,26 +164,20 @@ Legend:
 
 # PHASE 0 - BASELINE APP
 
-## Status: Partial foundation complete + Bug Fixes Applied
+## Status: Done
 
-Recent fixes:
+The baseline application is complete enough to upload, preview, edit, and export images as PDF with a foundational UI.
 
-- **Fixed PDF preview multi-page display** - Added ChangeDetectorRef.markForCheck() to trigger change detection after async PDF rendering
-- **Fixed PDF generation loading state** - Added explicit detectChanges() in finally block to refresh UI after download
-- **Both fixes address Angular async/change detection timing issues**
-
-Remaining baseline hardening:
-
-- Consider object URL lifecycle/memory strategy if moving away from Data URLs.
-- Add tests around future image editing and preview/export workflows as they are implemented.
+Current baseline assets and source areas:
 
 ```text
-src/app/app.ts
-src/app/app.html
-src/app/app.scss
+src/app/tools/image-to-pdf/image-to-pdf.component.ts
 src/app/services/file.service.ts
 src/app/services/image-optimizer.service.ts
 src/app/services/pdf.service.ts
+src/app/services/pdf-worker.service.ts
+src/app/services/pdf-settings-storage.service.ts
+src/app/services/pdf-extraction.service.ts
 src/app/utils/pdf-layout-engine.ts
 src/app/components/app-header/
 src/app/components/drag-drop-zone/
@@ -218,26 +189,28 @@ src/app/components/pdf-preview/
 src/app/components/pdf-settings-panel/
 ```
 
-Completed capabilities:
+Completed baseline capabilities:
 
-- Upload image files
-- Preview uploaded files
+- Upload image and PDF files
+- Preview uploaded items
 - Reorder uploaded files
 - Remove uploaded files
-- Edit image by crop/rotate
-- Generate and download PDF
+- Edit image content and filters
+- Generate downloaded PDF files
 - Generate 1-up, 2-up, or 4-up PDF layouts
-- Configure page size, orientation, quality, margins, fit, and alignment
-- Preview the generated PDF before download
-- Compress/resize images according to the selected quality preset before download
-- Show user-facing validation messages for rejected files
-- Basic responsive UI
-- System dark mode
+- Configure page size, orientation, quality, margins, fit, alignment, and background color
+- Preview generated PDFs before download
+- Use worker-backed PDF generation when supported
+- Extract PDF pages into image files for inclusion in new PDFs
+- Persist PDF settings to browser storage
+- Surface validation errors for unsupported or oversized files
+- Responsive UI and dark mode support
 
 Remaining baseline hardening:
 
-- Consider object URL lifecycle/memory strategy if moving away from Data URLs.
-- Add tests around future image editing and preview/export workflows as they are implemented.
+- Improve object URL lifecycle and memory handling for repeated preview/export operations
+- Add UI for worker progress/cancellation
+- Add regression tests for PDF upload extraction and worker fallback behavior
 
 ---
 
@@ -245,9 +218,76 @@ Remaining baseline hardening:
 
 ## Objective
 
-Strengthen the PDF generation engine and improve export UX.
+Complete the core image-to-PDF generation experience and strengthen export reliability.
 
-## Overall Status: Complete for Phase 1 MVP + Settings Persistence
+## Overall Status: Done for Phase 1 MVP
+
+Phase 1 is implemented and includes:
+
+- Worker-backed PDF generation with fallback to main thread
+- Real generated-PDF preview via `pdf.js`
+- Persistent PDF settings panel
+- PDF page layout engine for 1-up, 2-up, and 4-up exports
+- PDF upload support with page extraction into image files
+
+Remaining Phase 1 polish:
+
+- Add explicit worker progress/cancel UI
+- Add margin feedback when sanitization occurs
+- Expand preview UX for large PDFs and page list navigation
+
+---
+
+# PHASE 2 - ADVANCED IMAGE / PDF CONTROLS
+
+## Objective
+
+Add richer editing and document layout controls beyond the core converter.
+
+## Status: Partial
+
+Completed Phase 2 scope:
+
+- Advanced image filtering in editor: brightness, contrast, grayscale, sharpen
+- Crop and rotate controls in the image editor
+- Settings persistence and advanced options in the settings panel
+
+Remaining Phase 2 work:
+
+- PDF page rotation controls
+- Watermark support
+- Header/footer template engine
+- Separate PDF export modes and ZIP download
+- More advanced grid and layout templates
+
+---
+
+# PHASE 3 - PDF MANIPULATION
+
+## Status: Not started
+
+Phase 3 should focus on true PDF-document workflows:
+
+- PDF merge, split, rearrange, and page-level editing
+- PDF compression, encryption, and password protection
+- Mixed PDF + image workflows beyond simple extraction
+- `pdf-lib` integration for document-first operations
+
+---
+
+# PHASE 4+ - STORAGE, OFFLINE, AND PRODUCTIVITY
+
+## Status: Not started
+
+Future expansion items:
+
+- IndexedDB persistence and offline storage
+- PWA install/offline support
+- Cloud sync and profile management
+- Upload queue progress/retry/cancel
+- OCR / scan enhancement
+- Advanced virtual scrolling for large queues
+
 
 The app now has a reusable settings panel with persistence, configurable margins/fit/alignment/background color, a pure layout utility for 1-up, 2-up, and 4-up image placement, real generated-PDF preview, Angular CDK reordering, canvas-based image optimization, and focused unit coverage. Settings automatically persist to browser localStorage and load on app startup. Worker-backed processing is intentionally deferred to Phase 6.
 
@@ -696,6 +736,14 @@ Based on the current codebase, the best next steps are:
 7. Add PWA/offline installation after local workspace persistence is stable.
 
 This order builds directly on what is already implemented and avoids introducing large PDF manipulation systems before the core image-to-PDF workflow is solid.
+
+---
+
+## Top 3 Short-Term Priorities
+
+1. Add explicit worker progress and cancel UI for PDF generation.
+2. Add IndexedDB-based persistence for session state and saved settings.
+3. Add PDF upload + merge/split tools once the tool-based route architecture is available.
 
 ---
 
