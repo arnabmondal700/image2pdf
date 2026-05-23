@@ -1,14 +1,22 @@
+vi.mock('pdfjs-dist', () => ({
+  GlobalWorkerOptions: {},
+  getDocument: vi.fn(() => ({
+    promise: Promise.reject(new Error('Invalid PDF'))
+  }))
+}));
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ChangeDetectorRef } from '@angular/core';
-declare const jasmine: any;
+import { BehaviorSubject } from 'rxjs';
 
 import { ImageToPdfComponent } from './image-to-pdf.component';
 import { FileService, FileObject } from '../../services/file.service';
 import { ImageOptimizerService } from '../../services/image-optimizer.service';
 import { PDFService, type PDFSettings } from '../../services/pdf.service';
+import { GenerationProgress, PdfWorkerService } from '../../services/pdf-worker.service';
 import { PdfSettingsStorageService } from '../../services/pdf-settings-storage.service';
 import { PdfExtractionService } from '../../services/pdf-extraction.service';
 
@@ -18,23 +26,28 @@ describe('ImageToPdfComponent', () => {
   let fileService: any;
   let imageOptimizer: any;
   let pdfService: any;
+  let pdfWorkerService: any;
   let settingsStorage: any;
   let pdfExtraction: any;
+  let progressSubject: BehaviorSubject<GenerationProgress | null>;
 
   beforeEach(async () => {
-    const fileServiceSpy = jasmine.createSpyObj('FileService', ['processFiles']);
-    const imageOptimizerSpy = jasmine.createSpyObj('ImageOptimizerService', [
-      'optimizeImage'
-    ]);
-    const pdfServiceSpy = jasmine.createSpyObj('PDFService', ['generatePDF']);
-    const settingsStorageSpy = jasmine.createSpyObj('PdfSettingsStorageService', [
-      'loadSettings',
-      'saveSettings'
-    ]);
-    const pdfExtractionSpy = jasmine.createSpyObj('PdfExtractionService', [
-      'extractPdfAsImages',
-      'isPdfSupported'
-    ]);
+    progressSubject = new BehaviorSubject<GenerationProgress | null>(null);
+    const fileServiceSpy = { processFiles: vi.fn() };
+    const imageOptimizerSpy = { optimizeImage: vi.fn() };
+    const pdfServiceSpy = { generatePDF: vi.fn(() => Promise.resolve()) };
+    const pdfWorkerServiceSpy = {
+      getProgress: vi.fn(() => progressSubject.asObservable()),
+      cancel: vi.fn()
+    };
+    const settingsStorageSpy = {
+      loadSettings: vi.fn(() => null),
+      saveSettings: vi.fn()
+    };
+    const pdfExtractionSpy = {
+      extractPdfAsImages: vi.fn(),
+      isPdfSupported: vi.fn()
+    };
 
     await TestBed.configureTestingModule({
       imports: [
@@ -47,6 +60,7 @@ describe('ImageToPdfComponent', () => {
         { provide: FileService, useValue: fileServiceSpy },
         { provide: ImageOptimizerService, useValue: imageOptimizerSpy },
         { provide: PDFService, useValue: pdfServiceSpy },
+        { provide: PdfWorkerService, useValue: pdfWorkerServiceSpy },
         { provide: PdfSettingsStorageService, useValue: settingsStorageSpy },
         { provide: PdfExtractionService, useValue: pdfExtractionSpy }
       ]
@@ -55,6 +69,7 @@ describe('ImageToPdfComponent', () => {
     fileService = TestBed.inject(FileService);
     imageOptimizer = TestBed.inject(ImageOptimizerService);
     pdfService = TestBed.inject(PDFService);
+    pdfWorkerService = TestBed.inject(PdfWorkerService);
     settingsStorage = TestBed.inject(PdfSettingsStorageService);
     pdfExtraction = TestBed.inject(PdfExtractionService);
 
@@ -68,12 +83,13 @@ describe('ImageToPdfComponent', () => {
   });
 
   it('should initialize with default PDF settings', () => {
-    settingsStorage.loadSettings.and.returnValue(null);
-    const cdr = TestBed.inject(ChangeDetectorRef);
+    settingsStorage.loadSettings.mockReturnValue(null);
+    const cdr = { detectChanges: vi.fn() } as unknown as ChangeDetectorRef;
     const newComponent = new ImageToPdfComponent(
       fileService,
       imageOptimizer,
       pdfService,
+      pdfWorkerService,
       settingsStorage,
       pdfExtraction,
       cdr
@@ -97,12 +113,13 @@ describe('ImageToPdfComponent', () => {
       backgroundColor: '#f5f5f5',
       imagesPerPage: 2
     };
-    settingsStorage.loadSettings.and.returnValue(savedSettings);
-    const cdr = TestBed.inject(ChangeDetectorRef);
+    settingsStorage.loadSettings.mockReturnValue(savedSettings);
+    const cdr = { detectChanges: vi.fn() } as unknown as ChangeDetectorRef;
     const newComponent = new ImageToPdfComponent(
       fileService,
       imageOptimizer,
       pdfService,
+      pdfWorkerService,
       settingsStorage,
       pdfExtraction,
       cdr
@@ -120,7 +137,7 @@ describe('ImageToPdfComponent', () => {
       fileType: 'image'
     };
 
-    fileService.processFiles.and.returnValue(
+    fileService.processFiles.mockResolvedValue(
       Promise.resolve({ successful: [mockFile], errors: [] })
     );
 
@@ -131,7 +148,7 @@ describe('ImageToPdfComponent', () => {
   });
 
   it('should handle file validation errors', async () => {
-    fileService.processFiles.and.returnValue(
+    fileService.processFiles.mockResolvedValue(
       Promise.resolve({
         successful: [],
         errors: [{ fileName: 'test.pdf', reason: 'unsupported-type' as const }]
@@ -200,6 +217,33 @@ describe('ImageToPdfComponent', () => {
 
     expect(component.pdfSettings).toEqual(newSettings);
     expect(settingsStorage.saveSettings).toHaveBeenCalledWith(newSettings);
+  });
+
+  it('should track worker generation progress', () => {
+    const progress: GenerationProgress = {
+      current: 1,
+      total: 3,
+      status: 'Processing image 2 of 3'
+    };
+
+    progressSubject.next(progress);
+
+    expect(component.generationProgress).toEqual(progress);
+  });
+
+  it('should cancel generation through worker service', () => {
+    component.isGenerating = true;
+    component.generationProgress = {
+      current: 1,
+      total: 3,
+      status: 'Processing image 2 of 3'
+    };
+
+    component.onCancelGeneration();
+
+    expect(pdfWorkerService.cancel).toHaveBeenCalled();
+    expect(component.isGenerating).toBe(false);
+    expect(component.generationProgress).toBeNull();
   });
 
   it('should set tool definition correctly', () => {

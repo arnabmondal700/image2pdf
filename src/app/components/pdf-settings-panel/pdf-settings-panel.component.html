@@ -171,6 +171,8 @@
   <generate-pdf-button
     [uploadedFiles]="uploadedFiles"
     [isGenerating]="isGenerating"
+    [generationProgress]="generationProgress"
     (generateClicked)="onGenerateClick()"
+    (cancelClicked)="onCancelClick()"
   ></generate-pdf-button>
 </aside>

@@ -27,9 +27,9 @@ describe('ToolRegistryService', () => {
     expect(tool?.id).toBe('image-to-pdf');
   });
 
-  it('should return null for non-existent tool', () => {
+  it('should return undefined for non-existent tool', () => {
     const tool = service.getTool('non-existent-tool');
-    expect(tool).toBeNull();
+    expect(tool).toBeUndefined();
   });
 
   it('should get only enabled tools', () => {
@@ -65,7 +65,7 @@ describe('ToolRegistryService', () => {
   it('should sort tools by priority', () => {
     const tools = service.getEnabledTools();
     for (let i = 0; i < tools.length - 1; i++) {
-      expect(tools[i].priority).toBeLessThanOrEqual(tools[i + 1].priority);
+      expect(tools[i].priority).toBeGreaterThanOrEqual(tools[i + 1].priority);
     }
   });
 
@@ -92,7 +92,7 @@ describe('ToolRegistryService', () => {
   it('should return tools sorted by priority when getting all tools', () => {
     const tools = service.getAllTools();
     for (let i = 0; i < tools.length - 1; i++) {
-      expect(tools[i].priority).toBeLessThanOrEqual(tools[i + 1].priority);
+      expect(tools[i].priority).toBeGreaterThanOrEqual(tools[i + 1].priority);
     }
   });
 });

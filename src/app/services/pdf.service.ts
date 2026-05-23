@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { jsPDF } from 'jspdf';
 import { FileObject } from './file.service';
-import { PdfWorkerService } from './pdf-worker.service';
+import { PDFGenerationCancelledError, PdfWorkerService } from './pdf-worker.service';
 import {
   calculatePageLayout,
   calculateImageDimensions,
@@ -91,6 +91,9 @@ export class PDFService {
         );
         return;
       } catch (error) {
+        if (error instanceof PDFGenerationCancelledError) {
+          throw error;
+        }
         console.error('Worker generation failed, falling back to main thread:', error);
         // Fall through to main thread generation
       }
@@ -123,6 +126,9 @@ export class PDFService {
           settings
         );
       } catch (error) {
+        if (error instanceof PDFGenerationCancelledError) {
+          throw error;
+        }
         console.error('Worker blob generation failed, falling back to main thread:', error);
         // Fall through to main thread generation
       }

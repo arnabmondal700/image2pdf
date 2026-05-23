@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -7,9 +7,11 @@ import { FileService, FileObject, FileValidationError } from '../../services/fil
 import { ImageOptimizerService } from '../../services/image-optimizer.service';
 import { PDFService } from '../../services/pdf.service';
 import type { PDFSettings } from '../../services/pdf.service';
+import { GenerationProgress, PDFGenerationCancelledError, PdfWorkerService } from '../../services/pdf-worker.service';
 import { PdfSettingsStorageService } from '../../services/pdf-settings-storage.service';
 import { PdfExtractionService } from '../../services/pdf-extraction.service';
 import { ToolDefinition } from '../tool.interface';
+import { Subscription } from 'rxjs';
 
 // Import shared components
 import { AppHeaderComponent } from '../../components/app-header/app-header.component';
@@ -36,7 +38,7 @@ import { ImageEditorModalComponent } from '../../components/image-editor-modal/i
   templateUrl: '../../app.html',
   styleUrls: ['../../app.scss']
 })
-export class ImageToPdfComponent implements OnInit {
+export class ImageToPdfComponent implements OnInit, OnDestroy {
   uploadedFiles: FileObject[] = [];
   pdfSettings: PDFSettings;
   isGenerating = false;
@@ -46,6 +48,8 @@ export class ImageToPdfComponent implements OnInit {
   editingFileIndex: number | null = null;
   validationErrors: FileValidationError[] = [];
   generalError: string | null = null;
+  generationProgress: GenerationProgress | null = null;
+  private progressSubscription?: Subscription;
 
   // Tool metadata for integration
   toolDefinition: ToolDefinition = {
@@ -63,6 +67,7 @@ export class ImageToPdfComponent implements OnInit {
     private fileService: FileService,
     private imageOptimizer: ImageOptimizerService,
     private pdfService: PDFService,
+    private pdfWorkerService: PdfWorkerService,
     private settingsStorage: PdfSettingsStorageService,
     private pdfExtraction: PdfExtractionService,
     private cdr: ChangeDetectorRef
@@ -84,7 +89,14 @@ export class ImageToPdfComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Component initialized
+    this.progressSubscription = this.pdfWorkerService.getProgress().subscribe((progress) => {
+      this.generationProgress = progress;
+      this.cdr.detectChanges();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.progressSubscription?.unsubscribe();
   }
 
   /**
@@ -263,6 +275,10 @@ export class ImageToPdfComponent implements OnInit {
     try {
       await this.pdfService.generatePDF(this.uploadedFiles, 'image-to-pdf.pdf', this.pdfSettings);
     } catch (error) {
+      if (error instanceof PDFGenerationCancelledError) {
+        return;
+      }
+
       this.validationErrors = [
         { fileName: 'pdf-generation', reason: 'pdf-generation-error' }
       ];
@@ -271,5 +287,15 @@ export class ImageToPdfComponent implements OnInit {
       this.isGenerating = false;
       this.cdr.detectChanges();
     }
+  }
+
+  /**
+   * Cancel the current worker-backed PDF generation.
+   */
+  onCancelGeneration(): void {
+    this.pdfWorkerService.cancel();
+    this.isGenerating = false;
+    this.generationProgress = null;
+    this.cdr.detectChanges();
   }
 }

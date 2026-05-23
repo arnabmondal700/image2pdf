@@ -129,15 +129,6 @@ async function generatePDFInWorker(
     let isFirstPage = true;
 
     while (currentFileIndex < uploadedFiles.length) {
-      // Report progress
-      const progressMessage: ProgressMessage = {
-        type: 'progress',
-        current: currentFileIndex,
-        total: uploadedFiles.length,
-        status: `Processing image ${currentFileIndex + 1} of ${uploadedFiles.length}`
-      };
-      postMessage(progressMessage);
-
       if (!isFirstPage) {
         pdf.addPage();
       }
@@ -171,6 +162,17 @@ async function generatePDFInWorker(
         addImageToCell(pdf, fileData.url, imgProps.fileType, position, imageDims, cell, finalSettings);
 
         currentFileIndex++;
+
+        const progressMessage: ProgressMessage = {
+          type: 'progress',
+          current: currentFileIndex,
+          total: uploadedFiles.length,
+          status:
+            currentFileIndex === uploadedFiles.length
+              ? 'Finalizing PDF'
+              : `Processed ${currentFileIndex} of ${uploadedFiles.length} images`
+        };
+        postMessage(progressMessage);
       }
 
       // Allow other tasks to run

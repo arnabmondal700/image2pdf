@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { GeneratePDFButtonComponent } from '../generate-pdf-button/generate-pdf-button.component';
 import { PDFImagesPerPage, PDFSettings } from '../../services/pdf.service';
 import { FileObject } from '../../services/file.service';
+import { GenerationProgress } from '../../services/pdf-worker.service';
 
 @Component({
   selector: 'pdf-settings-panel',
@@ -28,8 +29,10 @@ export class PdfSettingsPanelComponent {
   };
   @Input() uploadedFiles: FileObject[] = [];
   @Input() isGenerating: boolean = false;
+  @Input() generationProgress: GenerationProgress | null = null;
   @Output() settingsChanged = new EventEmitter<PDFSettings>();
   @Output() generateClicked = new EventEmitter<void>();
+  @Output() cancelClicked = new EventEmitter<void>();
 
   showAdvancedSettings = false;
 
@@ -40,6 +43,10 @@ export class PdfSettingsPanelComponent {
 
   onGenerateClick() {
     this.generateClicked.emit();
+  }
+
+  onCancelClick() {
+    this.cancelClicked.emit();
   }
 
   toggleAdvancedSettings() {
@@ -76,4 +83,3 @@ export class PdfSettingsPanelComponent {
     return numericValue === 2 || numericValue === 4 ? numericValue : 1;
   }
 }
-

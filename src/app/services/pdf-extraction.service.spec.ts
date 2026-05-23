@@ -1,7 +1,12 @@
+vi.mock('pdfjs-dist', () => ({
+  GlobalWorkerOptions: {},
+  getDocument: vi.fn(() => ({
+    promise: Promise.reject(new Error('Invalid PDF'))
+  }))
+}));
+
 import { TestBed } from '@angular/core/testing';
 import { PdfExtractionService } from './pdf-extraction.service';
-declare const jasmine: any;
-declare const spyOn: any;
 declare const fail: any;
 
 describe('PdfExtractionService', () => {
@@ -25,8 +30,7 @@ describe('PdfExtractionService', () => {
 
   it('should throw error when trying to extract from unsupported environment', async () => {
     // Mock unsupported environment
-    const originalIsPdfSupported = service.isPdfSupported;
-    spyOn(service, 'isPdfSupported').and.returnValue(false);
+    vi.spyOn(service, 'isPdfSupported').mockReturnValue(false);
 
     try {
       await service.extractPdfAsImages('data:application/pdf;base64,test');

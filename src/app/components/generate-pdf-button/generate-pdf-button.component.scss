@@ -1,5 +1,6 @@
 .actions {
   display: grid;
+  gap: 12px;
 }
 
 .convert-btn {
@@ -67,5 +68,71 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+.generation-progress {
+  display: grid;
+  gap: 8px;
+}
+
+.progress-copy,
+.progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.progress-copy {
+  color: var(--text-strong);
+  font-weight: 750;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    flex: 0 0 auto;
+    color: var(--accent);
+    font-size: 0.86rem;
+  }
+}
+
+.progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--summary-bg);
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #06b6d4 0%, #6366f1 100%);
+  transition: width 0.2s ease;
+}
+
+.cancel-btn {
+  min-height: 42px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  color: var(--text-strong);
+  background: var(--input-bg);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 750;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
   }
 }

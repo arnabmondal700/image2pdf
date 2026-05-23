@@ -28,6 +28,13 @@ export interface GenerationProgress {
   status: string;
 }
 
+export class PDFGenerationCancelledError extends Error {
+  constructor() {
+    super('PDF generation cancelled');
+    this.name = 'PDFGenerationCancelledError';
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -35,6 +42,7 @@ export class PdfWorkerService {
   private worker: Worker | null = null;
   private progress$ = new BehaviorSubject<GenerationProgress | null>(null);
   private isSupported = typeof Worker !== 'undefined';
+  private activeReject: ((reason?: unknown) => void) | null = null;
 
   /**
    * Check if Web Workers are supported in this browser
@@ -70,6 +78,8 @@ export class PdfWorkerService {
         if (this.worker) {
           this.worker.terminate();
         }
+        this.activeReject = reject;
+        this.progress$.next({ current: 0, total: uploadedFiles.length, status: 'Starting PDF generation' });
 
         // Create new worker
         this.worker = new Worker(new URL('../workers/pdf-generation.worker.ts', import.meta.url), {
@@ -103,14 +113,18 @@ export class PdfWorkerService {
 
               // Clean up
               this.cleanup();
+              this.progress$.next(null);
 
               resolve(blob);
             } catch (error) {
               reject(new Error('Failed to process PDF data'));
+              this.cleanup();
+              this.progress$.next(null);
             }
           } else if (data.type === 'error') {
             reject(new Error(data.error));
             this.cleanup();
+            this.progress$.next(null);
           }
         };
 
@@ -118,6 +132,7 @@ export class PdfWorkerService {
         this.worker.onerror = (error) => {
           reject(new Error(`Worker error: ${error.message}`));
           this.cleanup();
+          this.progress$.next(null);
         };
 
         // Send generation request to worker
@@ -129,6 +144,7 @@ export class PdfWorkerService {
       } catch (error) {
         reject(error);
         this.cleanup();
+        this.progress$.next(null);
       }
     });
   }
@@ -147,6 +163,8 @@ export class PdfWorkerService {
         if (this.worker) {
           this.worker.terminate();
         }
+        this.activeReject = reject;
+        this.progress$.next({ current: 0, total: uploadedFiles.length, status: 'Starting PDF generation' });
 
         this.worker = new Worker(new URL('../workers/pdf-generation.worker.ts', import.meta.url), {
           type: 'module'
@@ -170,19 +188,24 @@ export class PdfWorkerService {
               }
               const blob = new Blob([bytes], { type: 'application/pdf' });
               this.cleanup();
+              this.progress$.next(null);
               resolve(blob);
             } catch (error) {
               reject(new Error('Failed to process PDF data'));
+              this.cleanup();
+              this.progress$.next(null);
             }
           } else if (data.type === 'error') {
             reject(new Error(data.error));
             this.cleanup();
+            this.progress$.next(null);
           }
         };
 
         this.worker.onerror = (error) => {
           reject(new Error(`Worker error: ${error.message}`));
           this.cleanup();
+          this.progress$.next(null);
         };
 
         this.worker.postMessage({
@@ -193,6 +216,7 @@ export class PdfWorkerService {
       } catch (error) {
         reject(error);
         this.cleanup();
+        this.progress$.next(null);
       }
     });
   }
@@ -201,8 +225,12 @@ export class PdfWorkerService {
    * Cancel ongoing PDF generation
    */
   cancel(): void {
+    const reject = this.activeReject;
     this.cleanup();
     this.progress$.next(null);
+    if (reject) {
+      reject(new PDFGenerationCancelledError());
+    }
   }
 
   /**
@@ -213,6 +241,7 @@ export class PdfWorkerService {
       this.worker.terminate();
       this.worker = null;
     }
+    this.activeReject = null;
   }
 
   /**

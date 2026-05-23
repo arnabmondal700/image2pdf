@@ -78,8 +78,10 @@
         [pdfSettings]="pdfSettings"
         [uploadedFiles]="uploadedFiles"
         [isGenerating]="isGenerating"
+        [generationProgress]="generationProgress"
         (settingsChanged)="onPDFSettingsChanged($event)"
         (generateClicked)="onGeneratePDF()"
+        (cancelClicked)="onCancelGeneration()"
       ></pdf-settings-panel>
     </div>
   </section>

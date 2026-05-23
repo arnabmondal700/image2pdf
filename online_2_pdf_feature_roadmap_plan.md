@@ -2,7 +2,7 @@
 
 > Status-aware roadmap for the current Angular image-to-PDF application.
 >
-> Last implementation audit: 2026-05-22
+> Last implementation audit: 2026-05-23
 >
 > Verified during audit by source analysis:
 > - `src/app/tools/image-to-pdf/image-to-pdf.component.ts` shows image + PDF upload handling
@@ -26,6 +26,7 @@ Implemented:
 - Image editor modal with crop, rotate, brightness, contrast, grayscale, and sharpen controls
 - PDF generation using `jsPDF`
 - Worker-backed PDF generation and blob creation via `PdfWorkerService`
+- Worker progress UI with percentage, status, processed count, and cancel action
 - 1-up, 2-up, and 4-up PDF page layouts
 - Page size setting: A4, Letter, Legal
 - Orientation setting: portrait, landscape
@@ -43,13 +44,13 @@ Implemented:
 - PDF upload extraction via `PdfExtractionService` (PDF pages converted into image files)
 - File metadata tracking for name, type, size, and URL
 - Error handling for file validation and PDF generation
+- Cancellation handling for long-running worker-backed PDF generation
 - Responsive UI with a mobile-friendly shell
 
 Partially implemented:
 
 - Image editor is functional, but the edit history and non-destructive undo model are not implemented
 - PDF page rotation metadata exists for image rotation but not for a dedicated page-rotation UI
-- Worker-based generation is present, but progress/cancel UI is not surfaced in the current tool panel
 - PDF preview is implemented for generated image PDFs; arbitrary PDF editing and merge/split preview is not yet supported
 
 Not implemented:
@@ -209,8 +210,7 @@ Completed baseline capabilities:
 Remaining baseline hardening:
 
 - Improve object URL lifecycle and memory handling for repeated preview/export operations
-- Add UI for worker progress/cancellation
-- Add regression tests for PDF upload extraction and worker fallback behavior
+- Expand browser-level regression coverage for PDF upload extraction and worker fallback behavior
 
 ---
 
@@ -225,6 +225,7 @@ Complete the core image-to-PDF generation experience and strengthen export relia
 Phase 1 is implemented and includes:
 
 - Worker-backed PDF generation with fallback to main thread
+- Explicit worker progress/cancel UI in the export panel
 - Real generated-PDF preview via `pdf.js`
 - Persistent PDF settings panel
 - PDF page layout engine for 1-up, 2-up, and 4-up exports
@@ -232,7 +233,6 @@ Phase 1 is implemented and includes:
 
 Remaining Phase 1 polish:
 
-- Add explicit worker progress/cancel UI
 - Add margin feedback when sanitization occurs
 - Expand preview UX for large PDFs and page list navigation
 
@@ -617,7 +617,7 @@ Workers should be introduced before OCR.
 
 Optimize large-file handling and app performance.
 
-## Overall Status: Web Worker for PDF Generation Complete ✅
+## Overall Status: Web Worker for PDF Generation Complete
 
 Phase 6.1 implementation moves PDF generation off the main thread using Web Workers, eliminating UI freezing during PDF creation. The implementation includes automatic fallback to main thread for unsupported environments.
 
@@ -627,7 +627,7 @@ Remaining Phase 6 items (compression worker, OCR worker, thumbnail generation wo
 
 ## Feature 1. Web Worker for PDF Generation
 
-Status: Implemented ✅
+Status: Implemented
 
 Implemented:
 
@@ -635,6 +635,8 @@ Implemented:
 - `src/app/services/pdf-worker.service.ts` - Worker lifecycle management with observable progress tracking
 - PDF generation completely moved off main thread
 - Progress reporting via Observable pattern (BehaviorSubject)
+- Progress and cancel controls surfaced in the export panel
+- Cancellation rejects the active worker operation and does not fall back to main-thread generation
 - Automatic fallback to main thread if workers unavailable or error occurs
 - Comprehensive error handling and worker cleanup
 - Blob generation from base64 worker output
@@ -647,13 +649,14 @@ Technical implementation:
 - PDF output converted to base64 and sent back via `CompletionMessage`
 - Main thread converts base64 to Blob and triggers browser download
 - Worker automatically terminates after completion
+- Cancel action terminates the worker and clears progress state
 - Error handling sends `ErrorMessage` back to main thread
 
 Benefits:
 
 - UI remains completely responsive during PDF generation
 - Large image batches no longer freeze the browser
-- Progress observable enables future progress UI feedback
+- Users can see generation progress and cancel long-running exports
 - Graceful degradation on browsers without Worker support
 - Performance improvements measured on large file batches
 
@@ -662,17 +665,22 @@ Integration:
 - `PDFService.generatePDF()` async, uses worker when available
 - `PDFService.createPDFBlob()` async, uses worker when available  
 - `pdf-preview.component` updated to handle async blob generation
-- `app.ts` onGeneratePDF() made async and awaits service calls
+- `image-to-pdf.component` subscribes to worker progress and handles cancellation
+- `pdf-settings-panel` and `generate-pdf-button` display progress and emit cancel events
 
 Files modified:
 
 - `src/app/services/pdf.service.ts` - Added worker integration
-- `src/app/services/pdf-worker.service.ts` - NEW: Worker management
-- `src/app/workers/pdf-generation.worker.ts` - NEW: Worker script
+- `src/app/services/pdf-worker.service.ts` - Worker management, progress, and cancellation
+- `src/app/workers/pdf-generation.worker.ts` - Worker script
+- `src/app/components/generate-pdf-button/` - Progress and cancel UI
+- `src/app/components/pdf-settings-panel/` - Progress/cancel pass-through
+- `src/app/tools/image-to-pdf/image-to-pdf.component.ts` - Progress subscription and cancel handling
 - `src/app/components/pdf-preview/pdf-preview.component.ts` - Async blob handling
-- `src/app.ts` - Async PDF generation
 
-Build status: ✅ Passed (Output location: D:\Codes\image2pdf\dist\image-to-pdf-app)
+Build status: Passed with existing jsPDF/canvg CommonJS optimization warnings (Output location: `D:\Codes\image2pdf\dist\image-to-pdf-app`)
+
+Test status: Passed (`npm.cmd test -- --watch=false`, 57 tests)
 
 Not implemented:
 
@@ -685,8 +693,6 @@ Not implemented:
 
 Future considerations:
 
-- Add progress UI feedback in generate button
-- Consider adding cancellation UI for long-running generation
 - Monitor memory usage during large batch processing
 - Extend worker pattern to compression when needed
 - Extend worker pattern to OCR when tesseract.js integrated
@@ -741,9 +747,9 @@ This order builds directly on what is already implemented and avoids introducing
 
 ## Top 3 Short-Term Priorities
 
-1. Add explicit worker progress and cancel UI for PDF generation.
-2. Add IndexedDB-based persistence for session state and saved settings.
-3. Add PDF upload + merge/split tools once the tool-based route architecture is available.
+1. Add IndexedDB-based persistence for session state and saved settings.
+2. Add PDF upload + merge/split tools once the tool-based route architecture is available.
+3. Add PDF manipulation preview support for uploaded PDFs.
 
 ---
 
@@ -863,7 +869,7 @@ Remaining:
 
 ## Task H - Advanced Image Editor (NEW - Phase 2.1)
 
-Status: Implemented ✅
+Status: Implemented
 
 Implemented:
 
@@ -888,7 +894,7 @@ Technical implementation:
 
 ## Task I - Settings Persistence (NEW - Phase 2.2)
 
-Status: Implemented ✅
+Status: Implemented
 
 Implemented:
 
@@ -899,18 +905,18 @@ Implemented:
 - Type-safe Partial<PDFSettings> handling
 - Auto-migration of incomplete stored settings
 
-Next integration steps:
+Integration status:
 
-- Update `App` component to inject PdfSettingsStorageService
-- Call loadSettings() on component init to restore user preferences
-- Call saveSettings() in onPDFSettingsChanged() for auto-save
+- `ImageToPdfComponent` loads saved settings on construction.
+- `ImageToPdfComponent.onPDFSettingsChanged()` saves settings automatically.
+- Settings remain tool-scoped because the app now uses lazy tool routes.
 - Consider adding UI button to clear saved settings if users request it
 
 ---
 
 ## Task J - Web Worker for PDF Generation (NEW - Phase 6.1)
 
-Status: Implemented ✅
+Status: Implemented
 
 Implemented:
 
@@ -918,21 +924,25 @@ Implemented:
 - `src/app/services/pdf-worker.service.ts` - Worker lifecycle management with Observable progress tracking
 - Message passing infrastructure for GeneratePDFMessage, ProgressMessage, CompletionMessage, ErrorMessage
 - Full integration with `PDFService.generatePDF()` and `PDFService.createPDFBlob()`
-- Async/await support in app.ts `onGeneratePDF()` method
+- Async/await support in `ImageToPdfComponent.onGeneratePDF()`
 - Async blob generation in `pdf-preview.component.ts`
 - Error handling with automatic fallback to main thread
 - Worker cleanup and termination
+- Progress and cancel UI wired through `ImageToPdfComponent -> PdfSettingsPanel -> GeneratePDFButton`
+- Cancellation terminates the active worker and avoids main-thread fallback
 
 Testing:
 
 - Unit tests created for PdfWorkerService structure
-- TypeScript compilation verified: ✅
-- Angular build verification: ✅ (dist output generated)
+- Unit tests cover cancellation behavior and fallback suppression
+- Unit tests cover generate button progress/cancel behavior
+- Test suite passed: `npm.cmd test -- --watch=false` (57 tests)
+- TypeScript compilation verified
+- Angular build verification passed (dist output generated)
 
 Next testing steps:
 
 - Browser integration test: Generate PDF with 2+ images, verify all pages in output
-- Progress observable test: Monitor progress updates during generation
 - Fallback test: Disable workers in browser, verify main thread generation works
 - Performance benchmark: Compare worker vs main-thread on large file batches
 
@@ -1086,34 +1096,42 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 
 ---
 
-# Recent Session Summary (May 20, 2026)
+# Recent Session Summary (May 23, 2026)
 
 ## Bugs Fixed
-- **PDF Preview Multi-Page Display**: Added `ChangeDetectorRef.markForCheck()` to `performRefresh()` in `pdf-preview.component.ts` to trigger change detection after async PDF rendering outside Angular's zone.
-- **PDF Generation Loading State**: Added `this.cdr.detectChanges()` in finally block of `onGeneratePDF()` in `app.ts` to refresh UI after successful download.
+- **Worker cancellation fallback**: Cancelled worker generation now raises a dedicated cancellation error and does not fall back to main-thread generation.
+- **Root app warning**: Removed the unused `AppHeaderComponent` import from the routed root shell.
+- **Baseline tests**: Updated routed-shell, tool registry, and pdf.js-related specs so the suite matches the current architecture.
 
 ## Features Implemented
-- **Phase 2.1 - Advanced Image Editor**: Added brightness, contrast, grayscale, and sharpen filters with real-time preview and reset functionality.
-- **Phase 2.2 - Settings Persistence**: Created `pdf-settings-storage.service.ts` for localStorage-based PDF settings persistence with auto-load/save capabilities.
+- **Worker Progress UI**: Generation progress now appears in the export panel with status text, percentage, processed-image count, and progress bar.
+- **Generation Cancel UI**: Users can cancel active worker-backed PDF generation from the generate button area.
+- **Progress Wiring**: `ImageToPdfComponent` subscribes to `PdfWorkerService.getProgress()` and passes progress through `PdfSettingsPanelComponent` to `GeneratePDFButtonComponent`.
+- **Test Coverage**: Added focused coverage for worker cancellation, fallback suppression, component progress state, and generate button progress/cancel behavior.
+
+## Validation
+- `npm.cmd run build` passes with existing jsPDF/canvg CommonJS optimization warnings.
+- `npm.cmd test -- --watch=false` passes with 57 tests.
 
 ## Next Priority
-1. Integrate PdfSettingsStorageService into App component
-2. Add UI clear/export settings option
-3. Move to Phase 6: Web Worker for PDF generation
-4. Add Phase 3: PDF upload/merge/split tools
+1. Add IndexedDB-based persistence for session state and saved settings.
+2. Add PDF upload + merge/split tools once the tool-based route architecture is ready for real document workflows.
+3. Add PDF manipulation preview support for uploaded PDFs.
+4. Revisit object URL/Data URL lifecycle and memory cleanup during performance hardening.
 
 Example prompt for next session:
 
 ```text
-Integrate PdfSettingsStorageService into the App component.
+Add IndexedDB session persistence for the image-to-PDF tool.
 
 Requirements:
-- Load saved settings on app init
-- Save settings on every change
-- Show/hide filters without clearing filters
+- Persist the current uploaded file/session state in the browser
+- Restore the session after refresh when possible
+- Keep processing frontend-only and avoid backend assumptions
+- Preserve existing localStorage settings behavior
 
 Validation:
 - npm.cmd run build passes
-- Settings persist across page refresh
-- Dark mode remains usable
+- npm.cmd test -- --watch=false passes
+- Existing image-to-PDF generation, preview, progress, and cancel behavior still work
 ```

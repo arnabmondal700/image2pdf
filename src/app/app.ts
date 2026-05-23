@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { AppHeaderComponent } from './components/app-header/app-header.component';
 
 /**
  * Root application component - Shell for tool-based architecture
@@ -12,8 +11,7 @@ import { AppHeaderComponent } from './components/app-header/app-header.component
   standalone: true,
   imports: [
     CommonModule,
-    RouterOutlet,
-    AppHeaderComponent
+    RouterOutlet
   ],
   template: `
     <router-outlet></router-outlet>

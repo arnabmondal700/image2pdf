@@ -38,7 +38,7 @@ vi.mock('jspdf', () => ({
 
 import { FileObject } from './file.service';
 import { PDFService } from './pdf.service';
-import { PdfWorkerService } from './pdf-worker.service';
+import { PDFGenerationCancelledError, PdfWorkerService } from './pdf-worker.service';
 
 describe('PDFService', () => {
   let service: PDFService;
@@ -107,6 +107,15 @@ describe('PDFService', () => {
   it('does not generate an empty PDF', () => {
     service.generatePDF([], 'empty.pdf');
 
+    expect(mockPdfInstances).toEqual([]);
+  });
+
+  it('does not fall back to main-thread generation when worker generation is cancelled', async () => {
+    mockWorkerService.isWorkerSupported = vi.fn(() => true);
+    mockWorkerService.generatePDF = vi.fn(() => Promise.reject(new PDFGenerationCancelledError()));
+    service = new PDFService(mockWorkerService as PdfWorkerService);
+
+    await expect(service.generatePDF([files[0]], 'cancelled.pdf')).rejects.toBeInstanceOf(PDFGenerationCancelledError);
     expect(mockPdfInstances).toEqual([]);
   });
 });

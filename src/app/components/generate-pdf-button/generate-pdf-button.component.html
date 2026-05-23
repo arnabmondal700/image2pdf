@@ -16,4 +16,27 @@
       </span>
     }
   </button>
+
+  @if (isGenerating) {
+    <div class="generation-progress" role="status" aria-live="polite">
+      <div class="progress-copy">
+        <span>{{ getProgressLabel() }}</span>
+        <strong>{{ getProgressPercent() }}%</strong>
+      </div>
+
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-fill" [style.width.%]="getProgressPercent()"></div>
+      </div>
+
+      @if (generationProgress) {
+        <div class="progress-meta">
+          {{ generationProgress.current }} of {{ generationProgress.total }} images processed
+        </div>
+      }
+
+      <button class="cancel-btn" type="button" (click)="onCancelClick($event)">
+        Cancel generation
+      </button>
+    </div>
+  }
 </div>
