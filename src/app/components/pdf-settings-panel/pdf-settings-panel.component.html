@@ -157,6 +157,115 @@
     </div>
   }
 
+  <button 
+    class="advanced-toggle" 
+    (click)="toggleHeaderFooterSettings()"
+    [attr.aria-expanded]="showHeaderFooterSettings"
+  >
+    <span class="toggle-icon">{{ showHeaderFooterSettings ? '▼' : '▶' }}</span>
+    Header & Footer
+  </button>
+
+  @if (showHeaderFooterSettings) {
+    <div class="advanced-section">
+      <!-- Header Settings -->
+      <fieldset class="settings-fieldset">
+        <legend>Header</legend>
+        <label class="checkbox-field">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="pdfSettings.headerFooter!.header!.enabled"
+            (change)="onHeaderFooterChange()"
+          >
+          <span>Enable header</span>
+        </label>
+
+        @if (pdfSettings.headerFooter?.header?.enabled) {
+          <label class="setting-field">
+            <span>Header text</span>
+            <input 
+              type="text" 
+              [(ngModel)]="pdfSettings.headerFooter!.header!.text"
+              placeholder="e.g., filename - Page page of totalPages"
+              (change)="onHeaderFooterChange()"
+              maxlength="200"
+            >
+            <small class="hint">Use variables: date, page, totalPages, filename (enclosed in braces)</small>
+          </label>
+
+          <div class="header-footer-controls">
+            <label class="setting-field small">
+              <span>Font size</span>
+              <input 
+                type="number" 
+                min="8" 
+                max="14" 
+                [(ngModel)]="pdfSettings.headerFooter!.header!.fontSize"
+                (change)="onHeaderFooterChange()"
+              >
+            </label>
+            <label class="setting-field small">
+              <span>Font color</span>
+              <input 
+                type="color" 
+                [(ngModel)]="pdfSettings.headerFooter!.header!.fontColor"
+                (change)="onHeaderFooterChange()"
+              >
+            </label>
+          </div>
+        }
+      </fieldset>
+
+      <!-- Footer Settings -->
+      <fieldset class="settings-fieldset">
+        <legend>Footer</legend>
+        <label class="checkbox-field">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="pdfSettings.headerFooter!.footer!.enabled"
+            (change)="onHeaderFooterChange()"
+          >
+          <span>Enable footer</span>
+        </label>
+
+        @if (pdfSettings.headerFooter?.footer?.enabled) {
+          <label class="setting-field">
+            <span>Footer text</span>
+            <input 
+              type="text" 
+              [(ngModel)]="pdfSettings.headerFooter!.footer!.text"
+              placeholder="e.g., Generated on date"
+              (change)="onHeaderFooterChange()"
+              maxlength="200"
+            >
+            <small class="hint">Use variables: date, page, totalPages, filename (enclosed in braces)</small>
+          </label>
+
+          <div class="header-footer-controls">
+            <label class="setting-field small">
+              <span>Font size</span>
+              <input 
+                type="number" 
+                min="8" 
+                max="14" 
+                [(ngModel)]="pdfSettings.headerFooter!.footer!.fontSize"
+                (change)="onHeaderFooterChange()"
+              >
+            </label>
+            <label class="setting-field small">
+              <span>Font color</span>
+              <input 
+                type="color" 
+                [(ngModel)]="pdfSettings.headerFooter!.footer!.fontColor"
+                (change)="onHeaderFooterChange()"
+              >
+            </label>
+          </div>
+        }
+      </fieldset>
+    </div>
+  }
+
   <div class="export-summary">
     <div>
       <strong>{{ uploadedFiles.length }}</strong>

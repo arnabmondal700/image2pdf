@@ -150,6 +150,52 @@
   }
 }
 
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-strong);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    min-height: auto;
+    padding: 0;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+
+  span {
+    flex: 1;
+  }
+}
+
+.hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.header-footer-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+
+  .setting-field {
+    gap: 6px;
+
+    span {
+      font-size: 0.8rem;
+    }
+  }
+}
+
 .export-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

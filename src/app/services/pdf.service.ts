@@ -18,6 +18,18 @@ export type PDFImageFit = 'contain' | 'cover' | 'stretch';
 export type PDFImageAlignment = 'center' | 'top' | 'bottom';
 export type PDFImagesPerPage = 1 | 2 | 4;
 
+export interface HeaderFooterConfig {
+  enabled: boolean;
+  text: string;
+  fontSize?: number;
+  fontColor?: string;
+}
+
+export interface HeaderFooterSettings {
+  header?: HeaderFooterConfig;
+  footer?: HeaderFooterConfig;
+}
+
 export interface PDFSettings {
   pageSize: PDFPageSize;
   orientation: PDFOrientation;
@@ -30,6 +42,7 @@ export interface PDFSettings {
   imageAlignment?: PDFImageAlignment;
   backgroundColor?: string;
   imagesPerPage?: PDFImagesPerPage;
+  headerFooter?: HeaderFooterSettings;
 }
 
 interface ResolvedPDFSettings {
@@ -44,6 +57,7 @@ interface ResolvedPDFSettings {
   imageAlignment: PDFImageAlignment;
   backgroundColor: string;
   imagesPerPage: PDFImagesPerPage;
+  headerFooter: HeaderFooterSettings;
 }
 
 @Injectable({
@@ -69,7 +83,21 @@ export class PDFService {
       imageFit: 'contain',
       imageAlignment: 'center',
       backgroundColor: '#ffffff',
-      imagesPerPage: 1
+      imagesPerPage: 1,
+      headerFooter: {
+        header: {
+          enabled: false,
+          text: '',
+          fontSize: 10,
+          fontColor: '#000000'
+        },
+        footer: {
+          enabled: false,
+          text: '',
+          fontSize: 10,
+          fontColor: '#000000'
+        }
+      }
     }
   ): Promise<void> {
     if (uploadedFiles.length === 0) {
@@ -232,7 +260,11 @@ export class PDFService {
       imageFit: settings.imageFit ?? 'contain',
       imageAlignment: settings.imageAlignment ?? 'center',
       backgroundColor: this.coerceHexColor(settings.backgroundColor),
-      imagesPerPage: coerceImagesPerPage(settings.imagesPerPage)
+      imagesPerPage: coerceImagesPerPage(settings.imagesPerPage),
+      headerFooter: {
+        header: settings.headerFooter?.header || { enabled: false, text: '', fontSize: 10, fontColor: '#000000' },
+        footer: settings.headerFooter?.footer || { enabled: false, text: '', fontSize: 10, fontColor: '#000000' }
+      }
     };
   }
 
