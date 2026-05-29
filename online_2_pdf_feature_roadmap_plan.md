@@ -244,20 +244,19 @@ Remaining Phase 1 polish:
 
 Add richer editing and document layout controls beyond the core converter.
 
-## Status: Partial (67% Complete)
+## Status: Partial (83% Complete)
 
 Completed Phase 2 scope:
 
 - Advanced image filtering in editor: brightness, contrast, grayscale, sharpen
 - Crop and rotate controls in the image editor
 - Settings persistence and advanced options in the settings panel
-- **NEW: PDF page rotation controls (Feature 8 Complete)**
+- **DONE: PDF page rotation controls (Feature 8)**
+- **DONE: Header/Footer template engine (Feature 9)**
 
 Remaining Phase 2 work:
 
-- Header/footer template engine (Feature 9)
-- Separate PDF export modes and ZIP download (Feature 10)
-- More advanced grid and layout templates
+- Multiple output modes and ZIP download (Feature 10)
 
 ---
 
@@ -535,7 +534,48 @@ Recommended next task:
 
 Feature 8 rotation UI complete. PDFs generated will include rotation metadata in file objects. Full PDF rotation rendering will be enhanced in Phase 2.5 after header/footer implementation.
 
-Status: Not started
+---
+
+## Feature 9. Header/Footer Template Engine
+
+Status: Implemented for Phase 2 MVP
+
+Implemented:
+
+- HeaderFooterService for template variable processing
+- Header/Footer UI section in pdf-settings-panel with collapsible toggle
+- Enable/disable checkboxes for header and footer independently
+- Text input fields with multi-line support (200 char limit)
+- Font size control (8-14pt range) with validation
+- Font color picker (hex color input)
+- Template variable replacement with four standard variables:
+  - {date}: Current date in YYYY-MM-DD format
+  - {page}: Current page number (1-based)
+  - {totalPages}: Total number of pages in PDF
+  - {filename}: Original PDF filename without extension
+- Header rendered near top margin, footer near bottom margin
+- Page count pre-calculated for {totalPages} variable
+- Per-page variable substitution during worker PDF generation
+- Hex to RGB color conversion for jsPDF rendering
+
+Technical implementation:
+
+- HeaderFooterConfig interface: enabled, text, fontSize (8-14), fontColor (hex)
+- HeaderFooterSettings contains optional header and footer configs
+- Template substitution happens per-page during PDF generation
+- Text positioned within document margins for professional appearance
+- Worker receives headerFooter settings and substitutes variables per page
+
+Not implemented:
+
+- Multiple header/footer styles or presets
+- Right-aligned or justified header/footer text (defaults to left)
+- Custom fonts for headers/footers (uses PDF default font)
+- Header/footer background or separator lines
+
+Recommended next task:
+
+Feature 9 header/footer complete. Headers and footers will render on all pages with proper page numbering. Ready for Feature 10 (multiple output modes).
 
 ---
 
