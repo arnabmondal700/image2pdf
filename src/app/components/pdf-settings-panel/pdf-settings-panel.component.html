@@ -43,6 +43,19 @@
         <option value="SLOW">High quality</option>
       </select>
     </label>
+
+    <label class="setting-field">
+      <span>Export mode</span>
+      <select 
+        name="exportMode" 
+        [(ngModel)]="pdfSettings.exportMode"
+        (change)="onSettingsChange()"
+      >
+        <option value="single-pdf">Single PDF</option>
+        <option value="separate-pdfs">Separate PDFs</option>
+        <option value="zip">ZIP archive</option>
+      </select>
+    </label>
   </div>
 
   <button 

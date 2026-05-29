@@ -10,6 +10,7 @@ import type { PDFSettings } from '../../services/pdf.service';
 import { GenerationProgress, PDFGenerationCancelledError, PdfWorkerService } from '../../services/pdf-worker.service';
 import { PdfSettingsStorageService } from '../../services/pdf-settings-storage.service';
 import { PdfExtractionService } from '../../services/pdf-extraction.service';
+import { ExportService } from '../../services/export.service';
 import { ToolDefinition } from '../tool.interface';
 import { Subscription } from 'rxjs';
 
@@ -70,6 +71,7 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
     private pdfWorkerService: PdfWorkerService,
     private settingsStorage: PdfSettingsStorageService,
     private pdfExtraction: PdfExtractionService,
+    private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {
     // Load saved PDF settings or use defaults
@@ -84,7 +86,8 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
       imageFit: 'contain',
       imageAlignment: 'center',
       backgroundColor: '#ffffff',
-      imagesPerPage: 1
+      imagesPerPage: 1,
+      exportMode: 'single-pdf'
     };
   }
 
@@ -285,7 +288,13 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
 
     this.isGenerating = true;
     try {
-      await this.pdfService.generatePDF(this.uploadedFiles, 'image-to-pdf.pdf', this.pdfSettings);
+      const exportMode = this.pdfSettings.exportMode || 'single-pdf';
+      await this.exportService.export(
+        this.uploadedFiles,
+        exportMode,
+        this.pdfSettings,
+        'image-to-pdf'
+      );
     } catch (error) {
       if (error instanceof PDFGenerationCancelledError) {
         return;

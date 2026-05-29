@@ -17,6 +17,7 @@ export type PDFQuality = 'FAST' | 'MEDIUM' | 'SLOW';
 export type PDFImageFit = 'contain' | 'cover' | 'stretch';
 export type PDFImageAlignment = 'center' | 'top' | 'bottom';
 export type PDFImagesPerPage = 1 | 2 | 4;
+export type ExportMode = 'single-pdf' | 'separate-pdfs' | 'zip';
 
 export interface HeaderFooterConfig {
   enabled: boolean;
@@ -43,6 +44,7 @@ export interface PDFSettings {
   backgroundColor?: string;
   imagesPerPage?: PDFImagesPerPage;
   headerFooter?: HeaderFooterSettings;
+  exportMode?: ExportMode;
 }
 
 interface ResolvedPDFSettings {
@@ -58,6 +60,7 @@ interface ResolvedPDFSettings {
   backgroundColor: string;
   imagesPerPage: PDFImagesPerPage;
   headerFooter: HeaderFooterSettings;
+  exportMode: ExportMode;
 }
 
 @Injectable({
@@ -97,7 +100,8 @@ export class PDFService {
           fontSize: 10,
           fontColor: '#000000'
         }
-      }
+      },
+      exportMode: 'single-pdf'
     }
   ): Promise<void> {
     if (uploadedFiles.length === 0) {
@@ -264,7 +268,8 @@ export class PDFService {
       headerFooter: {
         header: settings.headerFooter?.header || { enabled: false, text: '', fontSize: 10, fontColor: '#000000' },
         footer: settings.headerFooter?.footer || { enabled: false, text: '', fontSize: 10, fontColor: '#000000' }
-      }
+      },
+      exportMode: settings.exportMode ?? 'single-pdf'
     };
   }
 

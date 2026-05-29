@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GeneratePDFButtonComponent } from '../generate-pdf-button/generate-pdf-button.component';
-import { PDFImagesPerPage, PDFSettings, HeaderFooterConfig, HeaderFooterSettings } from '../../services/pdf.service';
+import { PDFImagesPerPage, PDFSettings, HeaderFooterConfig, HeaderFooterSettings, ExportMode } from '../../services/pdf.service';
 import { HeaderFooterService } from '../../services/header-footer.service';
 import { FileObject } from '../../services/file.service';
 import { GenerationProgress } from '../../services/pdf-worker.service';
@@ -27,6 +27,7 @@ export class PdfSettingsPanelComponent {
     imageAlignment: 'center',
     backgroundColor: '#ffffff',
     imagesPerPage: 1,
+    exportMode: 'single-pdf',
     headerFooter: {
       header: { enabled: false, text: '', fontSize: 10, fontColor: '#000000' },
       footer: { enabled: false, text: '', fontSize: 10, fontColor: '#000000' }

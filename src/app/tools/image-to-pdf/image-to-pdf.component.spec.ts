@@ -19,6 +19,7 @@ import { PDFService, type PDFSettings } from '../../services/pdf.service';
 import { GenerationProgress, PdfWorkerService } from '../../services/pdf-worker.service';
 import { PdfSettingsStorageService } from '../../services/pdf-settings-storage.service';
 import { PdfExtractionService } from '../../services/pdf-extraction.service';
+import { ExportService } from '../../services/export.service';
 
 describe('ImageToPdfComponent', () => {
   let component: ImageToPdfComponent;
@@ -29,6 +30,7 @@ describe('ImageToPdfComponent', () => {
   let pdfWorkerService: any;
   let settingsStorage: any;
   let pdfExtraction: any;
+  let exportService: any;
   let progressSubject: BehaviorSubject<GenerationProgress | null>;
 
   beforeEach(async () => {
@@ -48,6 +50,9 @@ describe('ImageToPdfComponent', () => {
       extractPdfAsImages: vi.fn(),
       isPdfSupported: vi.fn()
     };
+    const exportServiceSpy = {
+      export: vi.fn(() => Promise.resolve())
+    };
 
     await TestBed.configureTestingModule({
       imports: [
@@ -62,7 +67,8 @@ describe('ImageToPdfComponent', () => {
         { provide: PDFService, useValue: pdfServiceSpy },
         { provide: PdfWorkerService, useValue: pdfWorkerServiceSpy },
         { provide: PdfSettingsStorageService, useValue: settingsStorageSpy },
-        { provide: PdfExtractionService, useValue: pdfExtractionSpy }
+        { provide: PdfExtractionService, useValue: pdfExtractionSpy },
+        { provide: ExportService, useValue: exportServiceSpy }
       ]
     }).compileComponents();
 
@@ -72,6 +78,7 @@ describe('ImageToPdfComponent', () => {
     pdfWorkerService = TestBed.inject(PdfWorkerService);
     settingsStorage = TestBed.inject(PdfSettingsStorageService);
     pdfExtraction = TestBed.inject(PdfExtractionService);
+    exportService = TestBed.inject(ExportService);
 
     fixture = TestBed.createComponent(ImageToPdfComponent);
     component = fixture.componentInstance;
@@ -92,6 +99,7 @@ describe('ImageToPdfComponent', () => {
       pdfWorkerService,
       settingsStorage,
       pdfExtraction,
+      exportService,
       cdr
     );
     expect(newComponent.pdfSettings).toBeDefined();
@@ -122,6 +130,7 @@ describe('ImageToPdfComponent', () => {
       pdfWorkerService,
       settingsStorage,
       pdfExtraction,
+      exportService,
       cdr
     );
     expect(newComponent.pdfSettings.pageSize).toBe('letter');
