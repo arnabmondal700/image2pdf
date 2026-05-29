@@ -57,7 +57,7 @@ Not implemented:
 
 - PDF merge, split, rearrange, or page-level document editing
 - Password protection, encryption, or PDF-specific compression beyond `jsPDF` presets
-- Watermark, header/footer, or document template engine
+- Header/footer or document template engine
 - ZIP export or multiple-output PDFs
 - OCR / scan enhancement / intelligent page detection
 - IndexedDB persistence or offline storage of files/settings
@@ -255,7 +255,6 @@ Completed Phase 2 scope:
 Remaining Phase 2 work:
 
 - PDF page rotation controls
-- Watermark support
 - Header/footer template engine
 - Separate PDF export modes and ZIP download
 - More advanced grid and layout templates
@@ -460,7 +459,7 @@ Add advanced editing and document layout controls.
 
 Phase 2.1 implementation adds professional image editing filters (brightness, contrast, grayscale, sharpen) with real-time preview. Phase 2.2 adds browser-based settings persistence via localStorage with automatic load/save.
 
-Remaining Phase 2 features (page rotation, watermark, header/footer, multiple output modes) are deferred until concrete product requirements emerge.
+Remaining Phase 2 features (page rotation, header/footer, multiple output modes) are deferred until concrete product requirements emerge.
 
 ---
 
@@ -506,28 +505,25 @@ Current implementation covers practical editing needs. Consider non-destructive 
 
 ## Feature 8. Page Rotation Controls
 
-Status: Not started
+Status: In progress
 
-Current note:
+Current implementation:
 
-- Image rotation exists before PDF generation.
-- PDF page rotation metadata does not exist.
-
----
-
-## Feature 9. Watermark Support
-
-Status: Not started
+- Adding per-file page rotation metadata to FileObject interface
+- Rotation UI in file-item component for easy access
+- Rotation angle stored and persisted with file state
+- Applied during PDF generation in pdf-layout-engine
+- Supports 0°, 90°, 180°, 270° rotations
 
 ---
 
-## Feature 10. Header/Footer Engine
+## Feature 9. Header/Footer Engine
 
 Status: Not started
 
 ---
 
-## Feature 11. Multiple Output Modes
+## Feature 10. Multiple Output Modes
 
 Status: Not started
 

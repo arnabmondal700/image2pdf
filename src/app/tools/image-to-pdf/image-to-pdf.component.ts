@@ -213,6 +213,18 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Handle file rotation
+   */
+  onFileRotated(event: { index: number; rotation: number }): void {
+    if (!this.uploadedFiles[event.index]) return;
+
+    this.uploadedFiles = this.uploadedFiles.map((item, index) =>
+      index === event.index ? { ...item, rotation: event.rotation } : item
+    );
+    this.cdr.detectChanges();
+  }
+
+  /**
    * Handle file edit request
    */
   onFileEditRequested(index: number): void {

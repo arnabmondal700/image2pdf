@@ -86,12 +86,14 @@
 
 .file-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
 .remove-btn,
-.edit-btn {
+.edit-btn,
+.rotate-left-btn,
+.rotate-right-btn {
   min-height: 44px;
   border: none;
   border-radius: 14px;
@@ -115,6 +117,16 @@
 
   &:hover {
     background: rgba(244, 63, 94, 0.16);
+  }
+}
+
+.rotate-left-btn,
+.rotate-right-btn {
+  color: var(--text-strong);
+  background: rgba(99, 102, 241, 0.12);
+
+  &:hover {
+    background: rgba(99, 102, 241, 0.2);
   }
 }
 

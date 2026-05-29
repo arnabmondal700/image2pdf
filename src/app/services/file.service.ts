@@ -6,7 +6,8 @@ export interface FileObject {
   url: string;
   size: number;
   type: string;
-  fileType?: 'image' | 'pdf'; // NEW: Track if image or PDF
+  fileType?: 'image' | 'pdf'; // Track if image or PDF
+  rotation?: number; // NEW: Track page rotation (0, 90, 180, 270 degrees)
 }
 
 export interface FileValidationError {

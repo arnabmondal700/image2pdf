@@ -3,7 +3,7 @@
 >
   <div class="thumb-wrap">
     @if (file?.url) {
-      <img [src]="file?.url" [alt]="file?.name || 'Uploaded image preview'" class="thumb">
+      <img [src]="file?.url" [alt]="file?.name || 'Uploaded image preview'" class="thumb" [ngStyle]="getRotationStyle()">
     }
     <span class="file-index">{{ index + 1 }}</span>
   </div>
@@ -14,11 +14,17 @@
   </div>
 
   <div class="file-actions">
-    <button class="remove-btn" type="button" (click)="onRemove()" title="Delete image">
-      Delete
+    <button class="rotate-left-btn" type="button" (click)="onRotateLeft()" title="Rotate 90° counter-clockwise">
+      ↶ Rotate
+    </button>
+    <button class="rotate-right-btn" type="button" (click)="onRotateRight()" title="Rotate 90° clockwise">
+      ↷ Rotate
     </button>
     <button class="edit-btn" type="button" (click)="onEdit()" title="Edit image">
       Edit
+    </button>
+    <button class="remove-btn" type="button" (click)="onRemove()" title="Delete image">
+      Delete
     </button>
   </div>
 </article>

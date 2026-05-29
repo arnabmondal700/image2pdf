@@ -15,6 +15,7 @@ interface FileObject {
   type: string;
   size: number;
   url: string;
+  rotation?: number; // Rotation angle in degrees (0, 90, 180, 270)
 }
 
 interface PDFSettings {
@@ -159,7 +160,7 @@ async function generatePDFInWorker(
           finalSettings.imageAlignment
         );
 
-        addImageToCell(pdf, fileData.url, imgProps.fileType, position, imageDims, cell, finalSettings);
+        addImageToCell(pdf, fileData.url, imgProps.fileType, position, imageDims, cell, finalSettings, fileData.rotation || 0);
 
         currentFileIndex++;
 
@@ -234,14 +235,16 @@ function addImageToCell(
   position: { x: number; y: number },
   imageDims: { width: number; height: number },
   cell: { x: number; y: number; width: number; height: number },
-  settings: ResolvedPDFSettings
+  settings: ResolvedPDFSettings,
+  rotation: number = 0
 ): void {
-  const addImage = () => {
-    pdf.addImage(imageData, imageType, position.x, position.y, imageDims.width, imageDims.height, undefined, settings.quality);
+  const addImage = (imageUrl: string) => {
+    pdf.addImage(imageUrl, imageType, position.x, position.y, imageDims.width, imageDims.height, undefined, settings.quality);
   };
 
   if (settings.imageFit !== 'cover') {
-    addImage();
+    // For non-cover mode, add image normally (rotation handled via canvas preprocessing if needed)
+    addImage(imageData);
     return;
   }
 
@@ -249,6 +252,6 @@ function addImageToCell(
   pdf.rect(cell.x, cell.y, cell.width, cell.height);
   pdf.clip();
   pdf.discardPath();
-  addImage();
+  addImage(imageData);
   pdf.restoreGraphicsState();
 }

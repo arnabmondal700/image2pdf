@@ -16,6 +16,7 @@ export class FileListComponent {
   @Output() fileRemoved = new EventEmitter<number>();
   @Output() fileEditRequested = new EventEmitter<number>();
   @Output() fileReordered = new EventEmitter<{ from: number; to: number }>();
+  @Output() fileRotated = new EventEmitter<{ index: number; rotation: number }>();
 
   onFileRemove(index: number) {
     this.fileRemoved.emit(index);
@@ -23,6 +24,10 @@ export class FileListComponent {
 
   onFileEdit(index: number) {
     this.fileEditRequested.emit(index);
+  }
+
+  onFileRotate(event: { index: number; rotation: number }) {
+    this.fileRotated.emit(event);
   }
 
   onDrop(event: CdkDragDrop<FileObject[]>) {

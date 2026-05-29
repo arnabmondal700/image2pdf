@@ -6,6 +6,7 @@ export interface FileObject {
   type: string;
   size: number;
   url: string;
+  rotation?: number; // Rotation angle in degrees (0, 90, 180, 270)
 }
 
 export interface PDFSettings {
