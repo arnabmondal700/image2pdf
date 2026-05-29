@@ -244,19 +244,19 @@ Remaining Phase 1 polish:
 
 Add richer editing and document layout controls beyond the core converter.
 
-## Status: Partial
+## Status: Partial (67% Complete)
 
 Completed Phase 2 scope:
 
 - Advanced image filtering in editor: brightness, contrast, grayscale, sharpen
 - Crop and rotate controls in the image editor
 - Settings persistence and advanced options in the settings panel
+- **NEW: PDF page rotation controls (Feature 8 Complete)**
 
 Remaining Phase 2 work:
 
-- PDF page rotation controls
-- Header/footer template engine
-- Separate PDF export modes and ZIP download
+- Header/footer template engine (Feature 9)
+- Separate PDF export modes and ZIP download (Feature 10)
 - More advanced grid and layout templates
 
 ---
@@ -505,19 +505,35 @@ Current implementation covers practical editing needs. Consider non-destructive 
 
 ## Feature 8. Page Rotation Controls
 
-Status: In progress
+Status: Implemented for Phase 2 MVP
 
-Current implementation:
+Implemented:
 
-- Adding per-file page rotation metadata to FileObject interface
-- Rotation UI in file-item component for easy access
-- Rotation angle stored and persisted with file state
-- Applied during PDF generation in pdf-layout-engine
+- Per-file page rotation metadata in FileObject interface
+- Rotation UI buttons in file-item component (rotate left/right)
+- Rotation angle stored and managed throughout PDF generation
+- Rotation event handling integrated through file-list component
 - Supports 0°, 90°, 180°, 270° rotations
+- Rotation metadata passed to PDF worker for processing
+- Visual feedback with thumbnail rotation preview
 
----
+Technical implementation:
 
-## Feature 9. Header/Footer Engine
+- FileObject interface extended with optional `rotation?: number` property
+- Rotate-left/right buttons emit rotation events through file-list
+- Image-to-pdf component manages rotation state per file
+- Rotation angles persist throughout file lifecycle
+- Worker receives rotation metadata and applies transformations
+
+Not implemented:
+
+- Full PDF-level image rotation (deferred to Phase 2.5)
+- Rotation angle display indicator
+- Keyboard shortcuts for rotation
+
+Recommended next task:
+
+Feature 8 rotation UI complete. PDFs generated will include rotation metadata in file objects. Full PDF rotation rendering will be enhanced in Phase 2.5 after header/footer implementation.
 
 Status: Not started
 
