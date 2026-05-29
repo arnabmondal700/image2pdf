@@ -244,7 +244,7 @@ Remaining Phase 1 polish:
 
 Add richer editing and document layout controls beyond the core converter.
 
-## Status: Partial (83% Complete)
+## Status: Done (100% Complete)
 
 Completed Phase 2 scope:
 
@@ -253,10 +253,9 @@ Completed Phase 2 scope:
 - Settings persistence and advanced options in the settings panel
 - **DONE: PDF page rotation controls (Feature 8)**
 - **DONE: Header/Footer template engine (Feature 9)**
+- **DONE: Multiple output modes and ZIP download (Feature 10)**
 
-Remaining Phase 2 work:
-
-- Multiple output modes and ZIP download (Feature 10)
+All Phase 2 features are now implemented and validated.
 
 ---
 
@@ -581,13 +580,45 @@ Feature 9 header/footer complete. Headers and footers will render on all pages w
 
 ## Feature 10. Multiple Output Modes
 
-Status: Not started
+Status: Implemented for Phase 2 MVP
+
+Implemented:
+
+- ExportService for multi-mode export coordination (`src/app/services/export.service.ts`)
+- Three export modes available in PDF settings:
+  - **Single PDF**: Default mode, merges all images into one PDF document
+  - **Separate PDFs**: Generates individual PDF for each image/file
+  - **ZIP archive**: Creates ZIP file containing all generated PDFs
+- Export mode selector added to pdf-settings-panel with dropdown menu
+- UI selector integrated into PDF settings grid (after Quality setting)
+- jszip integration for ZIP file bundling and compression
+- ExportMode type added to PDFSettings interface
+- Settings persistence includes export mode preference
+- Image-to-pdf component updated to use ExportService.export()
+- Component spec file updated with ExportService mocks
+
+Technical implementation:
+
+- ExportService handles export coordination and mode routing
+- For Separate PDFs: generates multiple PDF downloads with staggered timing (500ms delay)
+- For ZIP archive: collects all PDFs, creates ZIP blob, triggers single download
+- File name sanitization for ZIP entries (removes special characters, respects 200-char limit)
+- Smart naming: separate PDFs numbered (1-filename, 2-filename, etc.)
+- Error handling with fallback to single PDF if individual generation fails
+- Worker-backed PDF generation through existing PDFService.createPDFBlob()
 
 Not implemented:
 
-- Separate PDFs
-- ZIP download
-- `jszip`
+- Batch download manager UI (sequential automatic downloads)
+- ZIP comment/metadata
+- Selective file export (all files are always included)
+- Export to other formats (PDF-only at this time)
+
+Recommended next task:
+
+Feature 10 (multiple output modes) complete. Phase 2 is now 100% done. All Phase 2 features (page rotation, header/footer, multiple output modes) are fully implemented and tested.
+
+Ready to proceed with Phase 3 (PDF Manipulation: merge, split, compress, rearrange).
 
 ---
 
