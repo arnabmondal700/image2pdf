@@ -1,0 +1,156 @@
+<div class="pdf-split-container">
+  <div class="split-header">
+    <h1>Split PDF</h1>
+    <p>Extract specific pages from a PDF. Choose to combine them in one file or save separately.</p>
+  </div>
+
+  <!-- Drag-drop zone -->
+  <div class="drop-zone" 
+       [class.dragging]="isDragging"
+       (dragover)="onDragOverZone()"
+       (dragleave)="onDragLeaveZone()"
+       (drop)="onFilesSelected($event.dataTransfer?.files || [])">
+    <div class="drop-zone-content">
+      <span class="drop-icon">📄</span>
+      <p>Drop PDF here or click to select</p>
+      <label class="file-input-label">
+        <input type="file" accept=".pdf" (change)="onFilesSelected($event.target.files || [])" />
+        <span>Select PDF</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Error messages -->
+  @if (generalError) {
+    <div class="error-message">
+      <strong>Error:</strong> {{ generalError }}
+    </div>
+  }
+
+  @if (validationErrors.length > 0) {
+    <div class="validation-errors">
+      <strong>Validation Issues:</strong>
+      <ul>
+        @for (error of validationErrors; track error.fileName) {
+          <li>{{ error.fileName }}: {{ error.reason }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- PDF info and controls -->
+  @if (uploadedPdf) {
+    <div class="split-section">
+      <div class="section-header">
+        <h3>Extract Pages from PDF</h3>
+        <p class="hint">{{ getInfoText() }}</p>
+      </div>
+
+      <!-- Uploaded PDF info -->
+      <div class="pdf-info-card">
+        <div class="pdf-info-content">
+          <div class="pdf-icon">📋</div>
+          <div class="pdf-details">
+            <div class="pdf-name">{{ uploadedPdf.name }}</div>
+            <div class="pdf-meta">
+              <span>{{ pageCount }} {{ pageCount === 1 ? 'page' : 'pages' }}</span>
+              <span>{{ (uploadedPdf.size / 1024 / 1024).toFixed(2) }} MB</span>
+            </div>
+          </div>
+        </div>
+        <button class="remove-button" 
+                (click)="onPdfRemoved()"
+                title="Remove PDF"
+                [disabled]="isSplitting">
+          ✕
+        </button>
+      </div>
+
+      <!-- Split controls -->
+      <div class="split-controls">
+        <!-- Page range input -->
+        <label class="control-group">
+          <span class="control-label">Page Range</span>
+          <div class="input-with-hint">
+            <input type="text" 
+                   [(ngModel)]="pageRange"
+                   placeholder="e.g., 1-3, 5, 7-10"
+                   [disabled]="isSplitting"
+                   class="range-input">
+            <div class="range-hint">
+              Examples: <code>1</code> (single page), <code>1-3</code> (range), <code>1-3, 5, 7-10</code> (mixed)
+            </div>
+          </div>
+        </label>
+
+        <!-- Output mode selector -->
+        <label class="control-group">
+          <span class="control-label">Output Mode</span>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" 
+                     [(ngModel)]="outputMode"
+                     value="single"
+                     [disabled]="isSplitting">
+              <span class="radio-label">Combine in One PDF</span>
+              <span class="radio-description">All selected pages in a single document</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" 
+                     [(ngModel)]="outputMode"
+                     value="separate"
+                     [disabled]="isSplitting">
+              <span class="radio-label">Separate PDFs</span>
+              <span class="radio-description">One PDF file per page</span>
+            </label>
+          </div>
+        </label>
+
+        <!-- Output filename -->
+        <label class="control-group">
+          <span class="control-label">Output Filename</span>
+          <input type="text" 
+                 [(ngModel)]="splitFileName"
+                 placeholder="split-document"
+                 [disabled]="isSplitting"
+                 class="filename-input">
+        </label>
+
+        <!-- Action buttons -->
+        <div class="button-group">
+          <button class="split-button"
+                  (click)="onSplitPDF()"
+                  [disabled]="isSplitDisabled()">
+            {{ getSplitButtonLabel() }}
+          </button>
+          <button class="clear-button"
+                  (click)="clearAll()"
+                  [disabled]="isSplitting">
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Split info -->
+      <div class="split-info">
+        <div class="info-item">
+          <strong>{{ pageCount }}</strong>
+          <span>{{ pageCount === 1 ? 'page' : 'pages' }} total</span>
+        </div>
+        <div class="info-item">
+          <strong>{{ outputMode === 'single' ? '1' : pageRange ? (pageRange.split(',').length) : '?' }}</strong>
+          <span>{{ outputMode === 'single' ? 'output PDF' : 'output PDF(s)' }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!uploadedPdf) {
+    <div class="empty-state">
+      <p class="empty-icon">✂️</p>
+      <p class="empty-text">No PDF selected</p>
+      <p class="empty-hint">Upload a PDF to extract pages</p>
+    </div>
+  }
+</div>

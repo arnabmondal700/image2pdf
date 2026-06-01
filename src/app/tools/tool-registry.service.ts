@@ -62,8 +62,8 @@ export class ToolRegistryService {
       icon: '✂️',
       path: 'split',
       category: 'extract',
-      enabled: false,
-      priority: 70
+      enabled: true,
+      priority: 75
     });
 
     this.registerTool({
