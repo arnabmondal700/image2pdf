@@ -1,0 +1,113 @@
+<div class="pdf-merge-container">
+  <div class="merge-header">
+    <h1>Merge PDFs</h1>
+    <p>Upload multiple PDFs and combine them into a single document. Drag to reorder.</p>
+  </div>
+
+  <!-- Drag-drop zone -->
+  <div class="drop-zone" 
+       [class.dragging]="isDragging"
+       (dragover)="onDragOverZone()"
+       (dragleave)="onDragLeaveZone()"
+       (drop)="onFilesSelected($event.dataTransfer?.files || [])">
+    <div class="drop-zone-content">
+      <span class="drop-icon">📄</span>
+      <p>Drop PDFs here or click to select</p>
+      <label class="file-input-label">
+        <input type="file" multiple accept=".pdf" (change)="onFilesSelected($event.target.files || [])" />
+        <span>Select PDFs</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Error messages -->
+  @if (generalError) {
+    <div class="error-message">
+      <strong>Error:</strong> {{ generalError }}
+    </div>
+  }
+
+  @if (validationErrors.length > 0) {
+    <div class="validation-errors">
+      <strong>Validation Issues:</strong>
+      <ul>
+        @for (error of validationErrors; track error.fileName) {
+          <li>{{ error.fileName }}: {{ error.reason }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- PDF list with reordering -->
+  @if (uploadedPdfs.length > 0) {
+    <div class="pdf-list-section">
+      <div class="section-header">
+        <h3>PDFs to Merge ({{ uploadedPdfs.length }})</h3>
+        <p class="hint">Drag to reorder the merge sequence</p>
+      </div>
+
+      <div cdkDropList (cdkDropListDropped)="onPdfReordered($event)" class="pdf-list">
+        @for (pdf of uploadedPdfs; track pdf.url; let index = $index) {
+          <div class="pdf-item" cdkDrag>
+            <div class="pdf-item-handle">
+              <span class="drag-handle">⋮⋮</span>
+            </div>
+            <div class="pdf-item-content">
+              <div class="pdf-index">{{ index + 1 }}</div>
+              <div class="pdf-details">
+                <div class="pdf-name">{{ pdf.name }}</div>
+                <div class="pdf-meta">{{ (pdf.size / 1024 / 1024).toFixed(2) }} MB</div>
+              </div>
+            </div>
+            <button class="remove-button" 
+                    (click)="onPdfRemoved(index)"
+                    title="Remove PDF">
+              ✕
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Merge controls -->
+      <div class="merge-controls">
+        <label class="file-name-label">
+          <span>Output filename</span>
+          <input type="text" 
+                 [(ngModel)]="mergeFileName"
+                 placeholder="merged-document"
+                 [disabled]="isMerging">
+        </label>
+
+        <div class="button-group">
+          <button class="merge-button"
+                  (click)="onMergePDFs()"
+                  [disabled]="isMergeDisabled()">
+            {{ getMergeButtonLabel() }}
+          </button>
+          <button class="clear-button"
+                  (click)="clearAll()"
+                  [disabled]="isMerging">
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Merge summary -->
+      <div class="merge-summary">
+        <div class="summary-item">
+          <strong>{{ uploadedPdfs.length }}</strong>
+          <span>{{ uploadedPdfs.length === 1 ? 'PDF' : 'PDFs' }} selected</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (uploadedPdfs.length === 0) {
+    <div class="empty-state">
+      <p class="empty-icon">📑</p>
+      <p class="empty-text">No PDFs selected yet</p>
+      <p class="empty-hint">Upload 2 or more PDFs to begin merging</p>
+    </div>
+  }
+</div>

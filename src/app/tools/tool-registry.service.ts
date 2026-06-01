@@ -51,7 +51,7 @@ export class ToolRegistryService {
       icon: '📎',
       path: 'merge',
       category: 'merge',
-      enabled: false,
+      enabled: true,
       priority: 80
     });
 

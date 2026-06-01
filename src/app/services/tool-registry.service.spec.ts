@@ -81,10 +81,15 @@ describe('ToolRegistryService', () => {
     expect(secondTool.id).toBe('pdf-preview');
   });
 
+  it('should have pdf-merge tool as third enabled tool', () => {
+    const enabledTools = service.getEnabledTools();
+    const thirdTool = enabledTools[2];
+    expect(thirdTool.id).toBe('pdf-merge');
+  });
+
   it('should have disabled tools not included in enabled list', () => {
     const enabledTools = service.getEnabledTools();
     const toolIds = enabledTools.map((t) => t.id);
-    expect(toolIds).not.toContain('pdf-merge');
     expect(toolIds).not.toContain('pdf-split');
     expect(toolIds).not.toContain('pdf-compress');
   });
