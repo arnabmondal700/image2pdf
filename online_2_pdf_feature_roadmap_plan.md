@@ -704,21 +704,102 @@ Feature 11 (PDF Merge) complete and tested. Phase 3 is 17% done. Ready to procee
 
 ---
 
+## Feature 12. PDF Split Tool
+
+Status: Implemented for Phase 3 MVP
+
+Implemented:
+
+- PDFSplitService for async PDF page extraction using pdf-lib
+- splitPDF() method: Extracts specific page ranges into single or separate PDFs
+- extractSinglePDF() method: Combines selected pages into one PDF document
+- extractSeparatePDFs() method: Creates separate PDF for each page
+- parsePageRange() method: Parses range strings (e.g., "1-3, 5, 7-10") into page array
+- getPageCount() method: Async page counting from PDFs
+- downloadPDF() and downloadPDFs() methods: Handles single and batch downloads with proper naming
+- sanitizeFileName() method: Removes special characters for safe file exports
+- Comprehensive range parsing with validation and error handling
+- pdf-split component with complete TypeScript implementation
+  - Single PDF upload with drag-drop support
+  - Page range input with helpful example hints
+  - Output mode selector: combine or separate PDFs
+  - Dynamic page count display (fetched on PDF load)
+  - Custom output filename input with validation
+  - Split button with dynamic label based on state
+  - Clear All button to reset form
+  - Validation error display
+  - isDragging state for visual feedback
+  - isSplitting state for loading behavior
+- Responsive HTML template (110+ lines)
+  - Drop zone with upload instructions
+  - PDF info card showing page count and file size
+  - Page range input with syntax examples
+  - Radio button group for output mode selection
+  - Output filename input field
+  - Split and Clear buttons
+  - Error message display area
+  - Info cards showing PDF details
+  - Empty state message
+- Comprehensive SCSS styling (380+ lines)
+  - Mobile-responsive design (600px breakpoint)
+  - Drag-drop visual feedback and animations
+  - Radio button group styling
+  - Input field styling with focus states
+  - Accessible form layout with proper labels
+  - Dark mode support via CSS variables
+- Tool registry enabled with priority 75 (4th in tool menu after image-to-pdf, pdf-preview, pdf-merge)
+- Tool definition includes id='pdf-split', category='extract', enabled=true
+- Lazy-loaded route at path='/split' with title 'Split PDF'
+- All 106 unit tests passing (Feature 12 added 47 new tests: 18 service + 29 component)
+
+Technical implementation:
+
+- Uses pdf-lib.PDFDocument for page extraction at document level
+- Async processing with proper error handling
+- Uint8Array type-safe blob creation for cross-browser compatibility
+- SplitOptions interface supports outputMode configuration (single/separate)
+- Page range parsing with duplicate removal and sorting
+- Validation of page indices against actual PDF page count
+- Configurable output naming for single vs. batch downloads
+- FileObject interface reused from existing services
+- Component integrates with existing FileService for validation
+- No external storage or networking required
+
+Not implemented:
+
+- Merge pages from multiple PDFs during split
+- Split preview before download
+- Custom page reordering before extraction
+- Split history or templates
+- Advanced options like page size conversion
+- Page-level annotations or watermarks
+
+Dependencies:
+
+- pdf-lib (7.0.2) ✓ installed
+- Angular CDK (drag-drop) ✓ already present
+
+Recommended next task:
+
+Feature 12 (PDF Split) complete and tested. Phase 3 is 33% done (2 of 6). Ready to proceed with Feature 13 (PDF Rearrange and Page-Level Editing).
+
+---
+
 # PHASE 3 - PDF MANIPULATION TOOLS
 
 ## Objective
 
 Expand into a full PDF toolkit with document-level operations.
 
-## Overall Status: 17% Complete (1 of 6 Features)
+## Overall Status: 33% Complete (2 of 6 Features)
 
 Completed Phase 3 features:
 
 - **DONE: Feature 11 - PDF Merge Tool** ✓ Full implementation with drag-drop reordering, async merge, responsive UI
+- **DONE: Feature 12 - PDF Split Tool** ✓ Page extraction with range parsing, single/separate output modes, 47 new tests
 
 In Progress / Planned:
 
-- Feature 12: PDF Split Tool (page extraction/range selection)
 - Feature 13: PDF Rearrange and Page-Level Editing
 - Feature 14: PDF Compression
 - Feature 15: Password Protection and Encryption
