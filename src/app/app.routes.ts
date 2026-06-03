@@ -43,6 +43,14 @@ export const routes: Routes = [
     data: { title: 'Split PDF', toolId: 'pdf-split' }
   },
   {
+    path: 'rearrange',
+    loadComponent: () =>
+      import('./tools/pdf-rearrange/pdf-rearrange.component').then(
+        m => m.PdfRearrangeComponent
+      ),
+    data: { title: 'Rearrange PDF', toolId: 'pdf-rearrange' }
+  },
+  {
     path: 'compress',
     loadComponent: () =>
       import('./tools/pdf-compress/pdf-compress.component').then(

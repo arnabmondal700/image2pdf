@@ -30,9 +30,9 @@ export interface ToolDefinition {
   path: string;
 
   /**
-   * Category for grouping tools (e.g., 'convert', 'merge', 'compress', 'edit')
+   * Category for grouping tools (e.g., 'convert', 'merge', 'compress', 'edit', 'rearrange')
    */
-  category: 'convert' | 'merge' | 'compress' | 'edit' | 'extract' | 'secure';
+  category: 'convert' | 'merge' | 'compress' | 'edit' | 'extract' | 'secure' | 'rearrange';
 
   /**
    * Whether this tool is enabled in the current build

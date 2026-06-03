@@ -67,6 +67,17 @@ export class ToolRegistryService {
     });
 
     this.registerTool({
+      id: 'pdf-rearrange',
+      name: 'Rearrange PDF',
+      description: 'Reorder, delete, or duplicate pages in a PDF',
+      icon: '📑',
+      path: 'rearrange',
+      category: 'rearrange',
+      enabled: true,
+      priority: 70
+    });
+
+    this.registerTool({
       id: 'pdf-compress',
       name: 'Compress PDF',
       description: 'Reduce PDF file size while maintaining quality',
