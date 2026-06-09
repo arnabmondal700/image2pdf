@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PdfRearrangeService } from '../../services/pdf-rearrange.service';
 import { ToolDefinition } from '../tool.interface';
@@ -138,11 +138,7 @@ export class PdfRearrangeComponent implements OnInit {
       this.pageCount = await this.pdfRearrangeService.getPageCount(this.uploadedPdf);
 
       // Initialize pages array
-      this.pages = Array.from({ length: this.pageCount }, (_, i) => ({
-        index: i,
-        displayIndex: i + 1,
-        isDuplicate: false
-      }));
+      this.pages = this.createPageItems(this.pageCount);
 
       this.outputFileName = this.uploadedPdf ? (this.pdfRearrangeService.sanitizeFileName(this.uploadedPdf.name) || 'rearranged-pdf') : '';
       this.cdr.markForCheck();
@@ -173,6 +169,10 @@ export class PdfRearrangeComponent implements OnInit {
    * Delete a page from the rearrangement list
    */
   deletePage(pageIndex: number): void {
+    if (pageIndex < 0 || pageIndex >= this.pages.length || this.pages.length <= 1) {
+      return;
+    }
+
     this.pages = this.pages.filter((_, i) => i !== pageIndex);
     this.updateDisplayIndices();
     this.cdr.markForCheck();
@@ -183,6 +183,10 @@ export class PdfRearrangeComponent implements OnInit {
    */
   duplicatePage(pageIndex: number): void {
     const pageToDuplicate = this.pages[pageIndex];
+    if (!pageToDuplicate) {
+      return;
+    }
+
     const duplicatedPage: PageItem = {
       ...pageToDuplicate,
       isDuplicate: true
@@ -206,12 +210,34 @@ export class PdfRearrangeComponent implements OnInit {
    */
   onDragDrop(event: CdkDragDrop<PageItem[]>): void {
     if (event.previousIndex !== event.currentIndex) {
-      const page = this.pages[event.previousIndex];
-      this.pages.splice(event.previousIndex, 1);
-      this.pages.splice(event.currentIndex, 0, page);
+      moveItemInArray(this.pages, event.previousIndex, event.currentIndex);
       this.updateDisplayIndices();
       this.cdr.markForCheck();
     }
+  }
+
+  /**
+   * Reset page edits while keeping the uploaded PDF loaded
+   */
+  resetPageOrder(): void {
+    if (!this.uploadedPdf || this.pageCount <= 0) {
+      return;
+    }
+
+    this.pages = this.createPageItems(this.pageCount);
+    this.generalError = null;
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Whether the current page list differs from the original PDF order
+   */
+  hasPageChanges(): boolean {
+    if (!this.uploadedPdf || this.pages.length !== this.pageCount) {
+      return !!this.uploadedPdf;
+    }
+
+    return this.pages.some((page, index) => page.index !== index || page.isDuplicate);
   }
 
   /**
@@ -290,6 +316,14 @@ export class PdfRearrangeComponent implements OnInit {
   }
 
   /**
+   * Describe the original source page for a page tile
+   */
+  getPageSourceLabel(page: PageItem): string {
+    const sourcePage = page.index + 1;
+    return page.isDuplicate ? `Source page ${sourcePage} copy` : `Source page ${sourcePage}`;
+  }
+
+  /**
    * Handle drag-over for visual feedback
    */
   onDragOverZone(event: DragEvent): void {
@@ -311,5 +345,13 @@ export class PdfRearrangeComponent implements OnInit {
     event.preventDefault();
     this.isDragging = false;
     void this.onFilesSelected(this.toFileArray(event.dataTransfer?.files));
+  }
+
+  private createPageItems(pageCount: number): PageItem[] {
+    return Array.from({ length: pageCount }, (_, i) => ({
+      index: i,
+      displayIndex: i + 1,
+      isDuplicate: false
+    }));
   }
 }

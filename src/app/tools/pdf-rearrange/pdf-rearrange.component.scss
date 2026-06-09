@@ -454,6 +454,7 @@
   }
 }
 
+.reset-btn,
 .clear-btn {
   padding: 0.875rem 1.5rem;
   background-color: var(--bg-secondary);
@@ -467,6 +468,11 @@
   &:hover {
     border-color: var(--text-primary);
     background-color: var(--border-color);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -581,6 +587,7 @@
     gap: 0.75rem;
   }
 
+  .reset-btn,
   .clear-btn {
     width: 100%;
   }

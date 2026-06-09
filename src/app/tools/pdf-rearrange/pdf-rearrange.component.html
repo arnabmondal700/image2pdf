@@ -1,11 +1,9 @@
 <div class="pdf-rearrange-container">
-  <!-- Header -->
   <div class="header">
     <h1>Rearrange PDF</h1>
     <p>Reorder, delete, or duplicate pages in your PDF document</p>
   </div>
 
-  <!-- Upload Zone -->
   <div
     class="drop-zone"
     [class.dragging]="isDragging"
@@ -13,54 +11,52 @@
     (dragleave)="onDragLeaveZone()"
     (drop)="onDropZone($event)">
     <div class="drop-zone-content">
-      <span class="drop-icon">📂</span>
-      <p>Drop PDF here or <label class="file-input-label">
-        select file
-        <input
-          #fileInput
-          type="file"
-          accept=".pdf"
-          hidden
-          (change)="onFilesSelected(toFileArray(fileInput.files))" />
-      </label></p>
+      <span class="drop-icon" aria-hidden="true">PDF</span>
+      <p>
+        Drop PDF here or
+        <label class="file-input-label">
+          select file
+          <input
+            #fileInput
+            type="file"
+            accept=".pdf"
+            hidden
+            (change)="onFilesSelected(toFileArray(fileInput.files))" />
+        </label>
+      </p>
       <p class="drop-hint">Maximum 10 MB per file</p>
     </div>
   </div>
 
-  <!-- Validation Errors -->
   <div *ngIf="validationErrors.length > 0" class="error-messages">
     <div *ngFor="let error of validationErrors" class="error-item">
-      <strong>{{ error.fileName }}</strong>: {{ error.reason === 'unsupported-type' ? 'Not a PDF file' : 'Error reading file' }}
+      <strong>{{ error.fileName }}</strong>:
+      {{ error.reason === 'unsupported-type' ? 'Not a PDF file' : 'Error reading file' }}
     </div>
   </div>
 
-  <!-- General Error -->
   <div *ngIf="generalError" class="error-message">
     {{ generalError }}
   </div>
 
-  <!-- PDF Info Card -->
   <div *ngIf="uploadedPdf" class="pdf-info-card">
     <div class="pdf-info-header">
-      <span class="pdf-icon">📄</span>
+      <span class="pdf-icon" aria-hidden="true">PDF</span>
       <div class="pdf-details">
         <h3>{{ uploadedPdf.name }}</h3>
-        <p class="pdf-meta">{{ pageCount }} pages · {{ (uploadedPdf.size / 1024).toFixed(1) }} KB</p>
+        <p class="pdf-meta">{{ pageCount }} pages - {{ (uploadedPdf.size / 1024).toFixed(1) }} KB</p>
       </div>
-      <button class="remove-btn" (click)="onPdfRemoved()" title="Remove PDF">✕</button>
+      <button class="remove-btn" (click)="onPdfRemoved()" title="Remove PDF" aria-label="Remove PDF">x</button>
     </div>
   </div>
 
-  <!-- Pages List (empty state) -->
   <div *ngIf="!uploadedPdf" class="empty-state">
-    <span class="empty-icon">📑</span>
+    <span class="empty-icon" aria-hidden="true">PDF</span>
     <p>No PDF loaded</p>
     <p class="empty-hint">Upload a PDF to rearrange pages</p>
   </div>
 
-  <!-- Rearrange Controls Section -->
   <div *ngIf="uploadedPdf && pages.length > 0" class="rearrange-section">
-    <!-- Output Filename -->
     <div class="control-group">
       <label for="output-filename">Output Filename</label>
       <input
@@ -72,9 +68,8 @@
       <p class="input-hint">.pdf will be added automatically</p>
     </div>
 
-    <!-- Pages List with Reordering -->
     <div class="pages-header">
-      <h3>Pages (drag to reorder)</h3>
+      <h3>Pages</h3>
       <p class="pages-count">{{ getInfoText() }}</p>
     </div>
 
@@ -89,10 +84,10 @@
         cdkDrag
         class="page-item"
         [class.duplicate]="page.isDuplicate">
-        <div class="page-drag-handle" cdkDragHandle>⋮⋮</div>
+        <div class="page-drag-handle" cdkDragHandle title="Drag to reorder" aria-label="Drag to reorder">::</div>
         <div class="page-info">
           <span class="page-index">{{ page.displayIndex }}</span>
-          <span class="page-label">Page {{ page.displayIndex }}</span>
+          <span class="page-label">{{ getPageSourceLabel(page) }}</span>
           <span *ngIf="page.isDuplicate" class="page-badge">Duplicated</span>
         </div>
         <div class="page-actions">
@@ -113,10 +108,9 @@
       </div>
     </div>
 
-    <!-- Info display -->
     <div class="info-display">
       <div class="info-item">
-        <span class="info-label">Total Pages:</span>
+        <span class="info-label">Output Pages:</span>
         <span class="info-value accent">{{ pages.length }}</span>
       </div>
       <div class="info-item">
@@ -126,13 +120,18 @@
     </div>
   </div>
 
-  <!-- Action Buttons -->
   <div *ngIf="uploadedPdf" class="action-buttons">
     <button
       class="apply-btn"
       [disabled]="isRearrangeDisabled()"
       (click)="onApplyChanges()">
       {{ getRearrangeButtonLabel() }}
+    </button>
+    <button
+      class="reset-btn"
+      [disabled]="!hasPageChanges() || isRearranging"
+      (click)="resetPageOrder()">
+      Reset order
     </button>
     <button class="clear-btn" (click)="clearAll()">Clear All</button>
   </div>

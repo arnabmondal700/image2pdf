@@ -194,6 +194,21 @@ describe('PdfRearrangeComponent', () => {
       expect(component.pages[0].displayIndex).toBe(1);
       expect(component.pages[1].displayIndex).toBe(2);
     });
+
+    it('should ignore invalid delete indices', () => {
+      component.deletePage(99);
+
+      expect(component.pages).toHaveLength(3);
+      expect(component.pages.map(page => page.index)).toEqual([0, 1, 2]);
+    });
+
+    it('should keep the final remaining page', () => {
+      component.pages = [{ index: 0, displayIndex: 1 }];
+
+      component.deletePage(0);
+
+      expect(component.pages).toEqual([{ index: 0, displayIndex: 1 }]);
+    });
   });
 
   describe('duplicatePage', () => {
@@ -217,6 +232,13 @@ describe('PdfRearrangeComponent', () => {
 
       expect(component.pages[2].displayIndex).toBe(3);
       expect(component.pages[3].displayIndex).toBe(4);
+    });
+
+    it('should ignore invalid duplicate indices', () => {
+      component.duplicatePage(99);
+
+      expect(component.pages).toHaveLength(3);
+      expect(component.pages.map(page => page.index)).toEqual([0, 1, 2]);
     });
   });
 
@@ -292,6 +314,58 @@ describe('PdfRearrangeComponent', () => {
       component.pages = [{ index: 0, displayIndex: 1 }];
       component.isRearranging = false;
       expect(component.isRearrangeDisabled()).toBeFalsy();
+    });
+  });
+
+  describe('resetPageOrder and hasPageChanges', () => {
+    beforeEach(() => {
+      component.uploadedPdf = mockPdfFile;
+      component.pageCount = 3;
+      component.pages = [
+        { index: 0, displayIndex: 1 },
+        { index: 1, displayIndex: 2 },
+        { index: 2, displayIndex: 3 }
+      ];
+    });
+
+    it('should detect unchanged page order', () => {
+      expect(component.hasPageChanges()).toBeFalsy();
+    });
+
+    it('should detect reordered pages', () => {
+      component.pages = [
+        { index: 2, displayIndex: 1 },
+        { index: 0, displayIndex: 2 },
+        { index: 1, displayIndex: 3 }
+      ];
+
+      expect(component.hasPageChanges()).toBeTruthy();
+    });
+
+    it('should detect duplicated pages', () => {
+      component.duplicatePage(1);
+
+      expect(component.hasPageChanges()).toBeTruthy();
+    });
+
+    it('should reset edits while keeping the uploaded PDF', () => {
+      component.pages = [
+        { index: 2, displayIndex: 1 },
+        { index: 0, displayIndex: 2 },
+        { index: 1, displayIndex: 3 },
+        { index: 1, displayIndex: 4, isDuplicate: true }
+      ];
+      component.generalError = 'Previous error';
+
+      component.resetPageOrder();
+
+      expect(component.uploadedPdf).toBe(mockPdfFile);
+      expect(component.pages).toEqual([
+        { index: 0, displayIndex: 1, isDuplicate: false },
+        { index: 1, displayIndex: 2, isDuplicate: false },
+        { index: 2, displayIndex: 3, isDuplicate: false }
+      ]);
+      expect(component.generalError).toBeNull();
     });
   });
 
@@ -426,6 +500,16 @@ describe('PdfRearrangeComponent', () => {
         { index: 2, displayIndex: 3 }
       ];
       expect(component.getInfoText()).toBe('3 pages in current order');
+    });
+  });
+
+  describe('getPageSourceLabel', () => {
+    it('should show source page for original pages', () => {
+      expect(component.getPageSourceLabel({ index: 2, displayIndex: 1 })).toBe('Source page 3');
+    });
+
+    it('should show source page copy for duplicates', () => {
+      expect(component.getPageSourceLabel({ index: 1, displayIndex: 2, isDuplicate: true })).toBe('Source page 2 copy');
     });
   });
 

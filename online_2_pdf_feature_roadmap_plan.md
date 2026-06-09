@@ -261,13 +261,13 @@ All Phase 2 features are now implemented and validated.
 
 # PHASE 3 - PDF MANIPULATION
 
-## Status: 17% Complete (1 of 6 Features)
+## Status: 50% Complete (3 of 6 Features)
 
 Phase 3 implements true PDF-document workflows:
 
 - **DONE: PDF merge with drag-drop reordering (Feature 11)**
-- PDF split (Feature 12)
-- PDF rearrange and page-level editing (Feature 13)
+- **DONE: PDF split with page range extraction (Feature 12)**
+- **DONE: PDF rearrange and page-level editing (Feature 13)**
 - PDF compression (Feature 14)
 - Password protection and encryption (Feature 15)
 - Mixed PDF + image workflows beyond simple extraction (Feature 16)
@@ -781,7 +781,61 @@ Dependencies:
 
 Recommended next task:
 
-Feature 12 (PDF Split) complete and tested. Phase 3 is 33% done (2 of 6). Ready to proceed with Feature 13 (PDF Rearrange and Page-Level Editing).
+Feature 12 (PDF Split) complete and tested. Phase 3 is ready for Feature 13 (PDF Rearrange and Page-Level Editing).
+
+---
+
+## Feature 13. PDF Rearrange and Page-Level Editing
+
+Status: Implemented for Phase 3 MVP
+
+Implemented:
+
+- PdfRearrangeService for async PDF page operations using pdf-lib
+- getPageCount() method for uploaded PDF inspection
+- rearrangePages() method for custom page order, deletion-by-omission, and duplicate page output
+- deletePages() and duplicatePages() service helpers with validation
+- applyOperations() helper for future combined workflows
+- downloadPDF() and sanitizeFileName() helpers for browser-only export
+- pdf-rearrange component with complete TypeScript implementation
+  - Single PDF upload with drag-drop support
+  - Page count loading from the uploaded PDF
+  - Drag-drop page reordering with Angular CDK
+  - Per-page duplicate and delete actions
+  - Output filename input
+  - Reset order action that keeps the uploaded PDF loaded
+  - Dynamic operation state and validation messaging
+  - Clear All action to reset the tool
+- Responsive HTML template
+  - Upload zone
+  - PDF info card
+  - Page list that separates output position from original source page
+  - Duplicate badges
+  - Output/original page count summary
+  - Apply, reset, and clear actions
+- Tool registry enabled with priority 70
+- Lazy-loaded route at path='/rearrange' with title 'Rearrange PDF'
+- Focused unit tests passing for service and component behavior
+
+Technical implementation:
+
+- Uses pdf-lib.PDFDocument.copyPages() to create fresh page instances for reordered and duplicated pages
+- Preserves source page identity through stable zero-based page indices
+- Output page position is tracked separately from the original source page number
+- Guarded UI methods avoid invalid delete/duplicate indices and prevent deleting the final page
+- No backend, cloud storage, or server-side processing required
+
+Not implemented:
+
+- Visual rendered page thumbnails in the rearrange list
+- Page rotation inside the rearrange workflow
+- Multi-PDF page mixing inside rearrange
+- Page annotations, watermarks, or crop boxes
+- Worker-backed rearrangement for very large PDFs
+
+Recommended next task:
+
+Feature 13 (PDF Rearrange and Page-Level Editing) complete for Phase 3 MVP. Phase 3 is 50% done (3 of 6). Ready to proceed with Feature 14 (PDF Compression).
 
 ---
 
