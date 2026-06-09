@@ -5,9 +5,9 @@
     "semantic_hash": "0340ce5b7273b5c83ed3272ef57c6936"
   },
   "D:\\Codes\\image2pdf\\package.json": {
-    "mtime": 1778999468.9024773,
-    "ast_hash": "5f69b547b2e9b1d070b002ade52e2848",
-    "semantic_hash": "5f69b547b2e9b1d070b002ade52e2848"
+    "mtime": 1780851295.6934931,
+    "ast_hash": "bd3c1f435140f4afb823b8c73f3fa9a9",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\tsconfig.app.json": {
     "mtime": 1779027319.5446453,
@@ -65,19 +65,19 @@
     "semantic_hash": "14ad5ca71b8d7220a057c80aeeba050e"
   },
   "D:\\Codes\\image2pdf\\src\\app\\app.routes.ts": {
-    "mtime": 1778950237.5020368,
-    "ast_hash": "41e4bac7a1d7cd48f4d03907407942d3",
-    "semantic_hash": "41e4bac7a1d7cd48f4d03907407942d3"
+    "mtime": 1780323094.308398,
+    "ast_hash": "3de0c3708eb115449ba4081c82152450",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\app.spec.ts": {
-    "mtime": 1778953429.9464471,
-    "ast_hash": "01f1a88709f062116a25c08532c7a57d",
-    "semantic_hash": "01f1a88709f062116a25c08532c7a57d"
+    "mtime": 1779552057.643466,
+    "ast_hash": "a02b611d1d7b3c1aaf900917c129a05f",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\app.ts": {
-    "mtime": 1779290926.6558745,
-    "ast_hash": "b7f5124eb91b7c3d1dc2c24cc1fe3d9d",
-    "semantic_hash": "b7f5124eb91b7c3d1dc2c24cc1fe3d9d"
+    "mtime": 1779552007.8354485,
+    "ast_hash": "7bad84532936b2126b3a3e64253a69d1",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\components\\app-header\\app-header.component.ts": {
     "mtime": 1778950237.5050437,
@@ -90,34 +90,34 @@
     "semantic_hash": "0f7267fae07be3ae1c09a92b18db6737"
   },
   "D:\\Codes\\image2pdf\\src\\app\\components\\file-item\\file-item.component.ts": {
-    "mtime": 1778999627.5519714,
-    "ast_hash": "3fff4315bda41122fe9de5eef02acfe6",
-    "semantic_hash": "3fff4315bda41122fe9de5eef02acfe6"
+    "mtime": 1780026131.6021688,
+    "ast_hash": "66d578ff96b85b17ee4867e2ab145d5e",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\components\\file-list\\file-list.component.ts": {
-    "mtime": 1778999603.2456164,
-    "ast_hash": "e2401325cfdf2e95f05117e1ef420a8b",
-    "semantic_hash": "e2401325cfdf2e95f05117e1ef420a8b"
+    "mtime": 1780026131.6021688,
+    "ast_hash": "25598a7803dca88194f658cdfddd2078",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\components\\generate-pdf-button\\generate-pdf-button.component.ts": {
-    "mtime": 1778950237.5090382,
-    "ast_hash": "e1444c7ff712827c4ecf7f89a7a5adee",
-    "semantic_hash": "e1444c7ff712827c4ecf7f89a7a5adee"
+    "mtime": 1779551983.2775557,
+    "ast_hash": "1adf45eefbb2786372ef829e2e85f2c7",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\components\\image-editor-modal\\image-editor-modal.component.ts": {
-    "mtime": 1778953327.2813861,
-    "ast_hash": "2fee762533a6edcafa8c244c7356dfe1",
-    "semantic_hash": "2fee762533a6edcafa8c244c7356dfe1"
+    "mtime": 1779336822.7817297,
+    "ast_hash": "2d8900c90d2cb6c653543d212b865295",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\components\\pdf-preview\\pdf-preview.component.ts": {
-    "mtime": 1779290800.5933185,
-    "ast_hash": "53b18585d5aba74d89039ae37c208174",
-    "semantic_hash": "53b18585d5aba74d89039ae37c208174"
+    "mtime": 1779360470.8003898,
+    "ast_hash": "bdd5b74dd3dd98874238c168da43ffab",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\components\\pdf-settings-panel\\pdf-settings-panel.component.ts": {
-    "mtime": 1778998179.6518674,
-    "ast_hash": "1929cd85c3146ceb6097884b7fa49d07",
-    "semantic_hash": "1929cd85c3146ceb6097884b7fa49d07"
+    "mtime": 1780067983.9780092,
+    "ast_hash": "e3141d544ab65d7fe82e2abe5fbb9326",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\services\\file.service.spec.ts": {
     "mtime": 1778999654.8773549,
@@ -125,9 +125,9 @@
     "semantic_hash": "bec31c3e7305cf32ddd1fefaa273c23f"
   },
   "D:\\Codes\\image2pdf\\src\\app\\services\\file.service.ts": {
-    "mtime": 1778999661.4593008,
-    "ast_hash": "e20d49ddce3bcf814883d0596a44af1d",
-    "semantic_hash": "e20d49ddce3bcf814883d0596a44af1d"
+    "mtime": 1780026131.6021688,
+    "ast_hash": "8186b02fb8de56ae693317e14799690a",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\services\\image-optimizer.service.ts": {
     "mtime": 1778999504.9795628,
@@ -135,14 +135,14 @@
     "semantic_hash": "78152917731ae84ededb18e18a7efdf6"
   },
   "D:\\Codes\\image2pdf\\src\\app\\services\\pdf.service.spec.ts": {
-    "mtime": 1778999667.4112732,
-    "ast_hash": "d16a64c888a2451654c10cbf034da596",
-    "semantic_hash": "d16a64c888a2451654c10cbf034da596"
+    "mtime": 1779552050.029391,
+    "ast_hash": "88fbc15270b7589b0473590f5daf86b3",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\services\\pdf.service.ts": {
-    "mtime": 1778999491.104366,
-    "ast_hash": "5718690c7efe8e8d9274db3640180565",
-    "semantic_hash": "5718690c7efe8e8d9274db3640180565"
+    "mtime": 1780067983.9765677,
+    "ast_hash": "a3ae5de9814be85e3bb08d65e93fda54",
+    "semantic_hash": ""
   },
   "D:\\Codes\\image2pdf\\src\\app\\utils\\pdf-layout-engine.spec.ts": {
     "mtime": 1778997821.438815,
@@ -153,5 +153,220 @@
     "mtime": 1778998179.6518674,
     "ast_hash": "7098cf7de1adbec7964998810383cc23",
     "semantic_hash": "7098cf7de1adbec7964998810383cc23"
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\generate-pdf-button\\generate-pdf-button.component.spec.ts": {
+    "mtime": 1779552101.4849753,
+    "ast_hash": "48280e1e56bc557a9de46c79d4de7694",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\export.service.ts": {
+    "mtime": 1780067983.998855,
+    "ast_hash": "7a4f0693154d4697b267f0b14ec7b4d1",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\header-footer.service.ts": {
+    "mtime": 1780048313.4647503,
+    "ast_hash": "c8c07ee3f2311217405b6d4518b9dd78",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-extraction.service.spec.ts": {
+    "mtime": 1779552126.1981845,
+    "ast_hash": "0412490f9fa5c05d312f1ba28a982c83",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-extraction.service.ts": {
+    "mtime": 1779386528.725782,
+    "ast_hash": "8ed5b283ed51fd71e7c0b4113ca9dfab",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-merge.service.ts": {
+    "mtime": 1780298785.2465386,
+    "ast_hash": "616bc4a6b7d48cd5e030bc5f5152aee3",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-rearrange.service.spec.ts": {
+    "mtime": 1780324691.2884493,
+    "ast_hash": "ec1d9f799c60d1d096c8f860aaefd6da",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-rearrange.service.ts": {
+    "mtime": 1780324542.7477639,
+    "ast_hash": "778e6ff5301f59526d2c2988efdf9af1",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-settings-storage.service.ts": {
+    "mtime": 1779336822.7842531,
+    "ast_hash": "61daa4fca14ef6b9cc6c4b34b01b94f0",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-split.service.spec.ts": {
+    "mtime": 1780301297.384927,
+    "ast_hash": "45d889e96eee5871713c3a57665a9a01",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-split.service.ts": {
+    "mtime": 1780301297.365249,
+    "ast_hash": "c2c01f3285c35f73905e66fe3d3d899b",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-worker.service.spec.ts": {
+    "mtime": 1779552121.744381,
+    "ast_hash": "edee653dd2bec850e9b7a8113ee1a489",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\pdf-worker.service.ts": {
+    "mtime": 1780026131.611919,
+    "ast_hash": "176445d4ea7879bf6886f56a67673281",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\services\\tool-registry.service.spec.ts": {
+    "mtime": 1780301297.3630893,
+    "ast_hash": "6b661c8907e1a04510281ad8404cc364",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\tool-registry.service.ts": {
+    "mtime": 1780323079.1546278,
+    "ast_hash": "ddcf67578740b7f16bcf6a94337167eb",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\tool.interface.ts": {
+    "mtime": 1780323370.7436092,
+    "ast_hash": "4b5c9f473344311fedf57c71dc30f976",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\image-to-pdf\\image-to-pdf.component.spec.ts": {
+    "mtime": 1780067983.998855,
+    "ast_hash": "cff0c983cbaa2a34a4aeb36073ebd84e",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\image-to-pdf\\image-to-pdf.component.ts": {
+    "mtime": 1780067983.9765677,
+    "ast_hash": "a698dce36b53ce48b6b72bfe0ffc48f0",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-compress\\pdf-compress.component.ts": {
+    "mtime": 1779386784.1167176,
+    "ast_hash": "5890a044923ee5ad7b25f2da40b161af",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-merge\\pdf-merge.component.ts": {
+    "mtime": 1780298785.2650645,
+    "ast_hash": "b10a7315c180b0758a1f52cab6ed4623",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-preview\\pdf-preview.component.ts": {
+    "mtime": 1779386769.6798832,
+    "ast_hash": "3c2026d911f862ceabe22bd2b6d8a7f4",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-rearrange\\pdf-rearrange.component.spec.ts": {
+    "mtime": 1780324596.9594789,
+    "ast_hash": "96b9cb9a80ff6aefcbb109b4552c0e6a",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-rearrange\\pdf-rearrange.component.ts": {
+    "mtime": 1780324571.824759,
+    "ast_hash": "da070590483db700877b1931e75c9742",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-split\\pdf-split.component.spec.ts": {
+    "mtime": 1780301297.384927,
+    "ast_hash": "25ab782a8724143780ea2253646b8c57",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-split\\pdf-split.component.ts": {
+    "mtime": 1780301297.3667595,
+    "ast_hash": "cb2cd7c2bcb3d17a59662c8f26901944",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\workers\\pdf-generation.worker.ts": {
+    "mtime": 1780048313.4647503,
+    "ast_hash": "5298afd51c7485b1a3f51b418682b4ca",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\online_2_pdf_feature_roadmap_plan.md": {
+    "mtime": 1780301297.365249,
+    "ast_hash": "e10a96d63c698e366b75b90355f6a4c7",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\README.md": {
+    "mtime": 1778950237.4970534,
+    "ast_hash": "ef0569b85d06d6aaf2ea8daa6e8237c0",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\.github\\copilot-instructions.md": {
+    "mtime": 1779285739.9658337,
+    "ast_hash": "2b23503628bf2ec71d067a85ca8948ab",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\index.html": {
+    "mtime": 1778950237.5100389,
+    "ast_hash": "4e3ff6818dd368da1924cf94ba60d85a",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\app.html": {
+    "mtime": 1780026131.6021688,
+    "ast_hash": "08f28bef5e901e6413430fe8f45afed8",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\app-header\\app-header.component.html": {
+    "mtime": 1778954971.8411052,
+    "ast_hash": "b379e3bd242128c14c9ccb9de27550cd",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\drag-drop-zone\\drag-drop-zone.component.html": {
+    "mtime": 1779387727.2073624,
+    "ast_hash": "cdb3998bd97b6da8c0e27fac3f31c6d2",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\file-item\\file-item.component.html": {
+    "mtime": 1780026131.6021688,
+    "ast_hash": "0856239240afc931622a3a2fb29eee38",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\file-list\\file-list.component.html": {
+    "mtime": 1780026131.6021688,
+    "ast_hash": "b0e58c69e08238229ec2676d0a95c83b",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\generate-pdf-button\\generate-pdf-button.component.html": {
+    "mtime": 1779551990.2674265,
+    "ast_hash": "56889c31a6db3921a28a2a8becc6cda5",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\image-editor-modal\\image-editor-modal.component.html": {
+    "mtime": 1779336822.7817297,
+    "ast_hash": "146d459fae57e2932661b1490f0b1d78",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\pdf-preview\\pdf-preview.component.html": {
+    "mtime": 1778999557.4359815,
+    "ast_hash": "cdb7b05c558bb7a1d1084b25821b8125",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\components\\pdf-settings-panel\\pdf-settings-panel.component.html": {
+    "mtime": 1780067983.9978716,
+    "ast_hash": "3ef85656134ba125e9e52ec525883c3c",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-merge\\pdf-merge.component.html": {
+    "mtime": 1780298785.2650645,
+    "ast_hash": "6a6c39b9217db7c59ee9c571baedfd30",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-rearrange\\pdf-rearrange.component.html": {
+    "mtime": 1780324575.3876722,
+    "ast_hash": "8cba93e73fed6c8967d0b4614146ca21",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\src\\app\\tools\\pdf-split\\pdf-split.component.html": {
+    "mtime": 1780301297.3667595,
+    "ast_hash": "21f401acc1da1ab5a372753b7f8d4af4",
+    "semantic_hash": ""
+  },
+  "D:\\Codes\\image2pdf\\test-image.png": {
+    "mtime": 1778950237.511037,
+    "ast_hash": "f829b914fc47cfc9c0747c119c27cf1b",
+    "semantic_hash": ""
   }
 }
