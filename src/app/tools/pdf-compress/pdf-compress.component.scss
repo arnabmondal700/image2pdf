@@ -1,0 +1,549 @@
+.pdf-compress-container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.compress-header {
+  margin-bottom: 2rem;
+
+  h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
+}
+
+/* Drag-drop zone */
+.drop-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg-secondary);
+  margin-bottom: 1.5rem;
+
+  &:hover {
+    border-color: var(--accent);
+    background: var(--bg-tertiary);
+  }
+
+  &.dragging {
+    border-color: var(--accent);
+    background: var(--bg-accent-light);
+  }
+
+  .drop-zone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    .drop-icon {
+      font-size: 2.5rem;
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.file-input-label {
+  display: inline-block;
+  cursor: pointer;
+
+  input[type="file"] {
+    display: none;
+  }
+
+  span {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: white;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--accent-dark);
+    }
+  }
+}
+
+/* Error messages */
+.error-message,
+.validation-errors {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  background: var(--error-light);
+  border-left: 4px solid var(--error-color);
+  color: var(--error-color);
+  font-size: 0.9rem;
+
+  strong {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+}
+
+/* Compress section */
+.compress-section {
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  }
+}
+
+/* PDF info card */
+.pdf-info-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+
+  .pdf-info-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+
+    .pdf-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .pdf-details {
+      flex: 1;
+      min-width: 0;
+
+      .pdf-name {
+        font-weight: 500;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .pdf-meta {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+
+        span {
+          margin-right: 1rem;
+        }
+
+        span:last-child {
+          margin-right: 0;
+        }
+      }
+    }
+  }
+
+  .remove-button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--error-light);
+    color: var(--error-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background: var(--error-color);
+      color: white;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* Compress controls */
+.compress-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .control-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+  }
+}
+
+.filename-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-light);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/* Radio group */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent);
+  }
+
+  &.selected {
+    border-color: var(--accent);
+  }
+
+  input[type="radio"] {
+    margin-top: 0.25rem;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .radio-label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+  }
+
+  .radio-description {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+}
+
+/* Button group */
+.button-group {
+  display: flex;
+  gap: 1rem;
+
+  button {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .compress-button {
+    background: var(--accent);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: var(--accent-dark);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+  }
+
+  .clear-button {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-tertiary);
+    }
+  }
+}
+
+/* Result section */
+.result-section {
+  margin-bottom: 1.5rem;
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+  }
+}
+
+.result-card {
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  text-align: center;
+
+  &.successful {
+    border-color: #28a745;
+  }
+
+  &.not-smaller {
+    border-color: var(--error-color);
+  }
+}
+
+.result-comparison {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+
+  .result-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .result-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+
+    &.positive {
+      color: #28a745;
+    }
+
+    &.negative {
+      color: var(--error-color);
+    }
+  }
+}
+
+.result-arrow {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+}
+
+.download-button {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: var(--accent-dark);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.size-warning {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Compress info */
+.compress-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+
+    strong {
+      font-size: 1.25rem;
+      color: var(--accent);
+    }
+
+    span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  }
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+
+  .empty-icon {
+    font-size: 3rem;
+    margin: 0 0 1rem 0;
+    display: block;
+  }
+
+  .empty-text {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .empty-hint {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .pdf-compress-container {
+    padding: 1rem;
+  }
+
+  .compress-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .drop-zone {
+    padding: 1.5rem;
+  }
+
+  .compress-controls {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .button-group {
+    flex-direction: column !important;
+  }
+
+  .pdf-info-card {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .remove-button {
+      align-self: flex-end;
+    }
+  }
+
+  .filename-input {
+    font-size: 16px;
+  }
+
+  .radio-option {
+    padding: 0.5rem;
+
+    .radio-label {
+      font-size: 0.85rem;
+    }
+
+    .radio-description {
+      font-size: 0.75rem;
+    }
+  }
+
+  .result-comparison {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

@@ -1,0 +1,185 @@
+<div class="pdf-compress-container">
+  <div class="compress-header">
+    <h1>Compress PDF</h1>
+    <p>Reduce PDF file size while maintaining quality. Choose a compression level to optimize your document.</p>
+  </div>
+
+  <!-- Drag-drop zone -->
+  <div class="drop-zone"
+       [class.dragging]="isDragging"
+       (dragover)="onDragOverZone()"
+       (dragleave)="onDragLeaveZone()"
+       (drop)="onFilesSelected($event.dataTransfer?.files || [])">
+    <div class="drop-zone-content">
+      <span class="drop-icon">📄</span>
+      <p>Drop PDF here or click to select</p>
+      <label class="file-input-label">
+        <input type="file" accept=".pdf" (change)="onFilesSelected($event.target.files || [])" />
+        <span>Select PDF</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Error messages -->
+  @if (generalError) {
+    <div class="error-message">
+      <strong>Error:</strong> {{ generalError }}
+    </div>
+  }
+
+  @if (validationErrors.length > 0) {
+    <div class="validation-errors">
+      <strong>Validation Issues:</strong>
+      <ul>
+        @for (error of validationErrors; track error.fileName) {
+          <li>{{ error.fileName }}: {{ error.reason }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- PDF info and controls -->
+  @if (uploadedPdf) {
+    <div class="compress-section">
+      <div class="section-header">
+        <h3>Compress PDF</h3>
+        <p class="hint">{{ getInfoText() }}</p>
+      </div>
+
+      <!-- Uploaded PDF info -->
+      <div class="pdf-info-card">
+        <div class="pdf-info-content">
+          <div class="pdf-icon">📋</div>
+          <div class="pdf-details">
+            <div class="pdf-name">{{ uploadedPdf.name }}</div>
+            <div class="pdf-meta">
+              <span>{{ pageCount }} {{ pageCount === 1 ? 'page' : 'pages' }}</span>
+              <span>{{ formatSize(uploadedPdf.size) }}</span>
+            </div>
+          </div>
+        </div>
+        <button class="remove-button"
+                (click)="onPdfRemoved()"
+                title="Remove PDF"
+                [disabled]="isCompressing">
+          ✕
+        </button>
+      </div>
+
+      <!-- Compression controls -->
+      <div class="compress-controls">
+        <!-- Compression level selector -->
+        <label class="control-group">
+          <span class="control-label">Compression Level</span>
+          <div class="radio-group">
+            <label class="radio-option" [class.selected]="compressionLevel === 'low'">
+              <input type="radio"
+                     [(ngModel)]="compressionLevel"
+                     value="low"
+                     [disabled]="isCompressing">
+              <span class="radio-label">Low – Re-save Only</span>
+              <span class="radio-description">Strips metadata and normalizes structure. Minimal size reduction, perfect quality.</span>
+            </label>
+            <label class="radio-option" [class.selected]="compressionLevel === 'medium'">
+              <input type="radio"
+                     [(ngModel)]="compressionLevel"
+                     value="medium"
+                     [disabled]="isCompressing">
+              <span class="radio-label">Medium – Moderate</span>
+              <span class="radio-description">Re-renders pages at 0.65 JPEG quality. Good balance of size and quality.</span>
+            </label>
+            <label class="radio-option" [class.selected]="compressionLevel === 'high'">
+              <input type="radio"
+                     [(ngModel)]="compressionLevel"
+                     value="high"
+                     [disabled]="isCompressing">
+              <span class="radio-label">High – Maximum</span>
+              <span class="radio-description">Re-renders pages at 0.40 JPEG quality. Maximum compression, lower quality.</span>
+            </label>
+          </div>
+        </label>
+
+        <!-- Output filename -->
+        <label class="control-group">
+          <span class="control-label">Output Filename</span>
+          <input type="text"
+                 [(ngModel)]="compressFileName"
+                 placeholder="compressed-document"
+                 [disabled]="isCompressing"
+                 class="filename-input">
+        </label>
+
+        <!-- Action buttons -->
+        <div class="button-group">
+          <button class="compress-button"
+                  (click)="onCompressPDF()"
+                  [disabled]="isCompressDisabled()">
+            {{ getCompressButtonLabel() }}
+          </button>
+          <button class="clear-button"
+                  (click)="clearAll()"
+                  [disabled]="isCompressing">
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Compression result -->
+      @if (compressionResult) {
+        <div class="result-section">
+          <h3>Compression Result</h3>
+          <div class="result-card" [class.successful]="isResultSmaller()" [class.not-smaller]="!isResultSmaller()">
+            <div class="result-comparison">
+              <div class="result-item">
+                <span class="result-label">Original</span>
+                <span class="result-value">{{ formatSize(compressionResult.originalSize) }}</span>
+              </div>
+              <div class="result-arrow">→</div>
+              <div class="result-item">
+                <span class="result-label">Compressed</span>
+                <span class="result-value">{{ formatSize(compressionResult.compressedSize) }}</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Saved</span>
+                <span class="result-value" [class.positive]="isResultSmaller()" [class.negative]="!isResultSmaller()">
+                  @if (isResultSmaller()) {
+                    {{ getCompressionPercent() }}%
+                  } @else {
+                    −{{ -getCompressionPercent() }}%
+                  }
+                </span>
+              </div>
+            </div>
+            <button class="download-button" (click)="onDownloadResult()">
+              Download Compressed PDF
+            </button>
+            @if (!isResultSmaller()) {
+              <p class="size-warning">The compressed file is larger than the original. This can happen with already-optimized PDFs.</p>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Compress info -->
+      <div class="compress-info">
+        <div class="info-item">
+          <strong>{{ pageCount }}</strong>
+          <span>{{ pageCount === 1 ? 'page' : 'pages' }} total</span>
+        </div>
+        <div class="info-item">
+          <strong>{{ formatSize(uploadedPdf.size) }}</strong>
+          <span>original size</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!uploadedPdf) {
+    <div class="empty-state">
+      <p class="empty-icon">🗜️</p>
+      <p class="empty-text">No PDF selected</p>
+      <p class="empty-hint">Upload a PDF to compress it</p>
+    </div>
+  }
+</div>

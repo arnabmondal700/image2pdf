@@ -83,9 +83,9 @@ export class ToolRegistryService {
       description: 'Reduce PDF file size while maintaining quality',
       icon: '🗜️',
       path: 'compress',
-      category: 'compress',
-      enabled: false,
-      priority: 60
+      category: 'optimize',
+      enabled: true,
+      priority: 65
     });
   }
 

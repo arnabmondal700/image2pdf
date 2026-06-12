@@ -2,7 +2,7 @@
 
 > Status-aware roadmap for the current Angular image-to-PDF application.
 >
-> Last implementation audit: 2026-05-23
+> Last implementation audit: 2026-06-12
 >
 > Verified during audit by source analysis:
 > - `src/app/tools/image-to-pdf/image-to-pdf.component.ts` shows image + PDF upload handling
@@ -55,8 +55,7 @@ Partially implemented:
 
 Not implemented:
 
-- PDF merge, split, rearrange, or page-level document editing
-- Password protection, encryption, or PDF-specific compression beyond `jsPDF` presets
+- Password protection and encryption
 - Header/footer or document template engine
 - ZIP export or multiple-output PDFs
 - OCR / scan enhancement / intelligent page detection
@@ -65,7 +64,7 @@ Not implemented:
 - Virtual scrolling for large file queues
 - Upload queue progress/retry/cancel flows
 - Cloud sync, user profiles, or settings import/export
-- `pdf-lib`, `tesseract.js`, `jszip`, `dexie`, and `konva` are not currently used
+- `tesseract.js`, `dexie`, and `konva` are not currently used
 
 ---
 
@@ -261,20 +260,21 @@ All Phase 2 features are now implemented and validated.
 
 # PHASE 3 - PDF MANIPULATION
 
-## Status: 50% Complete (3 of 6 Features)
+## Status: 67% Complete (4 of 6 Features)
 
 Phase 3 implements true PDF-document workflows:
 
 - **DONE: PDF merge with drag-drop reordering (Feature 11)**
 - **DONE: PDF split with page range extraction (Feature 12)**
 - **DONE: PDF rearrange and page-level editing (Feature 13)**
-- PDF compression (Feature 14)
+- **DONE: PDF compression with three levels (Feature 14)**
 - Password protection and encryption (Feature 15)
 - Mixed PDF + image workflows beyond simple extraction (Feature 16)
 
 Dependencies:
 
-- `pdf-lib` (7.0.2+) for document-first operations - INSTALLED
+- `pdf-lib` (7.0.2+) for document-first operations - INSTALLED and used by merge, split, rearrange, and compress
+- `pdfjs-dist` for canvas-based page rendering during medium/high compression - INSTALLED and used
 - `jszip` already available from Phase 2 for multi-file bundling
 
 ---
@@ -839,23 +839,106 @@ Feature 13 (PDF Rearrange and Page-Level Editing) complete for Phase 3 MVP. Phas
 
 ---
 
+## Feature 14. PDF Compression Tool
+
+Status: Implemented for Phase 3 MVP
+
+Implemented:
+
+- PDFCompressService for async PDF compression using pdf-lib and pdfjs-dist
+- Three compression levels:
+  - **LOW**: pdf-lib re-save only — strips metadata, normalizes document structure, minimal size reduction, perfect quality
+  - **MEDIUM**: Canvas re-render at 0.65 JPEG quality — uses pdfjs-dist to render each page to canvas, converts to JPEG, builds new PDF with pdf-lib
+  - **HIGH**: Canvas re-render at 0.40 JPEG quality — maximum compression with lower quality output
+- compress() method: Routes to appropriate compression strategy based on level
+- compressByRendering() method: Core canvas-based compression pipeline for medium/high levels
+- getPageCount() method: Async page counting from PDFs
+- formatFileSize() method: Human-readable file size formatting
+- getCompressionPercent() method: Calculates percentage reduction
+- downloadPDF() method: Triggers browser download of compressed PDF
+- sanitizeFileName() method: Removes special characters for safe file exports
+- pdf-compress component with complete TypeScript implementation
+  - Single PDF upload with drag-drop support
+  - Compression level selector with three radio options (Low/Medium/High)
+  - Dynamic descriptions for each compression level
+  - Output filename input
+  - Before/after size comparison display after compression
+  - Compression percentage indicator (green for reduction, red if larger)
+  - Download button for re-downloading compressed result
+  - Clear All button to reset form
+  - isDragging state for visual feedback
+  - isCompressing state for loading behavior
+  - Auto-download on compression completion
+- Responsive HTML template (150+ lines)
+  - Drop zone with upload instructions
+  - PDF info card showing page count and file size
+  - Radio button group for compression level with descriptions
+  - Output filename input field
+  - Compress and Clear buttons
+  - Compression result card with original → compressed comparison
+  - Size warning when compressed file is larger
+  - Info cards showing PDF details
+  - Empty state message
+- Comprehensive SCSS styling (470+ lines)
+  - Mobile-responsive design (600px breakpoint)
+  - Drag-drop visual feedback and animations
+  - Radio button group styling with selected state
+  - Result card styling with success/not-smaller states
+  - Green/red color coding for compression results
+  - Dark mode support via CSS variables
+- Tool registry enabled with priority 65 (6th in tool menu)
+- Tool definition includes id='pdf-compress', category='optimize', enabled=true
+- Lazy-loaded route at path='/compress' with title 'Compress PDF'
+- ToolDefinition interface updated to support 'optimize' category
+- All 175 unit tests passing (Feature 14 added tests for pdf-compress being enabled with correct priority and category)
+
+Technical implementation:
+
+- Uses pdf-lib.PDFDocument for low-compression re-save (metadata stripping and normalization)
+- Uses pdfjs-dist for canvas rendering during medium/high compression
+- Offscreen canvas rendering with page.getViewport({ scale: 1.5 }) for quality
+- canvas.toBlob('image/jpeg', quality) for JPEG encoding
+- newPdf.embedJpg() for JPEG embedding into pdf-lib document
+- No backend, cloud storage, or server-side processing required
+- Follows same service/component pattern as PdfSplitService and pdf-split component
+
+Not implemented:
+
+- Lossless PNG-based re-rendering option
+- DPI/resolution controls for canvas rendering
+- Preview of compression quality before download
+- Batch compression of multiple PDFs
+- Worker-backed compression for large PDFs (deferred to Phase 6)
+- Custom JPEG quality slider (currently fixed at 0.65/0.40)
+
+Dependencies:
+
+- pdf-lib (7.0.2) ✓ installed
+- pdfjs-dist (5.7.284) ✓ installed
+
+Recommended next task:
+
+Feature 14 (PDF Compression) complete and tested. Phase 3 is 67% done (4 of 6). Ready to proceed with Feature 15 (Password Protection and Encryption).
+
+---
+
 # PHASE 3 - PDF MANIPULATION TOOLS
 
 ## Objective
 
 Expand into a full PDF toolkit with document-level operations.
 
-## Overall Status: 33% Complete (2 of 6 Features)
+## Overall Status: 67% Complete (4 of 6 Features)
 
 Completed Phase 3 features:
 
 - **DONE: Feature 11 - PDF Merge Tool** ✓ Full implementation with drag-drop reordering, async merge, responsive UI
 - **DONE: Feature 12 - PDF Split Tool** ✓ Page extraction with range parsing, single/separate output modes, 47 new tests
+- **DONE: Feature 13 - PDF Rearrange and Page-Level Editing** ✓ Drag-drop page reordering, duplicate/delete actions, responsive UI
+- **DONE: Feature 14 - PDF Compression** ✓ Three compression levels (low/medium/high), canvas-based re-rendering, before/after size display
 
 In Progress / Planned:
 
-- Feature 13: PDF Rearrange and Page-Level Editing
-- Feature 14: PDF Compression
 - Feature 15: Password Protection and Encryption
 - Feature 16: Mixed PDF + Image Workflows
 
@@ -1310,11 +1393,11 @@ Migration rule:
 | Purpose | Library | Current Status |
 |---|---|---|
 | PDF generation | jsPDF | Installed and used |
-| Advanced PDF editing | pdf-lib | Not installed |
+| Advanced PDF editing | pdf-lib | Installed and used |
 | PDF rendering | pdfjs-dist | Installed and used |
 | OCR | tesseract.js | Not installed |
 | Drag and drop | Angular CDK | Installed and used |
-| ZIP export | jszip | Not installed |
+| ZIP export | jszip | Installed and used |
 | Image editing | Konva | Not installed |
 | Image processing | OpenCV.js | Not installed |
 | Local storage | Dexie | Not installed |
@@ -1405,7 +1488,7 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 
 ---
 
-# Recent Session Summary (May 23, 2026)
+# Recent Session Summary (June 12, 2026)
 
 ## Bugs Fixed
 - **Worker cancellation fallback**: Cancelled worker generation now raises a dedicated cancellation error and does not fall back to main-thread generation.
@@ -1417,30 +1500,31 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 - **Generation Cancel UI**: Users can cancel active worker-backed PDF generation from the generate button area.
 - **Progress Wiring**: `ImageToPdfComponent` subscribes to `PdfWorkerService.getProgress()` and passes progress through `PdfSettingsPanelComponent` to `GeneratePDFButtonComponent`.
 - **Test Coverage**: Added focused coverage for worker cancellation, fallback suppression, component progress state, and generate button progress/cancel behavior.
+- **Feature 14 — PDF Compression**: Three-level compression tool (low/medium/high) using pdf-lib re-save and pdfjs-dist canvas re-rendering with JPEG encoding.
 
 ## Validation
 - `npm.cmd run build` passes with existing jsPDF/canvg CommonJS optimization warnings.
-- `npm.cmd test -- --watch=false` passes with 57 tests.
+- `npm.cmd test -- --watch=false` passes with 175 tests.
 
 ## Next Priority
-1. Add IndexedDB-based persistence for session state and saved settings.
-2. Add PDF upload + merge/split tools once the tool-based route architecture is ready for real document workflows.
-3. Add PDF manipulation preview support for uploaded PDFs.
-4. Revisit object URL/Data URL lifecycle and memory cleanup during performance hardening.
+1. Feature 15: Password Protection and Encryption for PDF documents.
+2. Feature 16: Mixed PDF + Image Workflows beyond simple extraction.
+3. Add IndexedDB-based persistence for session state and saved settings.
+4. Worker-backed compression for large PDFs (Phase 6).
 
 Example prompt for next session:
 
 ```text
-Add IndexedDB session persistence for the image-to-PDF tool.
+Implement Feature 15: PDF Password Protection and Encryption.
 
 Requirements:
-- Persist the current uploaded file/session state in the browser
-- Restore the session after refresh when possible
-- Keep processing frontend-only and avoid backend assumptions
-- Preserve existing localStorage settings behavior
+- Encrypt PDF files with user passwords using pdf-lib
+- Support open password and permission restrictions
+- Add password input UI to the encrypt tool component
+- Follow the same service/component pattern as existing Phase 3 tools
 
 Validation:
 - npm.cmd run build passes
 - npm.cmd test -- --watch=false passes
-- Existing image-to-PDF generation, preview, progress, and cancel behavior still work
+- Existing merge, split, rearrange, compress, and image-to-PDF tools still work
 ```
