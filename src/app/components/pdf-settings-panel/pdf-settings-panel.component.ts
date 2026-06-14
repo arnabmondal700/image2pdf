@@ -19,6 +19,7 @@ export class PdfSettingsPanelComponent {
     pageSize: 'a4',
     orientation: 'portrait',
     quality: 'MEDIUM',
+    dpi: 300,
     marginTop: 8,
     marginBottom: 8,
     marginLeft: 8,
@@ -172,6 +173,7 @@ export class PdfSettingsPanelComponent {
   private sanitizeSettings(settings: PDFSettings): PDFSettings {
     return {
       ...settings,
+      dpi: this.coerceDpi(settings.dpi),
       marginTop: this.coerceMargin(settings.marginTop),
       marginBottom: this.coerceMargin(settings.marginBottom),
       marginLeft: this.coerceMargin(settings.marginLeft),
@@ -193,6 +195,15 @@ export class PdfSettingsPanelComponent {
 
   private coerceBackgroundColor(value: unknown): string {
     return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#ffffff';
+  }
+
+  /**
+   * Coerce DPI to a valid number between 72 and 600.
+   * Returns 300 (standard print resolution) as the default.
+   */
+  private coerceDpi(value: unknown): number {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? Math.min(600, Math.max(72, numericValue)) : 300;
   }
 
   private coerceImagesPerPage(value: unknown): PDFImagesPerPage {

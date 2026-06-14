@@ -45,6 +45,19 @@
     </label>
 
     <label class="setting-field">
+      <span>Output DPI</span>
+      <input 
+        type="number" 
+        min="72" 
+        max="600" 
+        step="10"
+        [(ngModel)]="pdfSettings.dpi"
+        (change)="onSettingsChange()"
+      >
+      <small class="hint">72–600 (higher = sharper images, larger file)</small>
+    </label>
+
+    <label class="setting-field">
       <span>Export mode</span>
       <select 
         name="exportMode" 
@@ -332,6 +345,10 @@
     <div>
       <strong>{{ pdfSettings.pageSize | uppercase }}</strong>
       <span>{{ pdfSettings.orientation }}</span>
+    </div>
+    <div>
+      <strong>{{ pdfSettings.dpi ?? 300 }}</strong>
+      <span>DPI</span>
     </div>
   </div>
 

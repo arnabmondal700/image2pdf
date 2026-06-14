@@ -55,6 +55,7 @@ export class PdfSettingsStorageService {
       pageSize: 'a4',
       orientation: 'portrait',
       quality: 'MEDIUM',
+      dpi: 300,
       marginTop: 8,
       marginBottom: 8,
       marginLeft: 8,
@@ -69,6 +70,7 @@ export class PdfSettingsStorageService {
       pageSize: (partial.pageSize || defaults.pageSize) as 'a4' | 'letter' | 'legal',
       orientation: (partial.orientation || defaults.orientation) as 'portrait' | 'landscape',
       quality: (partial.quality || defaults.quality) as 'FAST' | 'MEDIUM' | 'SLOW',
+      dpi: this.coerceDpi(partial.dpi),
       marginTop: Number.isFinite(partial.marginTop) ? partial.marginTop! : defaults.marginTop,
       marginBottom: Number.isFinite(partial.marginBottom) ? partial.marginBottom! : defaults.marginBottom,
       marginLeft: Number.isFinite(partial.marginLeft) ? partial.marginLeft! : defaults.marginLeft,
@@ -78,5 +80,14 @@ export class PdfSettingsStorageService {
       backgroundColor: partial.backgroundColor || defaults.backgroundColor,
       imagesPerPage: ([1, 2, 4].includes(partial.imagesPerPage as number) ? partial.imagesPerPage : defaults.imagesPerPage) as 1 | 2 | 4
     };
+  }
+
+  /**
+   * Coerce DPI to a valid number between 72 and 600.
+   * Returns 300 (standard print resolution) as the default.
+   */
+  private coerceDpi(value: unknown): number {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? Math.min(600, Math.max(72, numericValue)) : 300;
   }
 }

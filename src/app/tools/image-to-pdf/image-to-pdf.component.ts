@@ -79,6 +79,7 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
       pageSize: 'a4',
       orientation: 'portrait',
       quality: 'MEDIUM',
+      dpi: 300,
       marginTop: 8,
       marginBottom: 8,
       marginLeft: 8,

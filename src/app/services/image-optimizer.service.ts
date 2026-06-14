@@ -17,9 +17,23 @@ export class ImageOptimizerService {
     SLOW: { maxDimension: 2400, quality: 0.92 }
   };
 
-  async optimizeFiles(files: FileObject[], quality: PDFQuality): Promise<FileObject[]> {
+  async optimizeFiles(
+    files: FileObject[],
+    quality: PDFQuality,
+    dpi?: number
+  ): Promise<FileObject[]> {
     const preset = this.presets[quality];
-    return Promise.all(files.map((file) => this.optimizeFile(file, preset)));
+    // When DPI is provided, compute a target max dimension based on A4 page
+    // width (210 mm ≈ 8.27 inches) at the given DPI.  Use the smaller of
+    // the preset cap and the DPI-derived cap so that DPI can only reduce
+    // resolution, never increase beyond the quality preset's intention.
+    const effectivePreset = dpi
+      ? {
+          maxDimension: Math.min(preset.maxDimension, Math.round(8.27 * dpi)),
+          quality: preset.quality
+        }
+      : preset;
+    return Promise.all(files.map((file) => this.optimizeFile(file, effectivePreset)));
   }
 
   private async optimizeFile(file: FileObject, preset: OptimizationPreset): Promise<FileObject> {

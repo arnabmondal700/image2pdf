@@ -34,6 +34,7 @@ interface PDFSettings {
   pageSize: 'a4' | 'letter' | 'legal';
   orientation: 'portrait' | 'landscape';
   quality: 'FAST' | 'MEDIUM' | 'SLOW';
+  dpi?: number;
   marginTop?: number;
   marginBottom?: number;
   marginLeft?: number;
@@ -49,6 +50,7 @@ interface ResolvedPDFSettings {
   pageSize: 'a4' | 'letter' | 'legal';
   orientation: 'portrait' | 'landscape';
   quality: 'FAST' | 'MEDIUM' | 'SLOW';
+  dpi: number;
   marginTop: number;
   marginBottom: number;
   marginLeft: number;
@@ -190,7 +192,7 @@ async function generatePDFInWorker(
           finalSettings.imageAlignment
         );
 
-        addImageToCell(pdf, fileData.url, imgProps.fileType, position, imageDims, cell, finalSettings, fileData.rotation || 0);
+        await addImageToCell(pdf, fileData.url, imgProps.fileType, position, imageDims, cell, finalSettings, fileData.rotation || 0);
 
         currentFileIndex++;
 
@@ -236,6 +238,7 @@ function resolveSettings(settings: PDFSettings): ResolvedPDFSettings {
     pageSize: settings.pageSize,
     orientation: settings.orientation,
     quality: settings.quality,
+    dpi: coerceDpi(settings.dpi),
     marginTop: coerceMargin(settings.marginTop, 8),
     marginBottom: coerceMargin(settings.marginBottom, 8),
     marginLeft: coerceMargin(settings.marginLeft, 8),
@@ -251,6 +254,15 @@ function resolveSettings(settings: PDFSettings): ResolvedPDFSettings {
 function coerceMargin(value: unknown, fallback: number): number {
   const numericValue = Number(value);
   return Number.isFinite(numericValue) ? Math.max(0, numericValue) : fallback;
+}
+
+/**
+ * Coerce DPI to a valid number between 72 and 600.
+ * Returns 300 (standard print resolution) as the default.
+ */
+function coerceDpi(value: unknown): number {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? Math.min(600, Math.max(72, numericValue)) : 300;
 }
 
 function coerceHexColor(value: unknown): string {
@@ -348,7 +360,7 @@ function hexToRgb(hex: string): [number, number, number] {
   return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
 }
 
-function addImageToCell(
+async function addImageToCell(
   pdf: jsPDF,
   imageData: string,
   imageType: string,
@@ -357,14 +369,20 @@ function addImageToCell(
   cell: { x: number; y: number; width: number; height: number },
   settings: ResolvedPDFSettings,
   rotation: number = 0
-): void {
+): Promise<void> {
   const addImage = (imageUrl: string) => {
     pdf.addImage(imageUrl, imageType, position.x, position.y, imageDims.width, imageDims.height, undefined, settings.quality);
   };
 
+  // Resize the image to the target DPI before embedding.
+  // A4 page width = 210 mm ≈ 8.27 inches; at the given DPI
+  // that means max image width = 8.27 × DPI pixels.
+  const maxDimPx = Math.round(8.27 * settings.dpi);
+  const finalUrl = await resizeImageForDPI(imageData, maxDimPx);
+
   if (settings.imageFit !== 'cover') {
     // For non-cover mode, add image normally (rotation handled via canvas preprocessing if needed)
-    addImage(imageData);
+    addImage(finalUrl);
     return;
   }
 
@@ -372,6 +390,67 @@ function addImageToCell(
   pdf.rect(cell.x, cell.y, cell.width, cell.height);
   pdf.clip();
   pdf.discardPath();
-  addImage(imageData);
+  addImage(finalUrl);
   pdf.restoreGraphicsState();
+}
+
+/**
+ * Resize an image (data URL) so its longest dimension does not exceed
+ * `maxDimensionPx`.  If the image is already smaller, it is returned
+ * unchanged.  Uses OffscreenCanvas in the worker context.
+ */
+async function resizeImageForDPI(dataUrl: string, maxDimensionPx: number): Promise<string> {
+  if (!dataUrl.startsWith('data:')) {
+    return dataUrl;
+  }
+
+  try {
+    const imageBitmap = await createImageBitmap(await (await fetch(dataUrl)).blob());
+
+    const longest = Math.max(imageBitmap.width, imageBitmap.height);
+    if (longest <= maxDimensionPx) {
+      imageBitmap.close();
+      return dataUrl;
+    }
+
+    const scale = maxDimensionPx / longest;
+    const targetW = Math.max(1, Math.round(imageBitmap.width * scale));
+    const targetH = Math.max(1, Math.round(imageBitmap.height * scale));
+
+    const canvas = new OffscreenCanvas(targetW, targetH);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      imageBitmap.close();
+      return dataUrl;
+    }
+
+    ctx.drawImage(imageBitmap, 0, 0, targetW, targetH);
+    imageBitmap.close();
+
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 });
+    const blobUrl = URL.createObjectURL(blob);
+
+    // Read the blob back as a data URL for compatibility with jsPDF
+    const dataUrlResult = await blobToString(blobUrl);
+    URL.revokeObjectURL(blobUrl);
+    return dataUrlResult;
+  } catch {
+    return dataUrl;
+  }
+}
+
+/** Convert a Blob URL (or data URL) to a data URL string */
+function blobToString(url: string): Promise<string> {
+  return new Promise(async (resolve) => {
+    try {
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(url);
+      reader.readAsDataURL(blob);
+    } catch {
+      resolve(url);
+    }
+  });
 }

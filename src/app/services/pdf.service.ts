@@ -36,6 +36,7 @@ export interface PDFSettings {
   pageSize: PDFPageSize;
   orientation: PDFOrientation;
   quality: PDFQuality;
+  dpi?: number;
   marginTop?: number;
   marginBottom?: number;
   marginLeft?: number;
@@ -57,6 +58,7 @@ interface ResolvedPDFSettings {
   pageSize: PDFPageSize;
   orientation: PDFOrientation;
   quality: PDFQuality;
+  dpi: number;
   marginTop: number;
   marginBottom: number;
   marginLeft: number;
@@ -88,6 +90,7 @@ export class PDFService {
       pageSize: 'a4', 
       orientation: 'portrait', 
       quality: 'MEDIUM',
+      dpi: 300,
       marginTop: 8,
       marginBottom: 8,
       marginLeft: 8,
@@ -304,6 +307,7 @@ export class PDFService {
       pageSize: settings.pageSize,
       orientation: settings.orientation,
       quality: settings.quality,
+      dpi: this.coerceDpi(settings.dpi),
       marginTop: this.coerceMargin(settings.marginTop, 8),
       marginBottom: this.coerceMargin(settings.marginBottom, 8),
       marginLeft: this.coerceMargin(settings.marginLeft, 8),
@@ -325,6 +329,15 @@ export class PDFService {
     return Number.isFinite(numericValue) ? Math.max(0, numericValue) : fallback;
   }
 
+  /**
+   * Coerce DPI to a valid number between 72 and 600.
+   * Returns 300 (standard print resolution) as the default.
+   */
+  private coerceDpi(value: unknown): number {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? Math.min(600, Math.max(72, numericValue)) : 300;
+  }
+
   private coerceHexColor(value: unknown): string {
     return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#ffffff';
   }
@@ -343,9 +356,9 @@ export class PDFService {
     cell: { x: number; y: number; width: number; height: number },
     settings: ResolvedPDFSettings
   ): void {
-    const addImage = () => {
+    const addImage = (url: string) => {
       pdf.addImage(
-        imageData,
+        url,
         imageType,
         position.x,
         position.y,
@@ -356,8 +369,14 @@ export class PDFService {
       );
     };
 
+    // Resize the image to the target DPI before embedding.
+    // A4 page width = 210 mm ≈ 8.27 inches; at the given DPI
+    // that means max image width = 8.27 × DPI pixels.
+    const maxDimPx = Math.round(8.27 * settings.dpi);
+    const finalUrl = this.resizeImageForDPI(imageData, maxDimPx);
+
     if (settings.imageFit !== 'cover') {
-      addImage();
+      addImage(finalUrl);
       return;
     }
 
@@ -365,7 +384,53 @@ export class PDFService {
     pdf.rect(cell.x, cell.y, cell.width, cell.height);
     pdf.clip();
     pdf.discardPath();
-    addImage();
+    addImage(finalUrl);
     pdf.restoreGraphicsState();
+  }
+
+  /**
+   * Resize an image (data URL) so its longest dimension does not exceed
+   * `maxDimensionPx`.  If the image is already smaller, it is returned
+   * unchanged.  Uses an off-screen canvas for the downscale.
+   */
+  private resizeImageForDPI(dataUrl: string, maxDimensionPx: number): string {
+    // If the URL is not a data URL we can't resize it easily
+    if (!dataUrl.startsWith('data:')) {
+      return dataUrl;
+    }
+
+    try {
+      // Create a synchronous-ish image resize via an off-screen canvas.
+      // This is a best-effort optimization; if anything fails we fall
+      // back to the original image data.
+      const img = new Image();
+      img.src = dataUrl;
+
+      // When the image is already decoded (cached data URLs resolve
+      // almost immediately) we can proceed.
+      if (!img.complete || img.naturalWidth === 0) {
+        return dataUrl;
+      }
+
+      const longest = Math.max(img.naturalWidth, img.naturalHeight);
+      if (longest <= maxDimensionPx) {
+        return dataUrl;
+      }
+
+      const scale = maxDimensionPx / longest;
+      const targetW = Math.max(1, Math.round(img.naturalWidth * scale));
+      const targetH = Math.max(1, Math.round(img.naturalHeight * scale));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return dataUrl;
+
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+      return canvas.toDataURL('image/jpeg', 0.92);
+    } catch {
+      return dataUrl;
+    }
   }
 }

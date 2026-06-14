@@ -13,6 +13,7 @@ export interface PDFSettings {
   pageSize: 'a4' | 'letter' | 'legal';
   orientation: 'portrait' | 'landscape';
   quality: 'FAST' | 'MEDIUM' | 'SLOW';
+  dpi?: number;
   marginTop?: number;
   marginBottom?: number;
   marginLeft?: number;
