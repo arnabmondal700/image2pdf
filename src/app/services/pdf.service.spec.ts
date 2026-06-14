@@ -39,10 +39,12 @@ vi.mock('jspdf', () => ({
 import { FileObject } from './file.service';
 import { PDFService } from './pdf.service';
 import { PDFGenerationCancelledError, PdfWorkerService } from './pdf-worker.service';
+import { PdfProtectionService } from './pdf-protection.service';
 
 describe('PDFService', () => {
   let service: PDFService;
   let mockWorkerService: Partial<PdfWorkerService>;
+  let mockProtectionService: Partial<PdfProtectionService>;
   const files: FileObject[] = [
     { name: 'one.jpg', url: 'data:image/jpeg;base64,one', size: 1, type: 'image/jpeg' },
     { name: 'two.jpg', url: 'data:image/jpeg;base64,two', size: 1, type: 'image/jpeg' },
@@ -58,11 +60,25 @@ describe('PDFService', () => {
       generatePDFBlob: vi.fn(),
       cancel: vi.fn()
     };
-    service = new PDFService(mockWorkerService as PdfWorkerService);
+    mockProtectionService = {
+      addPassword: vi.fn().mockImplementation(async (_pdfFile, _options) => ({
+        blob: new Blob(['encrypted'], { type: 'application/pdf' }),
+        originalName: 'test',
+        protectedName: 'test-protected'
+      })),
+      removePassword: vi.fn(),
+      isPasswordProtected: vi.fn(),
+      downloadPDF: vi.fn(),
+      sanitizeFileName: vi.fn((name) => name || '')
+    };
+    service = new PDFService(
+      mockWorkerService as PdfWorkerService,
+      mockProtectionService as PdfProtectionService
+    );
   });
 
-  it('applies background color and saves the generated PDF', () => {
-    service.generatePDF([files[0]], 'single.pdf', {
+  it('generates PDF with background color', async () => {
+    await service.generatePDF([files[0]], 'single.pdf', {
       pageSize: 'a4',
       orientation: 'portrait',
       quality: 'MEDIUM',
@@ -73,11 +89,12 @@ describe('PDFService', () => {
     expect(pdf.setFillColor).toHaveBeenCalledWith('#ff0000');
     expect(pdf.rect).toHaveBeenCalledWith(0, 0, 210, 297, 'F');
     expect(pdf.addImage).toHaveBeenCalledOnce();
-    expect(pdf.save).toHaveBeenCalledWith('single.pdf');
+    // generatePDF now downloads via blob instead of pdf.save()
+    expect(pdf.output).toHaveBeenCalledWith('blob');
   });
 
-  it('coerces imagesPerPage string values before layout generation', () => {
-    service.generatePDF(files, 'two-up.pdf', {
+  it('coerces imagesPerPage string values before layout generation', async () => {
+    await service.generatePDF(files, 'two-up.pdf', {
       pageSize: 'a4',
       orientation: 'portrait',
       quality: 'MEDIUM',
@@ -89,8 +106,8 @@ describe('PDFService', () => {
     expect(pdf.addPage).toHaveBeenCalledOnce();
   });
 
-  it('clips cover images to their layout cell', () => {
-    service.generatePDF([files[0]], 'cover.pdf', {
+  it('clips cover images to their layout cell', async () => {
+    await service.generatePDF([files[0]], 'cover.pdf', {
       pageSize: 'a4',
       orientation: 'portrait',
       quality: 'MEDIUM',
@@ -104,18 +121,23 @@ describe('PDFService', () => {
     expect(pdf.restoreGraphicsState).toHaveBeenCalledOnce();
   });
 
-  it('does not generate an empty PDF', () => {
-    service.generatePDF([], 'empty.pdf');
+  it('does not generate an empty PDF', async () => {
+    await service.generatePDF([], 'empty.pdf');
 
     expect(mockPdfInstances).toEqual([]);
   });
 
   it('does not fall back to main-thread generation when worker generation is cancelled', async () => {
     mockWorkerService.isWorkerSupported = vi.fn(() => true);
-    mockWorkerService.generatePDF = vi.fn(() => Promise.reject(new PDFGenerationCancelledError()));
-    service = new PDFService(mockWorkerService as PdfWorkerService);
+    mockPdfInstances.length = 0;
+    // Generate a blob from the worker, reject with cancellation
+    mockWorkerService.generatePDFBlob = vi.fn(() => Promise.reject(new PDFGenerationCancelledError()));
+    service = new PDFService(
+      mockWorkerService as PdfWorkerService,
+      mockProtectionService as PdfProtectionService
+    );
 
-    await expect(service.generatePDF([files[0]], 'cancelled.pdf')).rejects.toBeInstanceOf(PDFGenerationCancelledError);
+    await expect(service.createPDFBlob([files[0]], {} as any)).rejects.toBeInstanceOf(PDFGenerationCancelledError);
     expect(mockPdfInstances).toEqual([]);
   });
 });

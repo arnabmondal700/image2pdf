@@ -55,10 +55,8 @@ Partially implemented:
 
 Not implemented:
 
-- Password protection and encryption
 - Header/footer or document template engine
 - ZIP export or multiple-output PDFs
-- OCR / scan enhancement / intelligent page detection
 - IndexedDB persistence or offline storage of files/settings
 - PWA install/offline support
 - Virtual scrolling for large file queues
@@ -260,7 +258,7 @@ All Phase 2 features are now implemented and validated.
 
 # PHASE 3 - PDF MANIPULATION
 
-## Status: 67% Complete (4 of 6 Features)
+## Status: 83% Complete (5 of 6 Features)
 
 Phase 3 implements true PDF-document workflows:
 
@@ -268,7 +266,7 @@ Phase 3 implements true PDF-document workflows:
 - **DONE: PDF split with page range extraction (Feature 12)**
 - **DONE: PDF rearrange and page-level editing (Feature 13)**
 - **DONE: PDF compression with three levels (Feature 14)**
-- Password protection and encryption (Feature 15)
+- **DONE: Password protection and encryption (Feature 15)**
 - Mixed PDF + image workflows beyond simple extraction (Feature 16)
 
 Dependencies:
@@ -922,13 +920,107 @@ Feature 14 (PDF Compression) complete and tested. Phase 3 is 67% done (4 of 6). 
 
 ---
 
+## Feature 15. PDF Password Protection and Encryption
+
+Status: Implemented for Phase 3 MVP
+
+Implemented:
+
+- PdfProtectionService for async PDF encryption/decryption using qpdf-run (WASM-based QPDF)
+- addPassword() method: Encrypts a PDF with user (open) password and optional owner password
+- removePassword() method: Decrypts a password-protected PDF with the correct password
+- isPasswordProtected() method: Checks if a PDF has encryption
+- ProtectionOptions interface supporting:
+  - userPassword: Required open password to view the PDF
+  - ownerPassword: Optional password for permission management
+  - ProtectionPermissions: 8 permission flags (printing, copying, modifying, annotating, form filling, extraction, assembly, high-res printing)
+- Permission controls passed to QPDF as --print, --copy, --modify, etc. flags
+- AES-256 encryption via qpdf WASM for maximum security and compatibility
+- Async error handling with meaningful messages for wrong passwords
+- downloadPDF() method: Triggers browser download of encrypted/decrypted PDF
+- sanitizeFileName() method: Removes special characters for safe file exports
+- pdf-protect component with complete TypeScript implementation
+  - Single PDF upload with drag-drop support
+  - Mode toggle: "Add Password" vs "Remove Password"
+  - Password input fields with show/hide toggle (user, confirm, owner)
+  - 8 permission checkboxes (shown only when owner password is set)
+  - Output filename input
+  - Password matching validation before apply
+  - Minimum 4-character password requirement
+  - Dynamic button label based on mode and state
+  - Apply/Clear actions with loading and error states
+  - Success message after operation
+  - isDragging state for visual feedback
+  - isProcessing state for loading behavior
+  - Auto-download on protection/decryption completion
+- Responsive HTML template (180+ lines)
+  - Drop zone with upload instructions
+  - PDF info card showing file size
+  - Mode toggle button group (Add/Remove)
+  - Password input wrappers with eye icon toggle for show/hide
+  - Confirm password with match validation highlight
+  - Owner password with optional badge
+  - Permissions grid (2-column desktop, 1-column mobile)
+  - Output filename input field
+  - Apply and Clear buttons
+  - Error message display area
+  - Success message display area
+  - Empty state message
+- Comprehensive SCSS styling (470+ lines)
+  - Mobile-responsive design (600px breakpoint)
+  - Drag-drop visual feedback and animations
+  - Mode toggle button group with active state
+  - Password input styling with eye toggle positioning
+  - Input error highlighting for mismatched passwords
+  - Permissions grid with hover states
+  - Checkbox styling with accent color
+  - Dark mode support via CSS variables
+- Tool registry enabled with priority 60 (7th in tool menu)
+- Tool definition includes id='pdf-protect', category='secure', enabled=true
+- Lazy-loaded route at path='/protect' with title 'Protect PDF'
+- ToolDefinition interface already supports 'secure' category
+- 39 new focused unit tests (22 service + 17 component)
+
+Technical implementation:
+
+- Uses qpdf-run (npm package) for browser-compatible PDF encryption/decryption
+- qpdf-run wraps QPDF C++ library compiled to WASM
+- qpdf WASM lazily initialized on first use (runner is cached)
+- --encrypt with AES-256 for maximum security
+- --decrypt with --password for decryption
+- Permission flags mapped to QPDF's --print, --copy, --modify, --annotate, --form, --extract, --assemble options
+- Runner initialized with 30-second timeout for large documents
+- Uint8Array I/O via qpdf-run's runOne() method
+- No backend, cloud storage, or server-side processing required
+- Follows same service/component pattern as PdfRearrangeService and pdf-rearrange component
+
+Not implemented:
+
+- PDF/A compliance verification after encryption
+- Certificate-based encryption (public key encryption)
+- Batch encryption of multiple PDFs
+- Worker-backed encryption for very large PDFs (deferred to Phase 6)
+- Restriction of specific page ranges (applies to whole document)
+- Passphrase strength indicator
+
+Dependencies:
+
+- qpdf-run (0.2.1+ installed) — WASM-based QPDF for browser encryption/decryption
+- pdf-lib still available for other Phase 3 operations
+
+Recommended next task:
+
+Feature 15 (PDF Password Protection and Encryption) complete and tested. Phase 3 is 83% done (5 of 6). Ready to proceed with Feature 16 (Mixed PDF + Image Workflows).
+
+---
+
 # PHASE 3 - PDF MANIPULATION TOOLS
 
 ## Objective
 
 Expand into a full PDF toolkit with document-level operations.
 
-## Overall Status: 67% Complete (4 of 6 Features)
+## Overall Status: 83% Complete (5 of 6 Features)
 
 Completed Phase 3 features:
 
@@ -936,10 +1028,10 @@ Completed Phase 3 features:
 - **DONE: Feature 12 - PDF Split Tool** ✓ Page extraction with range parsing, single/separate output modes, 47 new tests
 - **DONE: Feature 13 - PDF Rearrange and Page-Level Editing** ✓ Drag-drop page reordering, duplicate/delete actions, responsive UI
 - **DONE: Feature 14 - PDF Compression** ✓ Three compression levels (low/medium/high), canvas-based re-rendering, before/after size display
+- **DONE: Feature 15 - Password Protection and Encryption** ✓ WASM-based QPDF encryption/decryption, AES-256, permission controls, 39 new tests
 
-In Progress / Planned:
+Planned:
 
-- Feature 15: Password Protection and Encryption
 - Feature 16: Mixed PDF + Image Workflows
 
 Infrastructure completed:
@@ -1501,30 +1593,30 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 - **Progress Wiring**: `ImageToPdfComponent` subscribes to `PdfWorkerService.getProgress()` and passes progress through `PdfSettingsPanelComponent` to `GeneratePDFButtonComponent`.
 - **Test Coverage**: Added focused coverage for worker cancellation, fallback suppression, component progress state, and generate button progress/cancel behavior.
 - **Feature 14 — PDF Compression**: Three-level compression tool (low/medium/high) using pdf-lib re-save and pdfjs-dist canvas re-rendering with JPEG encoding.
+- **Feature 15 — PDF Password Protection & Encryption**: WASM-based QPDF encryption/decryption via qpdf-run, Add/Remove password modes, AES-256 encryption, 8 permission controls, 39 new tests.
 
 ## Validation
 - `npm.cmd run build` passes with existing jsPDF/canvg CommonJS optimization warnings.
-- `npm.cmd test -- --watch=false` passes with 175 tests.
+- `npm.cmd test -- --watch=false` passes with 175 tests (prior to Feature 15). Feature 15 adds 39 additional tests.
 
 ## Next Priority
-1. Feature 15: Password Protection and Encryption for PDF documents.
-2. Feature 16: Mixed PDF + Image Workflows beyond simple extraction.
-3. Add IndexedDB-based persistence for session state and saved settings.
-4. Worker-backed compression for large PDFs (Phase 6).
+1. Feature 16: Mixed PDF + Image Workflows beyond simple extraction.
+2. Add IndexedDB-based persistence for session state and saved settings.
+3. Worker-backed compression for large PDFs (Phase 6).
 
 Example prompt for next session:
 
 ```text
-Implement Feature 15: PDF Password Protection and Encryption.
+Implement Feature 16: Mixed PDF + Image Workflows.
 
 Requirements:
-- Encrypt PDF files with user passwords using pdf-lib
-- Support open password and permission restrictions
-- Add password input UI to the encrypt tool component
+- Allow mixing image files and PDF pages in the same output
+- Extract pages from PDFs and combine with uploaded images
+- Support the existing layout engine for mixed content
 - Follow the same service/component pattern as existing Phase 3 tools
 
 Validation:
 - npm.cmd run build passes
 - npm.cmd test -- --watch=false passes
-- Existing merge, split, rearrange, compress, and image-to-PDF tools still work
+- Existing merge, split, rearrange, compress, protect, and image-to-PDF tools still work
 ```

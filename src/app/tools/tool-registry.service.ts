@@ -87,6 +87,17 @@ export class ToolRegistryService {
       enabled: true,
       priority: 65
     });
+
+    this.registerTool({
+      id: 'pdf-protect',
+      name: 'Protect PDF',
+      description: 'Add or remove password protection and set permissions',
+      icon: '🔒',
+      path: 'protect',
+      category: 'secure',
+      enabled: true,
+      priority: 60
+    });
   }
 
   /**

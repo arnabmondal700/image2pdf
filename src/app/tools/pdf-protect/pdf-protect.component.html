@@ -1,0 +1,273 @@
+<div class="pdf-protect-container">
+  <div class="header">
+    <h1>Protect PDF</h1>
+    <p>Add or remove password protection for your PDF documents</p>
+  </div>
+
+  <!-- Drop Zone -->
+  <div
+    class="drop-zone"
+    [class.dragging]="isDragging"
+    (dragover)="onDragOverZone($event)"
+    (dragleave)="onDragLeaveZone()"
+    (drop)="onDropZone($event)">
+    <div class="drop-zone-content">
+      <span class="drop-icon" aria-hidden="true">🔒</span>
+      <p>
+        Drop PDF here or
+        <label class="file-input-label">
+          select file
+          <input
+            #fileInput
+            type="file"
+            accept=".pdf"
+            hidden
+            (change)="onFilesSelected(toFileArray(fileInput.files))" />
+        </label>
+      </p>
+      <p class="drop-hint">Maximum 10 MB per file</p>
+    </div>
+  </div>
+
+  <!-- Validation Errors -->
+  <div *ngIf="validationErrors.length > 0" class="error-messages">
+    <div *ngFor="let error of validationErrors" class="error-item">
+      <strong>{{ error.fileName }}</strong>:
+      {{ error.reason === 'unsupported-type' ? 'Not a PDF file' : 'Error reading file' }}
+    </div>
+  </div>
+
+  <!-- General Error -->
+  <div *ngIf="generalError" class="error-message">
+    {{ generalError }}
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <!-- PDF Info Card -->
+  <div *ngIf="uploadedPdf" class="pdf-info-card">
+    <div class="pdf-info-header">
+      <span class="pdf-icon" aria-hidden="true">📄</span>
+      <div class="pdf-details">
+        <h3>{{ uploadedPdf.name }}</h3>
+        <p class="pdf-meta">{{ (uploadedPdf.size / 1024).toFixed(1) }} KB</p>
+      </div>
+      <button class="remove-btn" (click)="onPdfRemoved()" title="Remove PDF" aria-label="Remove PDF">x</button>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!uploadedPdf" class="empty-state">
+    <span class="empty-icon" aria-hidden="true">🔒</span>
+    <p>No PDF loaded</p>
+    <p class="empty-hint">Upload a PDF to add or remove password protection</p>
+  </div>
+
+  <!-- Protection Controls -->
+  <div *ngIf="uploadedPdf" class="protect-section">
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+      <button
+        class="mode-btn"
+        [class.active]="mode === 'add'"
+        (click)="toggleMode('add')">
+        Add Password
+      </button>
+      <button
+        class="mode-btn"
+        [class.active]="mode === 'remove'"
+        (click)="toggleMode('remove')">
+        Remove Password
+      </button>
+    </div>
+
+    <!-- Add Password Mode Controls -->
+    <ng-container *ngIf="mode === 'add'">
+      <!-- User Password -->
+      <div class="control-group">
+        <label for="user-password">User (Open) Password</label>
+        <div class="password-input-wrapper">
+          <input
+            id="user-password"
+            [type]="getPasswordInputType(showUserPassword)"
+            [(ngModel)]="userPassword"
+            placeholder="Enter password to open PDF"
+            class="password-input" />
+          <button
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility('user')"
+            [attr.aria-label]="showUserPassword ? 'Hide password' : 'Show password'"
+            type="button">
+            {{ showUserPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        <p class="input-hint">Required — This password will be needed to view the PDF</p>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="control-group">
+        <label for="confirm-password">Confirm Password</label>
+        <div class="password-input-wrapper">
+          <input
+            id="confirm-password"
+            [type]="getPasswordInputType(showConfirmPassword)"
+            [(ngModel)]="confirmPassword"
+            placeholder="Re-enter password"
+            class="password-input"
+            [class.input-error]="confirmPassword && userPassword !== confirmPassword" />
+          <button
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility('confirm')"
+            [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+            type="button">
+            {{ showConfirmPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        <p
+          class="input-hint"
+          [class.hint-error]="confirmPassword && userPassword !== confirmPassword">
+          {{ confirmPassword && userPassword !== confirmPassword ? 'Passwords do not match' : 'Re-enter the password to confirm' }}
+        </p>
+      </div>
+
+      <!-- Owner Password (Optional) -->
+      <div class="control-group">
+        <label for="owner-password">Owner Password <span class="optional-badge">Optional</span></label>
+        <div class="password-input-wrapper">
+          <input
+            id="owner-password"
+            [type]="getPasswordInputType(showOwnerPassword)"
+            [(ngModel)]="ownerPassword"
+            placeholder="Enter owner password for permissions"
+            class="password-input" />
+          <button
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility('owner')"
+            [attr.aria-label]="showOwnerPassword ? 'Hide password' : 'Show password'"
+            type="button">
+            {{ showOwnerPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        <p class="input-hint">If set, restricts what users can do with the PDF (see permissions below)</p>
+      </div>
+
+      <!-- Permissions Section -->
+      <div *ngIf="ownerPassword" class="permissions-section">
+        <h3>Permission Controls</h3>
+        <p class="permissions-hint">Restrict what users can do with this PDF (only applies when owner password is set)</p>
+        <div class="permissions-grid">
+          <label class="permission-item">
+            <input
+              type="checkbox"
+              [checked]="permissions.canPrint"
+              (change)="updatePermission('canPrint', !permissions.canPrint)" />
+            <span class="permission-label">Allow Printing (low resolution)</span>
+          </label>
+          <label class="permission-item">
+            <input
+              type="checkbox"
+              [checked]="permissions.canPrintHighRes"
+              (change)="updatePermission('canPrintHighRes', !permissions.canPrintHighRes)" />
+            <span class="permission-label">Allow High-Resolution Printing</span>
+          </label>
+          <label class="permission-item">
+            <input
+              type="checkbox"
+              [checked]="permissions.canCopy"
+              (change)="updatePermission('canCopy', !permissions.canCopy)" />
+            <span class="permission-label">Allow Copying Text and Images</span>
+          </label>
+          <label class="permission-item">
+            <input
+              type="checkbox"
+              [checked]="permissions.canModify"
+              (change)="updatePermission('canModify', !permissions.canModify)" />
+            <span class="permission-label">Allow Document Modification</span>
+          </label>
+          <label class="permission-item">
+            <input
+              type="checkbox"
+              [checked]="permissions.canAnnotate"
+              (change)="updatePermission('canAnnotate', !permissions.canAnnotate)" />
+            <span class="permission-label">Allow Annotations</span>
+          </label>
+          <label class="permission-item">
+            <input
+              type="checkbox"
+              [checked]="permissions.canFillForms"
+              (change)="updatePermission('canFillForms', !permissions.canFillForms)" />
+            <span class="permission-label">Allow Form Filling</span>
+          </label>
+          <label class="permission-item">
+            <input
+              type="checkbox"
+              [checked]="permissions.canExtract"
+              (change)="updatePermission('canExtract', !permissions.canExtract)" />
+            <span class="permission-label">Allow Content Extraction</span>
+          </label>
+          <label class="permission-item">
+            <input
+              type="checkbox"
+              [checked]="permissions.canAssemble"
+              (change)="updatePermission('canAssemble', !permissions.canAssemble)" />
+            <span class="permission-label">Allow Document Assembly</span>
+          </label>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Remove Password Mode Controls -->
+    <ng-container *ngIf="mode === 'remove'">
+      <div class="control-group">
+        <label for="current-password">Current Password</label>
+        <div class="password-input-wrapper">
+          <input
+            id="current-password"
+            [type]="getPasswordInputType(showUserPassword)"
+            [(ngModel)]="userPassword"
+            placeholder="Enter current PDF password"
+            class="password-input" />
+          <button
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility('user')"
+            [attr.aria-label]="showUserPassword ? 'Hide password' : 'Show password'"
+            type="button">
+            {{ showUserPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        <p class="input-hint">Enter the password currently protecting this PDF</p>
+      </div>
+    </ng-container>
+
+    <!-- Output Filename -->
+    <div class="control-group">
+      <label for="output-filename">Output Filename</label>
+      <input
+        id="output-filename"
+        type="text"
+        [(ngModel)]="outputFileName"
+        placeholder="e.g., my-protected-document"
+        class="filename-input" />
+      <p class="input-hint">.pdf will be added automatically</p>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div *ngIf="uploadedPdf" class="action-buttons">
+    <button
+      class="apply-btn"
+      [disabled]="isApplyDisabled()"
+      (click)="onApply()">
+      {{ getApplyButtonLabel() }}
+    </button>
+    <button
+      class="clear-btn"
+      [disabled]="isProcessing"
+      (click)="clearAll()">
+      Clear All
+    </button>
+  </div>
+</div>

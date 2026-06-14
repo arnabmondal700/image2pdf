@@ -102,11 +102,20 @@ describe('ToolRegistryService', () => {
     expect(compress?.category).toBe('optimize');
   });
 
-  it('should have pdf-compress as sixth enabled tool (last)', () => {
+  it('should have pdf-protect as seventh enabled tool (last)', () => {
     const enabledTools = service.getEnabledTools();
-    expect(enabledTools.length).toBe(6);
+    expect(enabledTools.length).toBe(7);
     const lastTool = enabledTools[enabledTools.length - 1];
-    expect(lastTool.id).toBe('pdf-compress');
+    expect(lastTool.id).toBe('pdf-protect');
+  });
+
+  it('should have pdf-protect as enabled with priority 60', () => {
+    const enabledTools = service.getEnabledTools();
+    const toolIds = enabledTools.map((t) => t.id);
+    expect(toolIds).toContain('pdf-protect');
+    const protect = enabledTools.find((t) => t.id === 'pdf-protect');
+    expect(protect?.priority).toBe(60);
+    expect(protect?.category).toBe('secure');
   });
 
   it('should return tools sorted by priority when getting all tools', () => {

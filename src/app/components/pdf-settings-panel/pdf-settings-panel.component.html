@@ -279,6 +279,51 @@
     </div>
   }
 
+  <button 
+    class="advanced-toggle" 
+    (click)="togglePasswordSettings()"
+    [attr.aria-expanded]="showPasswordSettings"
+  >
+    <span class="toggle-icon">{{ showPasswordSettings ? '▼' : '▶' }}</span>
+    Password Protection
+    @if (hasValidPassword()) {
+      <span class="badge-active">Active</span>
+    }
+  </button>
+
+  @if (showPasswordSettings) {
+    <div class="advanced-section">
+      <fieldset class="settings-fieldset">
+        <legend>PDF Password</legend>
+        <p class="password-hint">Set a password to protect the generated PDF. The PDF will be encrypted with AES-256.</p>
+        <label class="setting-field">
+          <span>Password</span>
+          <div class="password-wrapper">
+            <input 
+              [type]="showPasswordInput ? 'text' : 'password'"
+              [ngModel]="pdfSettings.passwordProtection?.userPassword ?? ''"
+              (ngModelChange)="onPasswordModelChange($event)"
+              placeholder="Enter at least 4 characters"
+              minlength="4"
+              class="password-input"
+            >
+            <button 
+              class="toggle-password-btn" 
+              type="button"
+              (click)="showPasswordInput = !showPasswordInput"
+              [attr.aria-label]="showPasswordInput ? 'Hide password' : 'Show password'"
+            >
+              {{ showPasswordInput ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </label>
+        @if (showPasswordHint()) {
+          <small class="hint-error">Minimum 4 characters required</small>
+        }
+      </fieldset>
+    </div>
+  }
+
   <div class="export-summary">
     <div>
       <strong>{{ uploadedFiles.length }}</strong>

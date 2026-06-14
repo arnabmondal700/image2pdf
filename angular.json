@@ -27,6 +27,16 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/qpdf-run/vendor/qpdf/lib",
+                "output": "/qpdf-lib"
+              },
+              {
+                "glob": "worker.js",
+                "input": "node_modules/qpdf-run/src",
+                "output": "/qpdf-lib"
               }
             ],
             "styles": [

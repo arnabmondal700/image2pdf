@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { jsPDF } from 'jspdf';
 import { FileObject } from './file.service';
 import { PDFGenerationCancelledError, PdfWorkerService } from './pdf-worker.service';
+import { PdfProtectionService } from './pdf-protection.service';
 import {
   calculatePageLayout,
   calculateImageDimensions,
@@ -45,6 +46,11 @@ export interface PDFSettings {
   imagesPerPage?: PDFImagesPerPage;
   headerFooter?: HeaderFooterSettings;
   exportMode?: ExportMode;
+  /** Optional password protection applied after PDF generation */
+  passwordProtection?: {
+    userPassword: string;
+    ownerPassword?: string;
+  };
 }
 
 interface ResolvedPDFSettings {
@@ -67,7 +73,10 @@ interface ResolvedPDFSettings {
   providedIn: 'root'
 })
 export class PDFService {
-  constructor(private workerService: PdfWorkerService) {}
+  constructor(
+    private workerService: PdfWorkerService,
+    private protectionService: PdfProtectionService
+  ) {}
   /**
    * Generate PDF from uploaded images and trigger download
    * Uses Web Worker if available for better performance, falls back to main thread
@@ -104,41 +113,66 @@ export class PDFService {
       exportMode: 'single-pdf'
     }
   ): Promise<void> {
+    console.log('[PDF-Service] generatePDF() — ENTERED');
+    console.log('[PDF-Service] generatePDF() — files count:', uploadedFiles.length);
+    console.log('[PDF-Service] generatePDF() — fileName:', fileName);
+    console.log('[PDF-Service] generatePDF() — passwordProtection:', settings.passwordProtection ? {
+      hasUserPassword: !!settings.passwordProtection.userPassword,
+      userPasswordLen: settings.passwordProtection.userPassword?.length,
+      hasOwnerPassword: !!settings.passwordProtection.ownerPassword
+    } : 'NOT SET');
+
     if (uploadedFiles.length === 0) {
+      console.log('[PDF-Service] generatePDF() — no files, returning');
       return;
     }
 
-    // Try to use Web Worker if available
-    if (this.workerService.isWorkerSupported()) {
+    // Generate the PDF blob (worker or main thread)
+    console.log('[PDF-Service] generatePDF() — calling createPDFBlob...');
+    const pdfBlob = await this.createPDFBlob(uploadedFiles, settings);
+    console.log('[PDF-Service] generatePDF() — pdfBlob size:', pdfBlob.size);
+
+    // Apply password protection if configured
+    let finalBlob = pdfBlob;
+    if (settings.passwordProtection?.userPassword) {
+      console.log('[PDF-Service] generatePDF() — password protection ENABLED, calling addPassword...');
       try {
-        await this.workerService.generatePDF(
-          uploadedFiles.map(f => ({
-            name: f.name,
-            type: f.type,
-            size: f.size,
-            url: f.url
-          })),
-          settings,
-          fileName
+        const tempUrl = URL.createObjectURL(pdfBlob);
+        const fileObj = { 
+          name: fileName, 
+          type: 'application/pdf', 
+          size: pdfBlob.size, 
+          url: tempUrl 
+        } as FileObject;
+        console.log('[PDF-Service] generatePDF() — constructed FileObject:', { name: fileObj.name, size: fileObj.size, urlPrefix: fileObj.url?.slice(0, 60) });
+        
+        const protectedResult = await this.protectionService.addPassword(
+          fileObj,
+          {
+            userPassword: settings.passwordProtection.userPassword,
+            ownerPassword: settings.passwordProtection.ownerPassword
+          }
         );
-        return;
+        console.log('[PDF-Service] generatePDF() — addPassword succeeded, protected blob size:', protectedResult.blob.size);
+        finalBlob = protectedResult.blob;
+        URL.revokeObjectURL(tempUrl);
       } catch (error) {
-        if (error instanceof PDFGenerationCancelledError) {
-          throw error;
-        }
-        console.error('Worker generation failed, falling back to main thread:', error);
-        // Fall through to main thread generation
+        console.error('[PDF-Service] generatePDF() — addPassword FAILED, downloading unprotected PDF:', error);
       }
+    } else {
+      console.log('[PDF-Service] generatePDF() — password protection NOT enabled, skipping encryption');
     }
 
-    // Fallback to main thread generation
-    const pdf = this.createPDF(uploadedFiles, settings);
-    pdf.save(fileName);
+    // Download the final blob
+    console.log('[PDF-Service] generatePDF() — downloading final blob, size:', finalBlob.size, 'name:', fileName);
+    this.downloadBlob(finalBlob, fileName);
+    console.log('[PDF-Service] generatePDF() — download complete');
   }
 
   /**
-   * Create a PDF blob from uploaded images
-   * Uses Web Worker if available for better performance
+   * Create a PDF blob from uploaded images (raw, unencrypted).
+   * Used for preview and ZIP export. Password protection is applied
+   * separately in generatePDF() for the final download.
    */
   async createPDFBlob(uploadedFiles: FileObject[], settings: PDFSettings): Promise<Blob> {
     if (uploadedFiles.length === 0) {
@@ -166,8 +200,21 @@ export class PDFService {
       }
     }
 
-    // Fallback to main thread generation
     return this.createPDF(uploadedFiles, settings).output('blob');
+  }
+
+  /**
+   * Download a blob as a file
+   */
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   private createPDF(uploadedFiles: FileObject[], settings: PDFSettings): jsPDF {

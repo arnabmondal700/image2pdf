@@ -58,6 +58,14 @@ export const routes: Routes = [
       ),
     data: { title: 'Compress PDF', toolId: 'pdf-compress' }
   },
+  {
+    path: 'protect',
+    loadComponent: () =>
+      import('./tools/pdf-protect/pdf-protect.component').then(
+        m => m.PdfProtectComponent
+      ),
+    data: { title: 'Protect PDF', toolId: 'pdf-protect' }
+  },
   // Catch-all redirect
   {
     path: '**',

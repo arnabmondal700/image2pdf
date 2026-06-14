@@ -42,6 +42,9 @@ export class PdfSettingsPanelComponent {
 
   showAdvancedSettings = false;
   showHeaderFooterSettings = false;
+  showPasswordSettings = false;
+  showPasswordInput: boolean = false;
+  showConfirmPasswordInput: boolean = false;
   templateVariables: Record<string, string>;
 
   constructor(private headerFooterService: HeaderFooterService) {
@@ -67,6 +70,73 @@ export class PdfSettingsPanelComponent {
 
   toggleHeaderFooterSettings() {
     this.showHeaderFooterSettings = !this.showHeaderFooterSettings;
+  }
+
+  togglePasswordSettings() {
+    console.log('[Settings-Panel] togglePasswordSettings() — toggling, new showPasswordSettings:', !this.showPasswordSettings);
+    this.showPasswordSettings = !this.showPasswordSettings;
+    if (!this.showPasswordSettings) {
+      console.log('[Settings-Panel] togglePasswordSettings() — collapsing, clearing password');
+      this.pdfSettings.passwordProtection = undefined;
+      this.onSettingsChange();
+    } else {
+      console.log('[Settings-Panel] togglePasswordSettings() — expanding password section');
+    }
+  }
+
+  /**
+   * Handle ngModelChange for the password input.
+   * Initializes passwordProtection if needed before setting the value.
+   */
+  onPasswordModelChange(value: string): void {
+    console.log('[Settings-Panel] onPasswordModelChange() — value length:', value?.length);
+    if (!this.pdfSettings.passwordProtection) {
+      this.pdfSettings.passwordProtection = { userPassword: '' };
+    }
+    this.pdfSettings.passwordProtection.userPassword = value;
+    this.onPasswordChange();
+  }
+
+  onPasswordChange() {
+    const pp = this.pdfSettings.passwordProtection;
+    console.log('[Settings-Panel] onPasswordChange() — current passwordProtection:', pp ? {
+      hasUserPassword: !!pp.userPassword,
+      userPasswordLen: pp.userPassword?.length
+    } : 'UNDEFINED');
+
+    if (pp && pp.userPassword && pp.userPassword.trim().length >= 4) {
+      console.log('[Settings-Panel] onPasswordChange() — password valid (>=4 chars), setting in settings');
+      this.pdfSettings.passwordProtection = {
+        userPassword: pp.userPassword.trim()
+      };
+    } else if (pp && pp.userPassword && pp.userPassword.trim().length > 0 && pp.userPassword.trim().length < 4) {
+      console.log('[Settings-Panel] onPasswordChange() — password too short (<4 chars), not emitting yet');
+      // Keep it but show error - don't emit yet
+      return;
+    } else {
+      console.log('[Settings-Panel] onPasswordChange() — password empty, removing protection');
+      this.pdfSettings.passwordProtection = undefined;
+    }
+    this.onSettingsChange();
+  }
+
+  /** Whether the password is set and valid (minimum 4 chars) */
+  hasValidPassword(): boolean {
+    const result = !!(
+      this.pdfSettings.passwordProtection?.userPassword &&
+      this.pdfSettings.passwordProtection.userPassword.trim().length >= 4
+    );
+    return result;
+  }
+
+  /** Whether to show the minimum-length hint */
+  showPasswordHint(): boolean {
+    const pp = this.pdfSettings.passwordProtection;
+    return !!(
+      pp?.userPassword &&
+      pp.userPassword.length > 0 &&
+      pp.userPassword.length < 4
+    );
   }
 
   onHeaderFooterChange() {
