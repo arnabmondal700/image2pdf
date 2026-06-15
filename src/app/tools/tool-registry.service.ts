@@ -98,6 +98,18 @@ export class ToolRegistryService {
       enabled: true,
       priority: 60
     });
+
+    // Mixed PDF Builder - Combine images and PDF pages
+    this.registerTool({
+      id: 'mixed-builder',
+      name: 'Mixed PDF Builder',
+      description: 'Combine images and PDF pages into a single document',
+      icon: '📦',
+      path: 'mixed-builder',
+      category: 'merge',
+      enabled: true,
+      priority: 55
+    });
   }
 
   /**

@@ -258,7 +258,7 @@ All Phase 2 features are now implemented and validated.
 
 # PHASE 3 - PDF MANIPULATION
 
-## Status: 83% Complete (5 of 6 Features)
+## Status: 100% Complete (6 of 6 Features)
 
 Phase 3 implements true PDF-document workflows:
 
@@ -267,7 +267,7 @@ Phase 3 implements true PDF-document workflows:
 - **DONE: PDF rearrange and page-level editing (Feature 13)**
 - **DONE: PDF compression with three levels (Feature 14)**
 - **DONE: Password protection and encryption (Feature 15)**
-- Mixed PDF + image workflows beyond simple extraction (Feature 16)
+- **DONE: Mixed PDF + Image Builder with drag-drop queue, image pages preserved as PDF pages without rasterization (Feature 16)**
 
 Dependencies:
 
@@ -1020,7 +1020,7 @@ Feature 15 (PDF Password Protection and Encryption) complete and tested. Phase 3
 
 Expand into a full PDF toolkit with document-level operations.
 
-## Overall Status: 83% Complete (5 of 6 Features)
+## Overall Status: 100% Complete (6 of 6 Features)
 
 Completed Phase 3 features:
 
@@ -1029,10 +1029,7 @@ Completed Phase 3 features:
 - **DONE: Feature 13 - PDF Rearrange and Page-Level Editing** ✓ Drag-drop page reordering, duplicate/delete actions, responsive UI
 - **DONE: Feature 14 - PDF Compression** ✓ Three compression levels (low/medium/high), canvas-based re-rendering, before/after size display
 - **DONE: Feature 15 - Password Protection and Encryption** ✓ WASM-based QPDF encryption/decryption, AES-256, permission controls, 39 new tests
-
-Planned:
-
-- Feature 16: Mixed PDF + Image Workflows
+- **DONE: Feature 16 - Mixed PDF + Image Builder** ✓ Drag-drop image/PDF queue, CDK reordering, non-rasterized PDF page copying via pdf-lib copyPages(), image embedding, A4 layout, batch operations (rotate/duplicate/delete/selection), lazy-loaded route, 32 new tests
 
 Infrastructure completed:
 
@@ -1600,23 +1597,6 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 - `npm.cmd test -- --watch=false` passes with 175 tests (prior to Feature 15). Feature 15 adds 39 additional tests.
 
 ## Next Priority
-1. Feature 16: Mixed PDF + Image Workflows beyond simple extraction.
-2. Add IndexedDB-based persistence for session state and saved settings.
-3. Worker-backed compression for large PDFs (Phase 6).
-
-Example prompt for next session:
-
-```text
-Implement Feature 16: Mixed PDF + Image Workflows.
-
-Requirements:
-- Allow mixing image files and PDF pages in the same output
-- Extract pages from PDFs and combine with uploaded images
-- Support the existing layout engine for mixed content
-- Follow the same service/component pattern as existing Phase 3 tools
-
-Validation:
-- npm.cmd run build passes
-- npm.cmd test -- --watch=false passes
-- Existing merge, split, rearrange, compress, protect, and image-to-PDF tools still work
-```
+1. Add IndexedDB-based persistence for session state and saved settings.
+2. Worker-backed compression for large PDFs (Phase 6).
+3. PDF to image export (Phase 4).

@@ -102,11 +102,11 @@ describe('ToolRegistryService', () => {
     expect(compress?.category).toBe('optimize');
   });
 
-  it('should have pdf-protect as seventh enabled tool (last)', () => {
+  it('should have mixed-builder as eighth enabled tool (last)', () => {
     const enabledTools = service.getEnabledTools();
-    expect(enabledTools.length).toBe(7);
+    expect(enabledTools.length).toBe(8);
     const lastTool = enabledTools[enabledTools.length - 1];
-    expect(lastTool.id).toBe('pdf-protect');
+    expect(lastTool.id).toBe('mixed-builder');
   });
 
   it('should have pdf-protect as enabled with priority 60', () => {

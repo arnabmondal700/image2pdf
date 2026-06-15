@@ -66,6 +66,14 @@ export const routes: Routes = [
       ),
     data: { title: 'Protect PDF', toolId: 'pdf-protect' }
   },
+  {
+    path: 'mixed-builder',
+    loadComponent: () =>
+      import('./tools/mixed-builder/mixed-builder.component').then(
+        m => m.MixedBuilderComponent
+      ),
+    data: { title: 'Mixed PDF Builder', toolId: 'mixed-builder' }
+  },
   // Catch-all redirect
   {
     path: '**',
