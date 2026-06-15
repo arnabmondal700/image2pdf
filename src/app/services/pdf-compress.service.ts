@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { PDFDocument } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
 import { FileObject } from './file.service';
+import { PdfCompressionWorkerService } from './pdf-compression-worker.service';
+import { Observable } from 'rxjs';
+import { CompressionProgress } from './pdf-compression-worker.service';
 
 export type CompressionLevel = 'low' | 'medium' | 'high';
 
@@ -17,7 +20,7 @@ export interface CompressionResult {
 export class PDFCompressService {
   private pdfWorkerInitialized = false;
 
-  constructor() {
+  constructor(private compressionWorker: PdfCompressionWorkerService) {
     this.initializePdfWorker();
   }
 
@@ -35,11 +38,36 @@ export class PDFCompressService {
   }
 
   /**
+   * Get compression progress observable from the worker service.
+   * Returns null if no compression is active.
+   */
+  getProgress(): Observable<CompressionProgress | null> {
+    return this.compressionWorker.getProgress();
+  }
+
+  /**
+   * Cancel ongoing compression. Has no effect if no compression is running.
+   */
+  cancel(): void {
+    this.compressionWorker.cancel();
+  }
+
+  /**
+   * Check if worker-backed compression is supported.
+   */
+  isWorkerSupported(): boolean {
+    return this.compressionWorker.isWorkerSupported();
+  }
+
+  /**
    * Compress a PDF file using the specified compression level.
    *
    * LOW    – re-save with pdf-lib (strips metadata, normalizes structure)
    * MEDIUM – re-render each page to canvas at 0.65 JPEG quality
    * HIGH   – re-render each page to canvas at 0.40 JPEG quality
+   *
+   * MEDIUM and HIGH compression use a Web Worker to avoid blocking the UI thread.
+   * Falls back to main-thread processing if workers are unavailable.
    */
   async compress(
     pdfFile: FileObject,
@@ -56,12 +84,51 @@ export class PDFCompressService {
       case 'low':
         return this.compressLow(pdfFile, originalSize);
       case 'medium':
-        return this.compressMedium(pdfFile, originalSize, 0.65);
+        return this.compressWithWorker(pdfFile, level, originalSize, 0.65);
       case 'high':
-        return this.compressHigh(pdfFile, originalSize, 0.40);
+        return this.compressWithWorker(pdfFile, level, originalSize, 0.40);
       default:
         throw new Error(`Unknown compression level: ${level}`);
     }
+  }
+
+  /**
+   * Try worker-based compression first, fall back to main thread.
+   */
+  private async compressWithWorker(
+    pdfFile: FileObject,
+    level: CompressionLevel,
+    originalSize: number,
+    jpegQuality: number
+  ): Promise<CompressionResult> {
+    // Try worker first
+    if (this.compressionWorker.isWorkerSupported()) {
+      try {
+        const pdfBytes = await this.fetchPDFAsBytes(pdfFile.url);
+        const pageCount = await this.getPageCountFromBytes(pdfBytes);
+        const blob = await this.compressionWorker.compress(pdfBytes, level, jpegQuality, pageCount);
+
+        return {
+          blob,
+          originalSize,
+          compressedSize: blob.size
+        };
+      } catch (workerError: unknown) {
+        // If cancellation, re-throw immediately
+        if (workerError instanceof Error && workerError.name === 'CompressionCancelledError') {
+          throw workerError;
+        }
+        // Log and fall through to main-thread fallback
+        console.warn('Worker compression failed, falling back to main thread:', workerError);
+      }
+    }
+
+    // Fallback: main-thread compression
+    if (!this.pdfWorkerInitialized) {
+      throw new Error('PDF processing not available – worker failed to initialize');
+    }
+
+    return this.compressByRendering(pdfFile, originalSize, jpegQuality);
   }
 
   /**
@@ -118,6 +185,7 @@ export class PDFCompressService {
   /**
    * Core rendering-based compression: uses pdfjs-dist to render each page
    * to a canvas, converts to JPEG, then builds a new PDF with pdf-lib.
+   * Main-thread fallback for when workers are unavailable.
    */
   private async compressByRendering(
     pdfFile: FileObject,
@@ -179,6 +247,18 @@ export class PDFCompressService {
       originalSize,
       compressedSize: blob.size
     };
+  }
+
+  /**
+   * Get page count from raw PDF bytes
+   */
+  private async getPageCountFromBytes(pdfBytes: Uint8Array): Promise<number> {
+    try {
+      const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+      return pdfDoc.getPageCount();
+    } catch {
+      return 1; // Fallback: assume at least 1 page
+    }
   }
 
   /**

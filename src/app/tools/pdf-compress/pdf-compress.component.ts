@@ -1,9 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PDFCompressService, CompressionLevel, CompressionResult } from '../../services/pdf-compress.service';
 import { ToolDefinition } from '../tool.interface';
+import { CompressionProgress } from '../../services/pdf-compression-worker.service';
 
 @Component({
   selector: 'app-pdf-compress',
@@ -12,7 +14,7 @@ import { ToolDefinition } from '../tool.interface';
   templateUrl: './pdf-compress.component.html',
   styleUrls: ['./pdf-compress.component.scss']
 })
-export class PdfCompressComponent implements OnInit {
+export class PdfCompressComponent implements OnInit, OnDestroy {
   uploadedPdf: FileObject | null = null;
   pageCount: number = 0;
   validationErrors: FileValidationError[] = [];
@@ -21,6 +23,10 @@ export class PdfCompressComponent implements OnInit {
   compressionLevel: CompressionLevel = 'medium';
   compressFileName: string = 'compressed-document';
   isDragging = false;
+
+  // Progress tracking
+  compressionProgress: CompressionProgress | null = null;
+  private progressSubscription: Subscription | null = null;
 
   // Results
   compressionResult: CompressionResult | null = null;
@@ -44,6 +50,31 @@ export class PdfCompressComponent implements OnInit {
 
   ngOnInit(): void {
     // Initialize
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribeProgress();
+  }
+
+  /**
+   * Subscribe to compression progress updates
+   */
+  private subscribeProgress(): void {
+    this.unsubscribeProgress();
+    this.progressSubscription = this.pdfCompressService.getProgress().subscribe(progress => {
+      this.compressionProgress = progress;
+      this.cdr.detectChanges();
+    });
+  }
+
+  /**
+   * Unsubscribe from compression progress updates
+   */
+  private unsubscribeProgress(): void {
+    if (this.progressSubscription) {
+      this.progressSubscription.unsubscribe();
+      this.progressSubscription = null;
+    }
   }
 
   /**
@@ -91,6 +122,7 @@ export class PdfCompressComponent implements OnInit {
     this.validationErrors = [];
     this.generalError = null;
     this.compressionResult = null;
+    this.compressionProgress = null;
     this.cdr.detectChanges();
   }
 
@@ -120,6 +152,10 @@ export class PdfCompressComponent implements OnInit {
     this.isCompressing = true;
     this.generalError = null;
     this.compressionResult = null;
+    this.compressionProgress = null;
+
+    // Subscribe to progress updates
+    this.subscribeProgress();
 
     try {
       const fileName = this.pdfCompressService.sanitizeFileName(this.compressFileName) || 'compressed-document';
@@ -132,12 +168,25 @@ export class PdfCompressComponent implements OnInit {
       // Auto-download the compressed PDF
       this.pdfCompressService.downloadPDF(this.compressionResult.blob, `${fileName}.pdf`);
     } catch (error) {
-      this.generalError = error instanceof Error ? error.message : 'Failed to compress PDF';
+      if (error instanceof Error && error.name === 'CompressionCancelledError') {
+        this.generalError = 'Compression was cancelled';
+      } else {
+        this.generalError = error instanceof Error ? error.message : 'Failed to compress PDF';
+      }
       console.error('Compression failed:', error);
     } finally {
       this.isCompressing = false;
+      this.compressionProgress = null;
+      this.unsubscribeProgress();
       this.cdr.detectChanges();
     }
+  }
+
+  /**
+   * Cancel ongoing compression
+   */
+  onCancelCompression(): void {
+    this.pdfCompressService.cancel();
   }
 
   /**
@@ -153,13 +202,21 @@ export class PdfCompressComponent implements OnInit {
    * Clear everything
    */
   clearAll(): void {
+    // Cancel any ongoing compression
+    if (this.isCompressing) {
+      this.pdfCompressService.cancel();
+    }
+
     this.uploadedPdf = null;
     this.pageCount = 0;
     this.validationErrors = [];
     this.generalError = null;
     this.compressionResult = null;
+    this.compressionProgress = null;
     this.compressionLevel = 'medium';
     this.compressFileName = 'compressed-document';
+    this.isCompressing = false;
+    this.unsubscribeProgress();
     this.cdr.detectChanges();
   }
 
@@ -228,5 +285,13 @@ export class PdfCompressComponent implements OnInit {
   isResultSmaller(): boolean {
     if (!this.compressionResult) return false;
     return this.compressionResult.compressedSize < this.compressionResult.originalSize;
+  }
+
+  /**
+   * Get progress percentage for the progress bar
+   */
+  getProgressPercent(): number {
+    if (!this.compressionProgress || this.compressionProgress.total === 0) return 0;
+    return Math.round((this.compressionProgress.current / this.compressionProgress.total) * 100);
   }
 }

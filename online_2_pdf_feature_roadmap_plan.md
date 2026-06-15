@@ -906,7 +906,6 @@ Not implemented:
 - DPI/resolution controls for canvas rendering
 - Preview of compression quality before download
 - Batch compression of multiple PDFs
-- Worker-backed compression for large PDFs (deferred to Phase 6)
 - Custom JPEG quality slider (currently fixed at 0.65/0.40)
 
 Dependencies:
@@ -1098,11 +1097,11 @@ Workers should be introduced before OCR.
 
 Optimize large-file handling and app performance.
 
-## Overall Status: Web Worker for PDF Generation Complete
+## Overall Status: Web Worker for PDF Generation + Compression Worker Complete
 
-Phase 6.1 implementation moves PDF generation off the main thread using Web Workers, eliminating UI freezing during PDF creation. The implementation includes automatic fallback to main thread for unsupported environments.
+Phase 6.1 implemented PDF generation off the main thread using Web Workers. Phase 6.2 adds a dedicated compression worker that moves MEDIUM/HIGH PDF compression off the main thread as well.
 
-Remaining Phase 6 items (compression worker, OCR worker, thumbnail generation worker) are deferred until additional tools need optimization.
+Remaining Phase 6 items (OCR worker, thumbnail generation worker) are deferred until additional tools need optimization.
 
 ---
 
@@ -1165,7 +1164,6 @@ Test status: Passed (`npm.cmd test -- --watch=false`, 57 tests)
 
 Not implemented:
 
-- Compression worker (Phase 6.2)
 - OCR worker (Phase 5)
 - Thumbnail generation worker (Phase 6.3)
 - Virtual scrolling (Phase 6.4)
@@ -1175,8 +1173,66 @@ Not implemented:
 Future considerations:
 
 - Monitor memory usage during large batch processing
-- Extend worker pattern to compression when needed
 - Extend worker pattern to OCR when tesseract.js integrated
+
+---
+
+## Feature 2. Web Worker for PDF Compression
+
+Status: Implemented (Phase 6.2)
+
+Implemented:
+
+- `src/app/workers/pdf-compression.worker.ts` - Dedicated worker script that receives PDF bytes, compression level, and JPEG quality
+- `src/app/services/pdf-compression-worker.service.ts` - Worker lifecycle management with observable progress tracking
+- `src/app/services/pdf-compress.service.ts` - Updated to delegate MEDIUM/HIGH compression to the worker with main-thread fallback
+- `src/app/tools/pdf-compress/pdf-compress.component.ts` - Progress subscription and cancel handling
+- `src/app/tools/pdf-compress/pdf-compress.component.html` - Progress bar UI with status text, count, percentage, and cancel button
+- `src/app/tools/pdf-compress/pdf-compress.component.scss` - Progress bar and cancel button styles
+- MEDIUM and HIGH compression completely moved off main thread
+- LOW compression stays on main thread (light pdf-lib re-save, no benefit from worker)
+- Progress reporting per page via Observable pattern (BehaviorSubject)
+- Cancellation via abort message termination (no main-thread fallback on cancel)
+- Automatic fallback to main-thread rendering if workers unavailable or error occurs
+- 8 new focused unit tests for PdfCompressionWorkerService
+
+Technical implementation:
+
+- Worker receives `CompressMessage` with pdfBytes, level, jpegQuality, and pageCount
+- LOW compression: pdf-lib metadata stripping directly in worker
+- MEDIUM/HIGH compression: pdfjs-dist page rendering with OffscreenCanvas → JPEG conversion → pdf-lib re-embedding
+- Progress updates sent back via `ProgressMessage` after each page compressed
+- Abort message terminates processing mid-stream
+- Main thread converts returned Uint8Array to Blob
+- Worker automatically terminates after completion or cancellation
+
+Benefits:
+
+- UI remains completely responsive during PDF compression
+- Large multi-page PDFs no longer freeze the browser during MEDIUM/HIGH compression
+- Users can see per-page progress and cancel long-running compression
+- Graceful degradation on browsers without Worker support
+- Consistent pattern with existing PdfWorkerService for PDF generation
+
+Files created:
+- `src/app/workers/pdf-compression.worker.ts` - Worker script
+- `src/app/services/pdf-compression-worker.service.ts` - Worker lifecycle management
+
+Files modified:
+- `src/app/services/pdf-compress.service.ts` - Worker integration with fallback
+- `src/app/tools/pdf-compress/pdf-compress.component.ts` - Progress/cancel behavior
+- `src/app/tools/pdf-compress/pdf-compress.component.html` - Progress bar UI
+- `src/app/tools/pdf-compress/pdf-compress.component.scss` - Progress/cancel styles
+- `angular.json` - Component style budget increased
+
+Build status: Passed (`npm.cmd run build`, 267 tests, all passing)
+
+Test status: 267 tests passed across 18 test files (8 new tests for PdfCompressionWorkerService)
+
+Not implemented:
+- OCR worker (Phase 5)
+- Thumbnail generation worker (Phase 6.3)
+- Virtual scrolling (Phase 6.4)
 
 ---
 
@@ -1577,26 +1633,27 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 
 ---
 
-# Recent Session Summary (June 12, 2026)
+# Recent Session Summary (June 15, 2026)
 
-## Bugs Fixed
-- **Worker cancellation fallback**: Cancelled worker generation now raises a dedicated cancellation error and does not fall back to main-thread generation.
-- **Root app warning**: Removed the unused `AppHeaderComponent` import from the routed root shell.
-- **Baseline tests**: Updated routed-shell, tool registry, and pdf.js-related specs so the suite matches the current architecture.
+## Feature Implemented — Worker-backed PDF Compression (Phase 6.2)
 
-## Features Implemented
-- **Worker Progress UI**: Generation progress now appears in the export panel with status text, percentage, processed-image count, and progress bar.
-- **Generation Cancel UI**: Users can cancel active worker-backed PDF generation from the generate button area.
-- **Progress Wiring**: `ImageToPdfComponent` subscribes to `PdfWorkerService.getProgress()` and passes progress through `PdfSettingsPanelComponent` to `GeneratePDFButtonComponent`.
-- **Test Coverage**: Added focused coverage for worker cancellation, fallback suppression, component progress state, and generate button progress/cancel behavior.
-- **Feature 14 — PDF Compression**: Three-level compression tool (low/medium/high) using pdf-lib re-save and pdfjs-dist canvas re-rendering with JPEG encoding.
-- **Feature 15 — PDF Password Protection & Encryption**: WASM-based QPDF encryption/decryption via qpdf-run, Add/Remove password modes, AES-256 encryption, 8 permission controls, 39 new tests.
+**Files created:**
+- `src/app/workers/pdf-compression.worker.ts` — Dedicated Web Worker handling LOW/MEDIUM/HIGH PDF compression using `pdfjs-dist` + `OffscreenCanvas` + `pdf-lib` with per-page progress and abort support
+- `src/app/services/pdf-compression-worker.service.ts` — Worker lifecycle management with observable progress tracking and cancellation
+- `src/app/services/pdf-compression-worker.service.spec.ts` — 8 new unit tests
 
-## Validation
-- `npm.cmd run build` passes with existing jsPDF/canvg CommonJS optimization warnings.
-- `npm.cmd test -- --watch=false` passes with 175 tests (prior to Feature 15). Feature 15 adds 39 additional tests.
+**Files modified:**
+- `src/app/services/pdf-compress.service.ts` — MEDIUM/HIGH compression goes through worker automatically; LOW stays on main thread; exposes `getProgress()`, `cancel()`, and `isWorkerSupported()`
+- `src/app/tools/pdf-compress/pdf-compress.component.ts` — Added progress subscription, cancel button handler, `OnDestroy` cleanup
+- `src/app/tools/pdf-compress/pdf-compress.component.html` — Added progress bar with status text, `current/total` count, percentage, and cancel button
+- `src/app/tools/pdf-compress/pdf-compress.component.scss` — Added progress bar and cancel button styles
+- `angular.json` — Increased component style budget to accommodate new styles
+
+**Validation:**
+- `npm.cmd run build` passes (TypeScript compilation + Angular build)
+- `npm.cmd test -- --watch=false` — **267 tests passed across 18 test files**
 
 ## Next Priority
 1. ~~Add IndexedDB-based persistence for session state and saved settings.~~ **DONE**
-2. Worker-backed compression for large PDFs (Phase 6).
+2. ~~Worker-backed compression for large PDFs (Phase 6).~~ **DONE**
 3. PDF to image export (Phase 4).

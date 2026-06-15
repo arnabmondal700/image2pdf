@@ -116,6 +116,14 @@
                   [disabled]="isCompressDisabled()">
             {{ getCompressButtonLabel() }}
           </button>
+
+          @if (isCompressing) {
+            <button class="cancel-button"
+                    (click)="onCancelCompression()">
+              Cancel
+            </button>
+          }
+
           <button class="clear-button"
                   (click)="clearAll()"
                   [disabled]="isCompressing">
@@ -123,6 +131,20 @@
           </button>
         </div>
       </div>
+
+      <!-- Progress bar (shown during compression) -->
+      @if (isCompressing && compressionProgress) {
+        <div class="progress-section">
+          <div class="progress-header">
+            <span class="progress-status">{{ compressionProgress.status }}</span>
+            <span class="progress-count">{{ compressionProgress.current }} / {{ compressionProgress.total }}</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" [style.width.%]="getProgressPercent()"></div>
+          </div>
+          <div class="progress-percentage">{{ getProgressPercent() }}%</div>
+        </div>
+      }
 
       <!-- Compression result -->
       @if (compressionResult) {
