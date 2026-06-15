@@ -1228,7 +1228,7 @@ This order builds directly on what is already implemented and avoids introducing
 
 ## Top 3 Short-Term Priorities
 
-1. Add IndexedDB-based persistence for session state and saved settings.
+1. ~~Add IndexedDB-based persistence for session state and saved settings.~~ **DONE: IndexedDB persistence implemented (June 15, 2026).**
 2. Add PDF upload + merge/split tools once the tool-based route architecture is available.
 3. Add PDF manipulation preview support for uploaded PDFs.
 
@@ -1597,6 +1597,6 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 - `npm.cmd test -- --watch=false` passes with 175 tests (prior to Feature 15). Feature 15 adds 39 additional tests.
 
 ## Next Priority
-1. Add IndexedDB-based persistence for session state and saved settings.
+1. ~~Add IndexedDB-based persistence for session state and saved settings.~~ **DONE**
 2. Worker-backed compression for large PDFs (Phase 6).
 3. PDF to image export (Phase 4).

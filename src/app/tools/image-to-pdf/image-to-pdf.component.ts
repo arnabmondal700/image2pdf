@@ -11,6 +11,7 @@ import { GenerationProgress, PDFGenerationCancelledError, PdfWorkerService } fro
 import { PdfSettingsStorageService } from '../../services/pdf-settings-storage.service';
 import { PdfExtractionService } from '../../services/pdf-extraction.service';
 import { ExportService } from '../../services/export.service';
+import { SessionStorageService } from '../../services/storage/session-storage.service';
 import { ToolDefinition } from '../tool.interface';
 import { Subscription } from 'rxjs';
 
@@ -72,10 +73,11 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
     private settingsStorage: PdfSettingsStorageService,
     private pdfExtraction: PdfExtractionService,
     private exportService: ExportService,
+    private sessionStorage: SessionStorageService,
     private cdr: ChangeDetectorRef
   ) {
-    // Load saved PDF settings or use defaults
-    this.pdfSettings = this.settingsStorage.loadSettings() || {
+    // Start with defaults; load persisted settings asynchronously
+    this.pdfSettings = {
       pageSize: 'a4',
       orientation: 'portrait',
       quality: 'MEDIUM',
@@ -90,6 +92,7 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
       imagesPerPage: 1,
       exportMode: 'single-pdf'
     };
+    this.restoreSettings();
   }
 
   ngOnInit(): void {
@@ -97,10 +100,63 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
       this.generationProgress = progress;
       this.cdr.detectChanges();
     });
+    // Restore persisted files after component is visible
+    this.restoreSessionFiles();
   }
 
   ngOnDestroy(): void {
     this.progressSubscription?.unsubscribe();
+  }
+
+  /**
+   * Restore persisted PDF settings asynchronously from IndexedDB/localStorage.
+   * Uses defaults set in the constructor as a placeholder until storage is loaded.
+   */
+  private async restoreSettings(): Promise<void> {
+    try {
+      const saved = await this.settingsStorage.loadSettings(this.toolDefinition.id);
+      if (saved) {
+        this.pdfSettings = saved;
+        this.cdr.detectChanges();
+      }
+    } catch {
+      // Keep defaults silently
+    }
+  }
+
+  /**
+   * Restore persisted session files from IndexedDB.
+   * Returns true if files were restored.
+   */
+  private async restoreSessionFiles(): Promise<boolean> {
+    try {
+      const restored = await this.sessionStorage.loadSession(this.toolDefinition.id);
+      if (restored && restored.length > 0) {
+        this.uploadedFiles = restored;
+        this.cdr.detectChanges();
+        return true;
+      }
+    } catch {
+      // Ignore — keep empty queue
+    }
+    return false;
+  }
+
+  /**
+   * Persist the current file list to IndexedDB in the background.
+   * Best-effort: does not block the UI on failure.
+   */
+  private async persistSessionFiles(): Promise<void> {
+    try {
+      await this.sessionStorage.createSession(
+        this.toolDefinition.id,
+        this.toolDefinition.id,
+        this.toolDefinition.name,
+        this.uploadedFiles,
+      );
+    } catch {
+      // Best-effort — storage failure should not block the user
+    }
   }
 
   /**
@@ -132,6 +188,9 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
       for (const pdfFile of pdfs) {
         await this.processPdfFile(pdfFile);
       }
+      
+      // Persist to IndexedDB
+      await this.persistSessionFiles();
       
       // Show validation errors if any
       if (result.errors.length > 0) {
@@ -201,19 +260,21 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
   /**
    * Remove file from upload queue
    */
-  onFileRemoved(index: number): void {
+  async onFileRemoved(index: number): Promise<void> {
     this.uploadedFiles = this.uploadedFiles.filter((_, i) => i !== index);
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 
   /**
    * Handle file reordering via drag-drop
    */
-  onFileReordered(event: { from: number; to: number }): void {
+  async onFileReordered(event: { from: number; to: number }): Promise<void> {
     if (event.from !== event.to) {
       const reordered = [...this.uploadedFiles];
       moveItemInArray(reordered, event.from, event.to);
       this.uploadedFiles = reordered;
+      await this.persistSessionFiles();
       this.cdr.detectChanges();
     }
   }
@@ -221,12 +282,13 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
   /**
    * Handle file rotation
    */
-  onFileRotated(event: { index: number; rotation: number }): void {
+  async onFileRotated(event: { index: number; rotation: number }): Promise<void> {
     if (!this.uploadedFiles[event.index]) return;
 
     this.uploadedFiles = this.uploadedFiles.map((item, index) =>
       index === event.index ? { ...item, rotation: event.rotation } : item
     );
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 
@@ -241,12 +303,13 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
   /**
    * Handle image edit completion
    */
-  onImageEditApplied(event: { index: number; url: string }): void {
+  async onImageEditApplied(event: { index: number; url: string }): Promise<void> {
     if (!this.uploadedFiles[event.index]) return;
 
     this.uploadedFiles = this.uploadedFiles.map((item, index) =>
       index === event.index ? { ...item, url: event.url } : item
     );
+    await this.persistSessionFiles();
     this.closeImageEditor();
   }
 
@@ -259,11 +322,12 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle PDF settings changes and auto-save to localStorage
+   * Handle PDF settings changes and auto-save to IndexedDB (with localStorage fallback)
    */
   onPDFSettingsChanged(settings: PDFSettings): void {
     this.pdfSettings = settings;
-    this.settingsStorage.saveSettings(settings);
+    // Use sync save for immediate feedback; IndexedDB writes in the background
+    this.settingsStorage.saveSettingsSync(settings, this.toolDefinition.id);
     this.cdr.detectChanges();
   }
 

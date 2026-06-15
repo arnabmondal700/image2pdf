@@ -196,8 +196,8 @@ export class MixedBuilderComponent implements OnInit, OnDestroy {
   };
 
   constructor() {
-    // Load saved PDF settings
-    this.pdfSettings = this.settingsStorage.loadSettings() || {
+    // Start with defaults; load persisted settings asynchronously
+    this.pdfSettings = {
       pageSize: 'a4',
       orientation: 'portrait',
       quality: 'MEDIUM',
@@ -212,6 +212,7 @@ export class MixedBuilderComponent implements OnInit, OnDestroy {
       imagesPerPage: 1,
       exportMode: 'single-pdf',
     };
+    this.restoreSettings();
   }
 
   ngOnInit(): void {
@@ -223,6 +224,21 @@ export class MixedBuilderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.progressSubscription?.unsubscribe();
+  }
+
+  /**
+   * Restore persisted PDF settings asynchronously from IndexedDB/localStorage.
+   */
+  private async restoreSettings(): Promise<void> {
+    try {
+      const saved = await this.settingsStorage.loadSettings(this.toolDefinition.id);
+      if (saved) {
+        this.pdfSettings = saved;
+        this.cdr.detectChanges();
+      }
+    } catch {
+      // Keep defaults silently
+    }
   }
 
   /**
@@ -388,7 +404,8 @@ export class MixedBuilderComponent implements OnInit, OnDestroy {
    */
   onPDFSettingsChanged(settings: PDFSettings): void {
     this.pdfSettings = settings;
-    this.settingsStorage.saveSettings(settings);
+    // Use sync save for immediate feedback; IndexedDB writes in the background
+    this.settingsStorage.saveSettingsSync(settings, this.toolDefinition.id);
     this.cdr.detectChanges();
   }
 

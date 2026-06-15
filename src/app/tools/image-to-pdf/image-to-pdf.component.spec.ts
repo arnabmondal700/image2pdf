@@ -20,6 +20,7 @@ import { GenerationProgress, PdfWorkerService } from '../../services/pdf-worker.
 import { PdfSettingsStorageService } from '../../services/pdf-settings-storage.service';
 import { PdfExtractionService } from '../../services/pdf-extraction.service';
 import { ExportService } from '../../services/export.service';
+import { SessionStorageService } from '../../services/storage/session-storage.service';
 
 describe('ImageToPdfComponent', () => {
   let component: ImageToPdfComponent;
@@ -31,6 +32,7 @@ describe('ImageToPdfComponent', () => {
   let settingsStorage: any;
   let pdfExtraction: any;
   let exportService: any;
+  let sessionStorage: any;
   let progressSubject: BehaviorSubject<GenerationProgress | null>;
 
   beforeEach(async () => {
@@ -43,8 +45,9 @@ describe('ImageToPdfComponent', () => {
       cancel: vi.fn()
     };
     const settingsStorageSpy = {
-      loadSettings: vi.fn(() => null),
-      saveSettings: vi.fn()
+      loadSettings: vi.fn(() => Promise.resolve(null)),
+      saveSettings: vi.fn(() => Promise.resolve(undefined)),
+      saveSettingsSync: vi.fn()
     };
     const pdfExtractionSpy = {
       extractPdfAsImages: vi.fn(),
@@ -52,6 +55,10 @@ describe('ImageToPdfComponent', () => {
     };
     const exportServiceSpy = {
       export: vi.fn(() => Promise.resolve())
+    };
+    const sessionStorageSpy = {
+      createSession: vi.fn().mockResolvedValue(undefined),
+      loadSession: vi.fn().mockResolvedValue(null)
     };
 
     await TestBed.configureTestingModule({
@@ -68,7 +75,8 @@ describe('ImageToPdfComponent', () => {
         { provide: PdfWorkerService, useValue: pdfWorkerServiceSpy },
         { provide: PdfSettingsStorageService, useValue: settingsStorageSpy },
         { provide: PdfExtractionService, useValue: pdfExtractionSpy },
-        { provide: ExportService, useValue: exportServiceSpy }
+        { provide: ExportService, useValue: exportServiceSpy },
+        { provide: SessionStorageService, useValue: sessionStorageSpy as any }
       ]
     }).compileComponents();
 
@@ -79,6 +87,7 @@ describe('ImageToPdfComponent', () => {
     settingsStorage = TestBed.inject(PdfSettingsStorageService);
     pdfExtraction = TestBed.inject(PdfExtractionService);
     exportService = TestBed.inject(ExportService);
+    sessionStorage = TestBed.inject(SessionStorageService);
 
     fixture = TestBed.createComponent(ImageToPdfComponent);
     component = fixture.componentInstance;
@@ -90,7 +99,11 @@ describe('ImageToPdfComponent', () => {
   });
 
   it('should initialize with default PDF settings', () => {
-    settingsStorage.loadSettings.mockReturnValue(null);
+    settingsStorage.loadSettings.mockResolvedValue(null);
+    const sessionStorageService = {
+      createSession: vi.fn().mockResolvedValue(undefined),
+      loadSession: vi.fn().mockResolvedValue(null)
+    } as any;
     const cdr = { detectChanges: vi.fn() } as unknown as ChangeDetectorRef;
     const newComponent = new ImageToPdfComponent(
       fileService,
@@ -100,6 +113,7 @@ describe('ImageToPdfComponent', () => {
       settingsStorage,
       pdfExtraction,
       exportService,
+      sessionStorageService,
       cdr
     );
     expect(newComponent.pdfSettings).toBeDefined();
@@ -107,7 +121,7 @@ describe('ImageToPdfComponent', () => {
     expect(newComponent.pdfSettings.orientation).toBe('portrait');
   });
 
-  it('should load saved settings on initialization', () => {
+  it('should load saved settings on initialization', async () => {
     const savedSettings: PDFSettings = {
       pageSize: 'letter',
       orientation: 'landscape',
@@ -121,7 +135,11 @@ describe('ImageToPdfComponent', () => {
       backgroundColor: '#f5f5f5',
       imagesPerPage: 2
     };
-    settingsStorage.loadSettings.mockReturnValue(savedSettings);
+    settingsStorage.loadSettings.mockResolvedValue(savedSettings);
+    const sessionStorageService = {
+      createSession: vi.fn().mockResolvedValue(undefined),
+      loadSession: vi.fn().mockResolvedValue(null)
+    } as any;
     const cdr = { detectChanges: vi.fn() } as unknown as ChangeDetectorRef;
     const newComponent = new ImageToPdfComponent(
       fileService,
@@ -131,8 +149,11 @@ describe('ImageToPdfComponent', () => {
       settingsStorage,
       pdfExtraction,
       exportService,
+      sessionStorageService,
       cdr
     );
+    // Allow async restoreSettings() to complete
+    await new Promise(resolve => setTimeout(resolve, 100));
     expect(newComponent.pdfSettings.pageSize).toBe('letter');
     expect(newComponent.pdfSettings.orientation).toBe('landscape');
   });
@@ -170,7 +191,7 @@ describe('ImageToPdfComponent', () => {
     expect(component.validationErrors.length).toBe(1);
   });
 
-  it('should remove file from upload queue', () => {
+  it('should remove file from upload queue', async () => {
     const mockFile: FileObject = {
       name: 'test.png',
       url: 'data:image/png;base64,test',
@@ -180,12 +201,12 @@ describe('ImageToPdfComponent', () => {
     };
     component.uploadedFiles = [mockFile];
 
-    component.onFileRemoved(0);
+    await component.onFileRemoved(0);
 
     expect(component.uploadedFiles.length).toBe(0);
   });
 
-  it('should reorder files via drag-drop', () => {
+  it('should reorder files via drag-drop', async () => {
     const file1: FileObject = {
       name: 'file1.png',
       url: 'data:image/png;base64,test1',
@@ -201,7 +222,7 @@ describe('ImageToPdfComponent', () => {
 
     component.uploadedFiles = [file1, file2];
 
-    component.onFileReordered({ from: 0, to: 1 });
+    await component.onFileReordered({ from: 0, to: 1 });
 
     expect(component.uploadedFiles[0].name).toBe('file2.png');
     expect(component.uploadedFiles[1].name).toBe('file1.png');
@@ -225,7 +246,7 @@ describe('ImageToPdfComponent', () => {
     component.onPDFSettingsChanged(newSettings);
 
     expect(component.pdfSettings).toEqual(newSettings);
-    expect(settingsStorage.saveSettings).toHaveBeenCalledWith(newSettings);
+    expect(settingsStorage.saveSettingsSync).toHaveBeenCalledWith(newSettings, 'image-to-pdf');
   });
 
   it('should track worker generation progress', () => {
