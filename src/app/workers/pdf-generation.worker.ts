@@ -174,11 +174,19 @@ async function generatePDFInWorker(
         const fileData = uploadedFiles[currentFileIndex];
         const imgProps = pdf.getImageProperties(fileData.url);
 
+        // When the image will be rotated 90° or 270°, the width and height swap
+        // after rotation. Swap the dimensions here so the layout calculation uses
+        // the correct aspect ratio for the rotated image.
+        const rotation = fileData.rotation || 0;
+        const isSideways = rotation === 90 || rotation === 270;
+        const imgWidth = isSideways ? imgProps.height : imgProps.width;
+        const imgHeight = isSideways ? imgProps.width : imgProps.height;
+
         const imageDims = calculateImageDimensions(
           cell.width,
           cell.height,
-          imgProps.width,
-          imgProps.height,
+          imgWidth,
+          imgHeight,
           finalSettings.imageFit
         );
 
@@ -374,14 +382,19 @@ async function addImageToCell(
     pdf.addImage(imageUrl, imageType, position.x, position.y, imageDims.width, imageDims.height, undefined, settings.quality);
   };
 
+  // Step 1: Apply rotation if needed (before DPI resize to avoid double-processing)
+  let processedUrl = imageData;
+  if (rotation !== 0 && rotation % 90 === 0) {
+    processedUrl = await rotateImage(imageData, rotation);
+  }
+
   // Resize the image to the target DPI before embedding.
   // A4 page width = 210 mm ≈ 8.27 inches; at the given DPI
   // that means max image width = 8.27 × DPI pixels.
   const maxDimPx = Math.round(8.27 * settings.dpi);
-  const finalUrl = await resizeImageForDPI(imageData, maxDimPx);
+  const finalUrl = await resizeImageForDPI(processedUrl, maxDimPx);
 
   if (settings.imageFit !== 'cover') {
-    // For non-cover mode, add image normally (rotation handled via canvas preprocessing if needed)
     addImage(finalUrl);
     return;
   }
@@ -392,6 +405,47 @@ async function addImageToCell(
   pdf.discardPath();
   addImage(finalUrl);
   pdf.restoreGraphicsState();
+}
+
+/**
+ * Rotate an image data URL by the given angle (must be multiple of 90 degrees).
+ * Uses OffscreenCanvas in the worker context.
+ */
+async function rotateImage(dataUrl: string, angle: number): Promise<string> {
+  if (angle === 0 || angle % 90 !== 0) return dataUrl;
+
+  try {
+    const imageBitmap = await createImageBitmap(await (await fetch(dataUrl)).blob());
+
+    // Determine new dimensions after rotation
+    const isSideways = angle === 90 || angle === 270;
+    const srcW = imageBitmap.width;
+    const srcH = imageBitmap.height;
+    const dstW = isSideways ? srcH : srcW;
+    const dstH = isSideways ? srcW : srcH;
+
+    const canvas = new OffscreenCanvas(dstW, dstH);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      imageBitmap.close();
+      return dataUrl;
+    }
+
+    // Translate to center, rotate, then draw
+    ctx.translate(dstW / 2, dstH / 2);
+    ctx.rotate((angle * Math.PI) / 180);
+    ctx.drawImage(imageBitmap, -srcW / 2, -srcH / 2);
+
+    imageBitmap.close();
+
+    const blob = await canvas.convertToBlob({ type: 'image/png' });
+    const blobUrl = URL.createObjectURL(blob);
+    const dataUrlResult = await blobToString(blobUrl);
+    URL.revokeObjectURL(blobUrl);
+    return dataUrlResult;
+  } catch {
+    return dataUrl;
+  }
 }
 
 /**

@@ -190,7 +190,8 @@ export class PDFService {
             name: f.name,
             type: f.type,
             size: f.size,
-            url: f.url
+            url: f.url,
+            rotation: f.rotation
           })),
           settings
         );
@@ -264,11 +265,19 @@ export class PDFService {
           const fileData = uploadedFiles[currentFileIndex];
           const imgProps = pdf.getImageProperties(fileData.url);
 
+          // When the image will be rotated 90° or 270°, the width and height swap
+          // after rotation. Swap the dimensions here so the layout calculation uses
+          // the correct aspect ratio for the rotated image.
+          const rotation = fileData.rotation || 0;
+          const isSideways = rotation === 90 || rotation === 270;
+          const imgWidth = isSideways ? imgProps.height : imgProps.width;
+          const imgHeight = isSideways ? imgProps.width : imgProps.height;
+
           const imageDims = calculateImageDimensions(
             cell.width,
             cell.height,
-            imgProps.width,
-            imgProps.height,
+            imgWidth,
+            imgHeight,
             finalSettings.imageFit
           );
 
@@ -289,7 +298,8 @@ export class PDFService {
             position,
             imageDims,
             cell,
-            finalSettings
+            finalSettings,
+            fileData.rotation || 0
           );
 
           currentFileIndex++;
@@ -354,7 +364,8 @@ export class PDFService {
     position: { x: number; y: number },
     imageDims: { width: number; height: number },
     cell: { x: number; y: number; width: number; height: number },
-    settings: ResolvedPDFSettings
+    settings: ResolvedPDFSettings,
+    rotation: number = 0
   ): void {
     const addImage = (url: string) => {
       pdf.addImage(
@@ -369,11 +380,17 @@ export class PDFService {
       );
     };
 
+    // Apply rotation if needed
+    let processedUrl = imageData;
+    if (rotation !== 0 && rotation % 90 === 0) {
+      processedUrl = this.rotateImage(imageData, rotation);
+    }
+
     // Resize the image to the target DPI before embedding.
     // A4 page width = 210 mm ≈ 8.27 inches; at the given DPI
     // that means max image width = 8.27 × DPI pixels.
     const maxDimPx = Math.round(8.27 * settings.dpi);
-    const finalUrl = this.resizeImageForDPI(imageData, maxDimPx);
+    const finalUrl = this.resizeImageForDPI(processedUrl, maxDimPx);
 
     if (settings.imageFit !== 'cover') {
       addImage(finalUrl);
@@ -386,6 +403,45 @@ export class PDFService {
     pdf.discardPath();
     addImage(finalUrl);
     pdf.restoreGraphicsState();
+  }
+
+  /**
+   * Rotate an image data URL by the given angle (must be multiple of 90 degrees).
+   * Uses an off-screen canvas element.
+   */
+  private rotateImage(dataUrl: string, angle: number): string {
+    if (angle === 0 || angle % 90 !== 0) return dataUrl;
+
+    try {
+      // Use a synchronous canvas approach for the main thread
+      const img = new Image();
+      img.src = dataUrl;
+
+      if (!img.complete || img.naturalWidth === 0) {
+        // Image not yet loaded; fall back
+        return dataUrl;
+      }
+
+      const isSideways = angle === 90 || angle === 270;
+      const srcW = img.naturalWidth;
+      const srcH = img.naturalHeight;
+      const dstW = isSideways ? srcH : srcW;
+      const dstH = isSideways ? srcW : srcH;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = dstW;
+      canvas.height = dstH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return dataUrl;
+
+      ctx.translate(dstW / 2, dstH / 2);
+      ctx.rotate((angle * Math.PI) / 180);
+      ctx.drawImage(img, -srcW / 2, -srcH / 2);
+
+      return canvas.toDataURL('image/png');
+    } catch {
+      return dataUrl;
+    }
   }
 
   /**
