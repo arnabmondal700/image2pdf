@@ -102,11 +102,20 @@ describe('ToolRegistryService', () => {
     expect(compress?.category).toBe('optimize');
   });
 
-  it('should have mixed-builder as eighth enabled tool (last)', () => {
+  it('should have mixed-builder as ninth enabled tool (last)', () => {
     const enabledTools = service.getEnabledTools();
-    expect(enabledTools.length).toBe(8);
+    expect(enabledTools.length).toBe(9);
     const lastTool = enabledTools[enabledTools.length - 1];
     expect(lastTool.id).toBe('mixed-builder');
+  });
+
+  it('should have pdf-to-image as enabled with priority 58', () => {
+    const enabledTools = service.getEnabledTools();
+    const toolIds = enabledTools.map((t) => t.id);
+    expect(toolIds).toContain('pdf-to-image');
+    const pdfToImage = enabledTools.find((t) => t.id === 'pdf-to-image');
+    expect(pdfToImage?.priority).toBe(58);
+    expect(pdfToImage?.category).toBe('extract');
   });
 
   it('should have pdf-protect as enabled with priority 60', () => {

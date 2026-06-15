@@ -1,9 +1,14 @@
 .header {
   display: grid;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.header-top {
+  display: grid;
   grid-template-columns: auto 1fr;
   gap: 14px;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .brand-mark {
@@ -53,16 +58,72 @@
   font-size: clamp(0.95rem, 3vw, 1.08rem);
 }
 
+/* ----- Tool Navigation ----- */
+.tool-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tool-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: transparent;
+  transition: background 0.18s ease, color 0.18s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
+
+  &.active {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+  }
+}
+
+.tool-nav-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.tool-nav-label {
+  white-space: nowrap;
+}
+
 @media (min-width: 760px) {
   .header {
     gap: 18px;
     margin-bottom: 28px;
   }
 
+  .header-top {
+    gap: 18px;
+  }
+
   .brand-mark {
     width: 74px;
     height: 74px;
     border-radius: 24px;
+  }
+
+  .tool-nav {
+    gap: 8px;
+    padding-top: 14px;
+  }
+
+  .tool-nav-link {
+    padding: 7px 14px;
+    font-size: 0.85rem;
   }
 }
 
@@ -73,5 +134,9 @@
     span {
       color: #c4b5fd;
     }
+  }
+
+  .tool-nav {
+    border-top-color: rgba(255, 255, 255, 0.10);
   }
 }

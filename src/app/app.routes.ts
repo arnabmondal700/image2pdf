@@ -74,6 +74,14 @@ export const routes: Routes = [
       ),
     data: { title: 'Mixed PDF Builder', toolId: 'mixed-builder' }
   },
+  {
+    path: 'pdf-to-image',
+    loadComponent: () =>
+      import('./tools/pdf-to-image/pdf-to-image.component').then(
+        m => m.PdfToImageComponent
+      ),
+    data: { title: 'PDF to Image', toolId: 'pdf-to-image' }
+  },
   // Catch-all redirect
   {
     path: '**',

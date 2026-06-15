@@ -1,0 +1,276 @@
+<div class="pdf-to-image-container">
+  <div class="export-header">
+    <h1>PDF to Image</h1>
+    <p>Convert PDF pages to PNG or JPEG images. Choose your preferred format, quality, and resolution.</p>
+  </div>
+
+  <!-- Drag-drop zone -->
+  <div class="drop-zone"
+       [class.dragging]="isDragging"
+       (dragover)="onDragOverZone()"
+       (dragleave)="onDragLeaveZone()"
+       (drop)="onFilesSelected($event.dataTransfer?.files || [])">
+    <div class="drop-zone-content">
+      <span class="drop-icon">📄</span>
+      <p>Drop PDF here or click to select</p>
+      <label class="file-input-label">
+        <input type="file" accept=".pdf" (change)="onFilesSelected($event.target.files || [])" />
+        <span>Select PDF</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Error messages -->
+  @if (generalError) {
+    <div class="error-message">
+      <strong>Error:</strong> {{ generalError }}
+    </div>
+  }
+
+  @if (validationErrors.length > 0) {
+    <div class="validation-errors">
+      <strong>Validation Issues:</strong>
+      <ul>
+        @for (error of validationErrors; track error.fileName) {
+          <li>{{ error.fileName }}: {{ error.reason }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- PDF info and controls -->
+  @if (uploadedPdf) {
+    <div class="export-section">
+      <div class="section-header">
+        <h3>Export to Image</h3>
+        <p class="hint">{{ getInfoText() }}</p>
+      </div>
+
+      <!-- Uploaded PDF info -->
+      <div class="pdf-info-card">
+        <div class="pdf-info-content">
+          <div class="pdf-icon">📋</div>
+          <div class="pdf-details">
+            <div class="pdf-name">{{ uploadedPdf.name }}</div>
+            <div class="pdf-meta">
+              <span>{{ pageCount }} {{ pageCount === 1 ? 'page' : 'pages' }}</span>
+              <span>{{ formatSize(uploadedPdf.size) }}</span>
+            </div>
+          </div>
+        </div>
+        <button class="remove-button"
+                (click)="onPdfRemoved()"
+                title="Remove PDF"
+                [disabled]="isExporting">
+          ✕
+        </button>
+      </div>
+
+      <!-- Export controls -->
+      <div class="export-controls">
+        <!-- Page range -->
+        <label class="control-group">
+          <span class="control-label">Page Range</span>
+          <input type="text"
+                 [(ngModel)]="options.pageRange"
+                 placeholder="all"
+                 [disabled]="isExporting"
+                 class="range-input">
+          <span class="control-hint">Enter range like "1-3, 5, 7-10" or "all" for all pages</span>
+        </label>
+
+        <!-- Image format selector -->
+        <label class="control-group">
+          <span class="control-label">Image Format</span>
+          <div class="radio-group">
+            <label class="radio-option" [class.selected]="options.format === 'png'">
+              <input type="radio"
+                     [value]="'png'"
+                     (change)="setFormat('png')"
+                     [checked]="options.format === 'png'"
+                     [disabled]="isExporting">
+              <span class="radio-label">PNG</span>
+              <span class="radio-description">Lossless, larger files, supports transparency</span>
+            </label>
+            <label class="radio-option" [class.selected]="options.format === 'jpeg'">
+              <input type="radio"
+                     [value]="'jpeg'"
+                     (change)="setFormat('jpeg')"
+                     [checked]="options.format === 'jpeg'"
+                     [disabled]="isExporting">
+              <span class="radio-label">JPEG</span>
+              <span class="radio-description">Smaller files, adjustable quality</span>
+            </label>
+          </div>
+        </label>
+
+        <!-- JPEG quality slider (shown only when JPEG selected) -->
+        @if (options.format === 'jpeg') {
+          <label class="control-group">
+            <span class="control-label">JPEG Quality: {{ jpegQualityPercent }}%</span>
+            <input type="range"
+                   [(ngModel)]="jpegQualityPercent"
+                   min="10"
+                   max="100"
+                   step="5"
+                   [disabled]="isExporting"
+                   class="quality-slider">
+            <div class="slider-labels">
+              <span>Low</span>
+              <span>High</span>
+            </div>
+          </label>
+        }
+
+        <!-- Scale / DPI selector -->
+        <label class="control-group">
+          <span class="control-label">Resolution (DPI)</span>
+          <div class="radio-group radio-group-horizontal">
+            @for (option of scaleOptions; track option.value) {
+              <label class="radio-option radio-option-compact"
+                     [class.selected]="options.scale === option.value">
+                <input type="radio"
+                       [value]="option.value"
+                       [(ngModel)]="options.scale"
+                       [disabled]="isExporting">
+                <span class="radio-label">{{ option.label }}</span>
+                <span class="radio-description">{{ option.description }}</span>
+              </label>
+            }
+          </div>
+        </label>
+
+        <!-- Output mode -->
+        <label class="control-group">
+          <span class="control-label">Output Mode</span>
+          <div class="radio-group">
+            <label class="radio-option" [class.selected]="options.outputMode === 'individual'">
+              <input type="radio"
+                     [(ngModel)]="options.outputMode"
+                     value="individual"
+                     [disabled]="isExporting">
+              <span class="radio-label">Individual Images</span>
+              <span class="radio-description">Download each page as a separate image</span>
+            </label>
+            <label class="radio-option" [class.selected]="options.outputMode === 'zip'">
+              <input type="radio"
+                     [(ngModel)]="options.outputMode"
+                     value="zip"
+                     [disabled]="isExporting">
+              <span class="radio-label">ZIP Bundle</span>
+              <span class="radio-description">Download all images as a single ZIP file</span>
+            </label>
+          </div>
+        </label>
+
+        <!-- Output filename prefix -->
+        <label class="control-group">
+          <span class="control-label">Filename Prefix</span>
+          <input type="text"
+                 [(ngModel)]="outputPrefix"
+                 placeholder="document"
+                 [disabled]="isExporting"
+                 class="filename-input">
+        </label>
+
+        <!-- Action buttons -->
+        <div class="button-group">
+          <button class="export-button"
+                  (click)="onExportImages()"
+                  [disabled]="isExportDisabled()">
+            {{ getExportButtonLabel() }}
+          </button>
+
+          @if (isExporting) {
+            <button class="cancel-button"
+                    (click)="onCancelExport()">
+              Cancel
+            </button>
+          }
+
+          <button class="clear-button"
+                  (click)="clearAll()"
+                  [disabled]="isExporting">
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress bar (shown during export) -->
+      @if (isExporting && exportProgress) {
+        <div class="progress-section">
+          <div class="progress-header">
+            <span class="progress-status">{{ exportProgress.status }}</span>
+            <span class="progress-count">{{ exportProgress.current }} / {{ exportProgress.total }}</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" [style.width.%]="getProgressPercent()"></div>
+          </div>
+          <div class="progress-percentage">{{ getProgressPercent() }}%</div>
+        </div>
+      }
+
+      <!-- Results gallery -->
+      @if (exportedImages.length > 0) {
+        <div class="results-section">
+          <div class="results-header">
+            <h3>Exported Images</h3>
+            <div class="results-actions">
+              <button class="download-all-button"
+                      (click)="onDownloadAllImages()"
+                      [disabled]="isExporting">
+                @if (options.outputMode === 'zip') {
+                  Download ZIP
+                } @else {
+                  Download All
+                }
+              </button>
+            </div>
+          </div>
+          <div class="results-gallery">
+            @for (image of exportedImages; track image.pageNumber) {
+              <div class="result-item">
+                <div class="result-thumbnail">
+                  <img [src]="image.dataUrl"
+                       [alt]="'Page ' + image.pageNumber"
+                       loading="lazy" />
+                  <span class="page-badge">Page {{ image.pageNumber }}</span>
+                </div>
+                <div class="result-meta">
+                  <span class="result-name">{{ image.name }}</span>
+                  <span class="result-dimensions">{{ image.width }} × {{ image.height }}</span>
+                </div>
+                <button class="download-button"
+                        (click)="onDownloadImage(image)"
+                        title="Download {{ image.name }}">
+                  Download
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Export info -->
+      <div class="export-info">
+        <div class="info-item">
+          <strong>{{ pageCount }}</strong>
+          <span>{{ pageCount === 1 ? 'page' : 'pages' }} total</span>
+        </div>
+        <div class="info-item">
+          <strong>{{ formatSize(uploadedPdf.size) }}</strong>
+          <span>original size</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!uploadedPdf) {
+    <div class="empty-state">
+      <p class="empty-icon">🖼️</p>
+      <p class="empty-text">No PDF selected</p>
+      <p class="empty-hint">Upload a PDF to convert its pages to images</p>
+    </div>
+  }
+</div>

@@ -1,10 +1,27 @@
 <header class="header">
-  <div class="brand-mark" aria-hidden="true">
-    <span>PDF</span>
+  <div class="header-top">
+    <div class="brand-mark" aria-hidden="true">
+      <span>PDF</span>
+    </div>
+    <div class="header-copy">
+      <span class="eyebrow">Studio converter</span>
+      <h1 class="title">{{ title }}</h1>
+      <p class="subtitle">{{ subtitle }}</p>
+    </div>
   </div>
-  <div class="header-copy">
-    <span class="eyebrow">Studio converter</span>
-    <h1 class="title">{{ title }}</h1>
-    <p class="subtitle">{{ subtitle }}</p>
-  </div>
+
+  <!-- Tool navigation -->
+  <nav class="tool-nav" aria-label="PDF tools">
+    @for (tool of tools; track tool.id) {
+      <a
+        class="tool-nav-link"
+        [routerLink]="'/' + tool.path"
+        routerLinkActive="active"
+        [attr.title]="tool.description"
+      >
+        <span class="tool-nav-icon">{{ tool.icon }}</span>
+        <span class="tool-nav-label">{{ tool.name }}</span>
+      </a>
+    }
+  </nav>
 </header>

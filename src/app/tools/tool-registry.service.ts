@@ -99,6 +99,18 @@ export class ToolRegistryService {
       priority: 60
     });
 
+    // PDF to Image - Export PDF pages as images
+    this.registerTool({
+      id: 'pdf-to-image',
+      name: 'PDF to Image',
+      description: 'Convert PDF pages to PNG or JPEG images',
+      icon: '🖼️',
+      path: 'pdf-to-image',
+      category: 'extract',
+      enabled: true,
+      priority: 58
+    });
+
     // Mixed PDF Builder - Combine images and PDF pages
     this.registerTool({
       id: 'mixed-builder',
