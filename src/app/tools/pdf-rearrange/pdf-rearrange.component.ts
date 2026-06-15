@@ -210,7 +210,9 @@ export class PdfRearrangeComponent implements OnInit {
    */
   onDragDrop(event: CdkDragDrop<PageItem[]>): void {
     if (event.previousIndex !== event.currentIndex) {
-      moveItemInArray(this.pages, event.previousIndex, event.currentIndex);
+      const reordered = [...this.pages];
+      moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+      this.pages = reordered;
       this.updateDisplayIndices();
       this.cdr.markForCheck();
     }

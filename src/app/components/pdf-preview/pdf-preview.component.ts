@@ -47,18 +47,32 @@ export class PdfPreviewComponent implements AfterViewInit, OnChanges, OnDestroy 
   private renderToken = 0;
   private isRefreshing = false;
   private pendingRefresh = false;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly DEBOUNCE_MS = 400;
 
   ngAfterViewInit() {
-    void this.performRefresh();
+    this.scheduleRefresh();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['uploadedFiles'] || changes['pdfSettings']) {
-      this.pendingRefresh = true;
-      if (!this.isRefreshing) {
-        void this.performRefresh();
-      }
+      this.scheduleRefresh();
     }
+  }
+
+  /**
+   * Debounce refreshes: coalesce rapid input changes into a single refresh cycle.
+   * Cancels any pending timer on each call, so dragging an item through N positions
+   * triggers only one PDF rebuild instead of N.
+   */
+  private scheduleRefresh(): void {
+    if (this.debounceTimer !== null) {
+      clearTimeout(this.debounceTimer);
+    }
+    this.debounceTimer = setTimeout(() => {
+      this.debounceTimer = null;
+      void this.performRefresh();
+    }, this.DEBOUNCE_MS);
   }
 
   private async performRefresh(): Promise<void> {
@@ -82,6 +96,10 @@ export class PdfPreviewComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   ngOnDestroy() {
+    if (this.debounceTimer !== null) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
     this.renderToken++;
     this.pdfDocument?.destroy?.();
   }

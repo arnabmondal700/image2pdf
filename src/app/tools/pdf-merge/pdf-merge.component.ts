@@ -81,7 +81,9 @@ export class PdfMergeComponent implements OnInit {
    */
   onPdfReordered(event: CdkDragDrop<FileObject[]>): void {
     if (event.previousIndex !== event.currentIndex) {
-      moveItemInArray(this.uploadedPdfs, event.previousIndex, event.currentIndex);
+      const reordered = [...this.uploadedPdfs];
+      moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+      this.uploadedPdfs = reordered;
       this.cdr.detectChanges();
     }
   }

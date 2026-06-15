@@ -211,7 +211,9 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
    */
   onFileReordered(event: { from: number; to: number }): void {
     if (event.from !== event.to) {
-      moveItemInArray(this.uploadedFiles, event.from, event.to);
+      const reordered = [...this.uploadedFiles];
+      moveItemInArray(reordered, event.from, event.to);
+      this.uploadedFiles = reordered;
       this.cdr.detectChanges();
     }
   }
