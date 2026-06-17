@@ -1,5 +1,4 @@
 .pdf-split-container {
-  padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -23,39 +22,80 @@
 
 /* Drag-drop zone */
 .drop-zone {
-  border: 2px dashed var(--border-color);
-  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  border: 2px dashed rgba(99, 102, 241, 0.3);
+  border-radius: 26px;
   padding: 2rem;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
-  background: var(--bg-secondary);
+  transition: all 0.25s ease;
+  background: rgba(255, 255, 255, 0.12);
   margin-bottom: 1.5rem;
+  backdrop-filter: blur(4px);
 
   &:hover {
-    border-color: var(--accent);
-    background: var(--bg-tertiary);
+    border-color: rgba(99, 102, 241, 0.82);
+    box-shadow: 0 24px 54px rgba(79, 70, 229, 0.18);
+    transform: translateY(-2px);
   }
 
   &.dragging {
-    border-color: var(--accent);
-    background: var(--bg-accent-light);
+    border-color: rgba(99, 102, 241, 0.82);
+    background: linear-gradient(135deg, rgba(238, 242, 255, 0.94), rgba(243, 232, 255, 0.82));
+    box-shadow: 0 24px 54px rgba(79, 70, 229, 0.18);
   }
 
   .drop-zone-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+    max-width: 420px;
+    text-align: center;
     .drop-icon {
-      font-size: 2.5rem;
+      display: grid;
+      place-items: center;
+      width: 78px;
+      height: 78px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      box-shadow: 0 16px 34px rgba(99, 102, 241, 0.34);
+      color: var(--accent-soft);
+
+      i {
+        font-size: 1.75rem;
+        color: #ffffff;
+      }
     }
 
-    p {
+    .drop-title {
       margin: 0;
-      color: var(--text-secondary);
-      font-size: 0.95rem;
+      color: var(--text-strong);
+      font-size: clamp(1.18rem, 5vw, 1.6rem);
+      font-weight: 850;
+      line-height: 1.1;
+    }
+
+    .drop-text {
+      margin: 8px 0 0 0;
+      color: var(--text-muted);
+      font-size: 0.96rem;
+    }
+
+    .drop-hint {
+      display: inline-flex;
+      min-height: 34px;
+      align-items: center;
+      padding: 0 14px;
+      border: 1px solid rgba(99, 102, 241, 0.16);
+      border-radius: 999px;
+      color: var(--accent-soft);
+      background: rgba(255, 255, 255, 0.68);
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin: 0;
     }
   }
 }
@@ -424,7 +464,7 @@
   .empty-text {
     margin: 0 0 0.5rem 0;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--text-muted);
   }
 
   .empty-hint {

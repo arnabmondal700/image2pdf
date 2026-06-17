@@ -75,22 +75,22 @@ describe('ToolRegistryService', () => {
     expect(firstTool.id).toBe('image-to-pdf');
   });
 
-  it('should have pdf-preview tool as second enabled tool', () => {
+  it('should have pdf-merge tool as second enabled tool', () => {
     const enabledTools = service.getEnabledTools();
     const secondTool = enabledTools[1];
-    expect(secondTool.id).toBe('pdf-preview');
+    expect(secondTool.id).toBe('pdf-merge');
   });
 
-  it('should have pdf-merge tool as third enabled tool', () => {
+  it('should have pdf-split tool as third enabled tool', () => {
     const enabledTools = service.getEnabledTools();
     const thirdTool = enabledTools[2];
-    expect(thirdTool.id).toBe('pdf-merge');
+    expect(thirdTool.id).toBe('pdf-split');
   });
 
-  it('should have pdf-split tool as fourth enabled tool', () => {
+  it('should have pdf-rearrange tool as fourth enabled tool', () => {
     const enabledTools = service.getEnabledTools();
     const fourthTool = enabledTools[3];
-    expect(fourthTool.id).toBe('pdf-split');
+    expect(fourthTool.id).toBe('pdf-rearrange');
   });
 
   it('should have pdf-compress as enabled with priority 65', () => {
@@ -102,11 +102,11 @@ describe('ToolRegistryService', () => {
     expect(compress?.category).toBe('optimize');
   });
 
-  it('should have mixed-builder as ninth enabled tool (last)', () => {
+  it('should have pdf-to-image as the last enabled tool (lowest priority)', () => {
     const enabledTools = service.getEnabledTools();
-    expect(enabledTools.length).toBe(9);
+    expect(enabledTools.length).toBe(7);
     const lastTool = enabledTools[enabledTools.length - 1];
-    expect(lastTool.id).toBe('mixed-builder');
+    expect(lastTool.id).toBe('pdf-to-image');
   });
 
   it('should have pdf-to-image as enabled with priority 58', () => {

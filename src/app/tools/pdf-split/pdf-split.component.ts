@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PDFSplitService } from '../../services/pdf-split.service';
 import { ToolDefinition } from '../tool.interface';
+import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 
 @Component({
   selector: 'app-pdf-split',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent],
   templateUrl: './pdf-split.component.html',
   styleUrls: ['./pdf-split.component.scss']
 })
@@ -27,7 +28,7 @@ export class PdfSplitComponent implements OnInit {
     id: 'pdf-split',
     name: 'Split PDF',
     description: 'Extract specific pages from a PDF',
-    icon: '✂️',
+    icon: 'fa-solid fa-scissors',
     path: 'pdf-split',
     category: 'extract',
     enabled: true,
@@ -103,6 +104,13 @@ export class PdfSplitComponent implements OnInit {
    * Handle drag leave zone
    */
   onDragLeaveZone(): void {
+    this.isDragging = false;
+  }
+
+  /**
+   * Handle file dialog open
+   */
+  onFileDialogOpen(): void {
     this.isDragging = false;
   }
 

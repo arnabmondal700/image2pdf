@@ -5,6 +5,7 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PdfRearrangeService } from '../../services/pdf-rearrange.service';
 import { ToolDefinition } from '../tool.interface';
+import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 
 /**
  * Represents a page in the rearrangement UI
@@ -30,7 +31,7 @@ interface PageItem {
 @Component({
   selector: 'app-pdf-rearrange',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule, DragDropZoneComponent],
   templateUrl: './pdf-rearrange.component.html',
   styleUrl: './pdf-rearrange.component.scss'
 })
@@ -82,7 +83,7 @@ export class PdfRearrangeComponent implements OnInit {
     id: 'pdf-rearrange',
     name: 'Rearrange PDF',
     description: 'Reorder, delete, or duplicate pages in a PDF',
-    icon: 'PDF',
+    icon: 'fa-solid fa-copy',
     path: 'rearrange',
     category: 'rearrange',
     enabled: true,
@@ -109,7 +110,7 @@ export class PdfRearrangeComponent implements OnInit {
   /**
    * Handle file selection from input or drag-drop
    */
-  async onFilesSelected(files: File[]): Promise<void> {
+  async onFilesSelected(files: FileList | File[]): Promise<void> {
     try {
       this.generalError = null;
       this.validationErrors = [];
@@ -337,6 +338,13 @@ export class PdfRearrangeComponent implements OnInit {
    * Handle drag-leave for visual feedback
    */
   onDragLeaveZone(): void {
+    this.isDragging = false;
+  }
+
+  /**
+   * Handle file dialog open
+   */
+  onFileDialogOpen(): void {
     this.isDragging = false;
   }
 

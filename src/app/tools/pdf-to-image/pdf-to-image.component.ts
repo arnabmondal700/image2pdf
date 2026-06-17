@@ -5,11 +5,12 @@ import { Subscription } from 'rxjs';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PdfToImageService, PdfToImageOptions, PdfToImageResult, ImageFormat, ExportProgress } from '../../services/pdf-to-image.service';
 import { ToolDefinition } from '../tool.interface';
+import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 
 @Component({
   selector: 'app-pdf-to-image',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent],
   templateUrl: './pdf-to-image.component.html',
   styleUrls: ['./pdf-to-image.component.scss']
 })
@@ -34,16 +35,16 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
   // Results
   exportedImages: PdfToImageResult[] = [];
 
-  toolDefinition: ToolDefinition = {
-    id: 'pdf-to-image',
-    name: 'PDF to Image',
-    description: 'Convert PDF pages to PNG or JPEG images',
-    icon: '🖼️',
-    path: 'pdf-to-image',
-    category: 'extract',
-    enabled: true,
-    priority: 58
-  };
+    toolDefinition: ToolDefinition = {
+      id: 'pdf-to-image',
+      name: 'PDF to Image',
+      description: 'Convert PDF pages to PNG or JPEG images',
+      icon: 'fa-solid fa-image',
+      path: 'pdf-to-image',
+      category: 'extract',
+      enabled: true,
+      priority: 58
+    };
 
   // Scale options with DPI labels
   scaleOptions = [
@@ -163,6 +164,13 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
    * Handle drag leave zone
    */
   onDragLeaveZone(): void {
+    this.isDragging = false;
+  }
+
+  /**
+   * Handle file dialog open
+   */
+  onFileDialogOpen(): void {
     this.isDragging = false;
   }
 

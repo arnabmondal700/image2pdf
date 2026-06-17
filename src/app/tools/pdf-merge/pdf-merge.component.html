@@ -5,20 +5,11 @@
   </div>
 
   <!-- Drag-drop zone -->
-  <div class="drop-zone" 
-       [class.dragging]="isDragging"
-       (dragover)="onDragOverZone()"
-       (dragleave)="onDragLeaveZone()"
-       (drop)="onFilesSelected($event.dataTransfer?.files || [])">
-    <div class="drop-zone-content">
-      <span class="drop-icon">📄</span>
-      <p>Drop PDFs here or click to select</p>
-      <label class="file-input-label">
-        <input type="file" multiple accept=".pdf" (change)="onFilesSelected($event.target.files || [])" />
-        <span>Select PDFs</span>
-      </label>
-    </div>
-  </div>
+  <drag-drop-zone
+    [isDragging]="isDragging"
+    (filesSelected)="onFilesSelected($event)"
+    (openFileDialog)="onFileDialogOpen()">
+  </drag-drop-zone>
 
   <!-- Error messages -->
   @if (generalError) {

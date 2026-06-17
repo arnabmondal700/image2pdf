@@ -5,11 +5,12 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PDFMergeService } from '../../services/pdf-merge.service';
 import { ToolDefinition } from '../tool.interface';
+import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 
 @Component({
   selector: 'app-pdf-merge',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule, DragDropZoneComponent],
   templateUrl: './pdf-merge.component.html',
   styleUrls: ['./pdf-merge.component.scss']
 })
@@ -25,7 +26,7 @@ export class PdfMergeComponent implements OnInit {
     id: 'pdf-merge',
     name: 'Merge PDFs',
     description: 'Combine multiple PDFs into one',
-    icon: '🔗',
+    icon: 'fa-solid fa-paperclip',
     path: 'pdf-merge',
     category: 'merge',
     enabled: true,
@@ -99,6 +100,13 @@ export class PdfMergeComponent implements OnInit {
    * Handle drag leave zone
    */
   onDragLeaveZone(): void {
+    this.isDragging = false;
+  }
+
+  /**
+   * Handle file dialog open
+   */
+  onFileDialogOpen(): void {
     this.isDragging = false;
   }
 

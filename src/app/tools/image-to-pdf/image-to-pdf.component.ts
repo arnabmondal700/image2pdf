@@ -16,7 +16,6 @@ import { ToolDefinition } from '../tool.interface';
 import { Subscription } from 'rxjs';
 
 // Import shared components
-import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { FileListComponent } from '../../components/file-list/file-list.component';
 import { PdfSettingsPanelComponent } from '../../components/pdf-settings-panel/pdf-settings-panel.component';
@@ -30,7 +29,6 @@ import { ImageEditorModalComponent } from '../../components/image-editor-modal/i
     CommonModule,
     FormsModule,
     DragDropModule,
-    AppHeaderComponent,
     DragDropZoneComponent,
     FileListComponent,
     PdfSettingsPanelComponent,
@@ -58,7 +56,7 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
     id: 'image-to-pdf',
     name: 'Image to PDF',
     description: 'Convert images to PDF',
-    icon: '🖼️',
+    icon: 'fa-solid fa-image',
     path: 'image-to-pdf',
     category: 'convert',
     enabled: true,

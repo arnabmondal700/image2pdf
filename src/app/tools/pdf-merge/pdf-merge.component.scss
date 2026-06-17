@@ -1,5 +1,5 @@
 .pdf-merge-container {
-  padding: 2rem;
+  padding: 0;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -11,51 +11,92 @@
     margin: 0 0 0.5rem 0;
     font-size: 1.75rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-strong);
   }
 
   p {
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.95rem;
   }
 }
 
-/* Drag-drop zone */
+/* Drop zone */
 .drop-zone {
-  border: 2px dashed var(--border-color);
-  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  border: 2px dashed rgba(99, 102, 241, 0.3);
+  border-radius: 26px;
   padding: 2rem;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
-  background: var(--bg-secondary);
+  transition: all 0.25s ease;
+  background: rgba(255, 255, 255, 0.12);
   margin-bottom: 1.5rem;
+  backdrop-filter: blur(4px);
 
   &:hover {
-    border-color: var(--accent);
-    background: var(--bg-tertiary);
+    border-color: rgba(99, 102, 241, 0.82);
+    box-shadow: 0 24px 54px rgba(79, 70, 229, 0.18);
+    transform: translateY(-2px);
   }
 
   &.dragging {
-    border-color: var(--accent);
-    background: var(--bg-accent-light);
+    border-color: rgba(99, 102, 241, 0.82);
+    background: linear-gradient(135deg, rgba(238, 242, 255, 0.94), rgba(243, 232, 255, 0.82));
+    box-shadow: 0 24px 54px rgba(79, 70, 229, 0.18);
   }
 
   .drop-zone-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+    max-width: 420px;
+    text-align: center;
     .drop-icon {
-      font-size: 2.5rem;
+      display: grid;
+      place-items: center;
+      width: 78px;
+      height: 78px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      box-shadow: 0 16px 34px rgba(99, 102, 241, 0.34);
+      color: var(--accent-soft);
+
+      i {
+        font-size: 1.75rem;
+        color: #ffffff;
+      }
     }
 
-    p {
+    .drop-title {
       margin: 0;
-      color: var(--text-secondary);
-      font-size: 0.95rem;
+      color: var(--text-strong);
+      font-size: clamp(1.18rem, 5vw, 1.6rem);
+      font-weight: 850;
+      line-height: 1.1;
+    }
+
+    .drop-text {
+      margin: 8px 0 0 0;
+      color: var(--text-muted);
+      font-size: 0.96rem;
+    }
+
+    .drop-hint {
+      display: inline-flex;
+      min-height: 34px;
+      align-items: center;
+      padding: 0 14px;
+      border: 1px solid rgba(99, 102, 241, 0.16);
+      border-radius: 999px;
+      color: var(--accent-soft);
+      background: rgba(255, 255, 255, 0.68);
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin: 0;
     }
   }
 }
@@ -73,12 +114,12 @@
     padding: 0.5rem 1rem;
     background: var(--accent);
     color: white;
-    border-radius: 4px;
+    border-radius: 10px;
     font-weight: 500;
     transition: background 0.2s;
 
     &:hover {
-      background: var(--accent-dark);
+      background: #4f46e5;
     }
   }
 }
@@ -88,10 +129,10 @@
 .validation-errors {
   padding: 1rem;
   margin-bottom: 1rem;
-  border-radius: 4px;
-  background: var(--error-light);
-  border-left: 4px solid var(--error-color);
-  color: var(--error-color);
+  border-radius: 12px;
+  background: rgba(254, 242, 242, 0.5);
+  border-left: 4px solid #dc2626;
+  color: #dc2626;
   font-size: 0.9rem;
 
   strong {
@@ -102,6 +143,11 @@
   ul {
     margin: 0;
     padding-left: 1.5rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(127, 29, 29, 0.2);
+    color: #fca5a5;
   }
 }
 
@@ -116,7 +162,7 @@
     h3 {
       margin: 0;
       font-size: 1.1rem;
-      color: var(--text-primary);
+      color: var(--text-strong);
     }
 
     .hint {
@@ -127,78 +173,57 @@
   }
 }
 
-/* PDF list */
 .pdf-list {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
-  max-height: 400px;
-  overflow-y: auto;
 }
 
 .pdf-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-primary);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
   cursor: move;
-  transition: background 0.2s;
-
-  &:last-child {
-    border-bottom: none;
-  }
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
 
   &:hover {
-    background: var(--bg-secondary);
-  }
-
-  .cdk-drag-preview {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  .cdk-drag-animating {
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.14);
   }
 
   .pdf-item-handle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    color: var(--text-muted);
     flex-shrink: 0;
+  }
 
-    .drag-handle {
-      font-size: 1.2rem;
-      letter-spacing: -4px;
-    }
+  .drag-handle {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1rem;
+    cursor: grab;
+    user-select: none;
   }
 
   .pdf-item-content {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     flex: 1;
     min-width: 0;
 
     .pdf-index {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      background: var(--accent);
-      color: white;
-      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border-radius: 8px;
+      font-size: 0.82rem;
       font-weight: 600;
-      font-size: 0.9rem;
       flex-shrink: 0;
     }
 
@@ -208,35 +233,38 @@
 
       .pdf-name {
         font-weight: 500;
-        color: var(--text-primary);
+        color: #ffffff;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-size: 0.92rem;
       }
 
       .pdf-meta {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-top: 0.25rem;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.58);
+        margin-top: 0.15rem;
       }
     }
   }
 
   .remove-button {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border: none;
-    background: var(--error-light);
-    color: var(--error-color);
-    border-radius: 4px;
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     transition: all 0.2s;
     flex-shrink: 0;
+    display: grid;
+    place-items: center;
 
-    &:hover {
-      background: var(--error-color);
+    &:hover:not(:disabled) {
+      background: #dc2626;
       color: white;
     }
 
@@ -251,95 +279,101 @@
 .merge-controls {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(4px);
+}
 
-  .file-name-label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+.file-name-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 
-    span {
-      font-weight: 500;
-      color: var(--text-primary);
-      font-size: 0.9rem;
+  span {
+    font-weight: 500;
+    color: #ffffff;
+    font-size: 0.9rem;
+  }
+
+  input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 0.9rem;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.16);
     }
 
-    input {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      background: var(--input-bg);
-      color: var(--text-primary);
-      font-size: 0.9rem;
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-      &:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 2px var(--accent-light);
-      }
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+}
 
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
+.button-group {
+  display: flex;
+  gap: 1rem;
+
+  button {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
-  .button-group {
-    display: flex;
-    gap: 1rem;
+  .merge-button {
+    background: var(--accent);
+    color: white;
 
-    button {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      border: none;
-      border-radius: 4px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 0.95rem;
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+    &:hover:not(:disabled) {
+      background: #4f46e5;
     }
 
-    .merge-button {
-      background: var(--accent);
-      color: white;
-
-      &:hover:not(:disabled) {
-        background: var(--accent-dark);
-      }
-
-      &:active:not(:disabled) {
-        transform: scale(0.98);
-      }
+    &:active:not(:disabled) {
+      transform: scale(0.98);
     }
+  }
 
-    .clear-button {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
+  .clear-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.14);
 
-      &:hover:not(:disabled) {
-        background: var(--bg-tertiary);
-      }
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.18);
     }
   }
 }
 
 /* Merge summary */
 .merge-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
   padding: 1rem;
-  background: var(--bg-secondary);
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 
   .summary-item {
     display: flex;
@@ -354,7 +388,7 @@
 
     span {
       font-size: 0.85rem;
-      color: var(--text-muted);
+      color: rgba(255, 255, 255, 0.6);
     }
   }
 }
@@ -363,7 +397,6 @@
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--text-muted);
 
   .empty-icon {
     font-size: 3rem;
@@ -374,19 +407,20 @@
   .empty-text {
     margin: 0 0 0.5rem 0;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--text-muted);
   }
 
   .empty-hint {
     margin: 0;
     font-size: 0.9rem;
+    color: var(--text-muted);
   }
 }
 
 /* Responsive */
 @media (max-width: 600px) {
   .pdf-merge-container {
-    padding: 1rem;
+    padding: 0;
   }
 
   .merge-header h1 {
@@ -397,27 +431,13 @@
     padding: 1.5rem;
   }
 
-  .merge-controls .button-group {
-    flex-direction: column;
+  .button-group {
+    flex-direction: column !important;
   }
 
-  .pdf-item {
-    padding: 0.75rem;
-    gap: 0.75rem;
-
-    .pdf-item-content {
-      gap: 0.5rem;
-
-      .pdf-index {
-        width: 28px;
-        height: 28px;
-        font-size: 0.8rem;
-      }
-    }
-
-    .remove-button {
-      width: 28px;
-      height: 28px;
+  .pdf-item-content {
+    .pdf-details .pdf-name {
+      font-size: 0.85rem;
     }
   }
 }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PdfProtectionService, ProtectionOptions, ProtectionPermissions } from '../../services/pdf-protection.service';
 import { ToolDefinition } from '../tool.interface';
+import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 
 /**
  * Component for PDF password protection and encryption
@@ -19,7 +20,7 @@ import { ToolDefinition } from '../tool.interface';
 @Component({
   selector: 'app-pdf-protect',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent],
   templateUrl: './pdf-protect.component.html',
   styleUrl: './pdf-protect.component.scss'
 })
@@ -107,7 +108,7 @@ export class PdfProtectComponent {
     id: 'pdf-protect',
     name: 'Protect PDF',
     description: 'Add or remove password protection and set permissions',
-    icon: '🔒',
+    icon: 'fa-solid fa-lock',
     path: 'protect',
     category: 'secure',
     enabled: true,
@@ -387,6 +388,13 @@ export class PdfProtectComponent {
    * Handle drag-leave for visual feedback
    */
   onDragLeaveZone(): void {
+    this.isDragging = false;
+  }
+
+  /**
+   * Handle file dialog open
+   */
+  onFileDialogOpen(): void {
     this.isDragging = false;
   }
 

@@ -4,29 +4,11 @@
     <p>Reorder, delete, or duplicate pages in your PDF document</p>
   </div>
 
-  <div
-    class="drop-zone"
-    [class.dragging]="isDragging"
-    (dragover)="onDragOverZone($event)"
-    (dragleave)="onDragLeaveZone()"
-    (drop)="onDropZone($event)">
-    <div class="drop-zone-content">
-      <span class="drop-icon" aria-hidden="true">PDF</span>
-      <p>
-        Drop PDF here or
-        <label class="file-input-label">
-          select file
-          <input
-            #fileInput
-            type="file"
-            accept=".pdf"
-            hidden
-            (change)="onFilesSelected(toFileArray(fileInput.files))" />
-        </label>
-      </p>
-      <p class="drop-hint">Maximum 10 MB per file</p>
-    </div>
-  </div>
+  <drag-drop-zone
+    [isDragging]="isDragging"
+    (filesSelected)="onFilesSelected($event)"
+    (openFileDialog)="onFileDialogOpen()">
+  </drag-drop-zone>
 
   <div *ngIf="validationErrors.length > 0" class="error-messages">
     <div *ngFor="let error of validationErrors" class="error-item">

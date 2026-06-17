@@ -45,7 +45,7 @@
 
 .title {
   margin: 0;
-  color: #ffffff;
+  color: var(--accent-soft);
   font-size: clamp(1.9rem, 9vw, 3.5rem);
   font-weight: 850;
   line-height: 0.98;
@@ -54,7 +54,7 @@
 .subtitle {
   max-width: 620px;
   margin: 10px 0 0;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--text-muted);
   font-size: clamp(0.95rem, 3vw, 1.08rem);
 }
 
@@ -73,7 +73,7 @@
   gap: 6px;
   padding: 6px 12px;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--accent-soft);
   font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;
@@ -86,14 +86,18 @@
   }
 
   &.active {
-    background: rgba(255, 255, 255, 0.18);
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 16px 34px rgba(99, 102, 241, 0.34);
     color: #ffffff;
   }
 }
 
 .tool-nav-icon {
-  font-size: 1rem;
+  font-size: 0.85rem;
   line-height: 1;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .tool-nav-label {

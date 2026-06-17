@@ -5,29 +5,11 @@
   </div>
 
   <!-- Drop Zone -->
-  <div
-    class="drop-zone"
-    [class.dragging]="isDragging"
-    (dragover)="onDragOverZone($event)"
-    (dragleave)="onDragLeaveZone()"
-    (drop)="onDropZone($event)">
-    <div class="drop-zone-content">
-      <span class="drop-icon" aria-hidden="true">🔒</span>
-      <p>
-        Drop PDF here or
-        <label class="file-input-label">
-          select file
-          <input
-            #fileInput
-            type="file"
-            accept=".pdf"
-            hidden
-            (change)="onFilesSelected(toFileArray(fileInput.files))" />
-        </label>
-      </p>
-      <p class="drop-hint">Maximum 10 MB per file</p>
-    </div>
-  </div>
+  <drag-drop-zone
+    [isDragging]="isDragging"
+    (filesSelected)="onFilesSelected($event)"
+    (openFileDialog)="onFileDialogOpen()">
+  </drag-drop-zone>
 
   <!-- Validation Errors -->
   <div *ngIf="validationErrors.length > 0" class="error-messages">
@@ -61,7 +43,7 @@
 
   <!-- Empty State -->
   <div *ngIf="!uploadedPdf" class="empty-state">
-    <span class="empty-icon" aria-hidden="true">🔒</span>
+    <span class="empty-icon" aria-hidden="true"><i class="fa-solid fa-lock"></i></span>
     <p>No PDF loaded</p>
     <p class="empty-hint">Upload a PDF to add or remove password protection</p>
   </div>

@@ -6,11 +6,12 @@ import { FileService, FileObject, FileValidationError } from '../../services/fil
 import { PDFCompressService, CompressionLevel, CompressionResult } from '../../services/pdf-compress.service';
 import { ToolDefinition } from '../tool.interface';
 import { CompressionProgress } from '../../services/pdf-compression-worker.service';
+import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 
 @Component({
   selector: 'app-pdf-compress',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent],
   templateUrl: './pdf-compress.component.html',
   styleUrls: ['./pdf-compress.component.scss']
 })
@@ -35,7 +36,7 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
     id: 'pdf-compress',
     name: 'Compress PDF',
     description: 'Reduce PDF file size while maintaining quality',
-    icon: '🗜️',
+    icon: 'fa-solid fa-compress',
     path: 'compress',
     category: 'optimize',
     enabled: true,
@@ -82,6 +83,7 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
    */
   async onFilesSelected(files: FileList | File[]): Promise<void> {
     try {
+      console.log('Files selected:', files);
       this.generalError = null;
       this.compressionResult = null;
       const result = await this.fileService.processFiles(files);
@@ -137,6 +139,13 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
    * Handle drag leave zone
    */
   onDragLeaveZone(): void {
+    this.isDragging = false;
+  }
+
+  /**
+   * Handle file dialog open
+   */
+  onFileDialogOpen(): void {
     this.isDragging = false;
   }
 

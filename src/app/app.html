@@ -1,98 +1,89 @@
-<main class="app-shell">
-  <div class="ambient ambient-one"></div>
-  <div class="ambient ambient-two"></div>
-
-  <section class="app-card">
-    <app-header></app-header>
-
-    @if (generalError) {
-      <div class="error-banner" role="alert">
-        <div class="error-content">
-          <strong>Error:</strong>
-          <p>{{ generalError }}</p>
-        </div>
-      </div>
-    }
-
-    @if (validationErrors.length > 0) {
-      <div class="validation-error-banner" role="alert">
-        <div class="error-content">
-          <strong>Could not import {{ validationErrors.length }} file(s):</strong>
-          <ul>
-            @for (error of validationErrors; track error.fileName) {
-              <li>
-                <span class="error-file">{{ error.fileName }}</span>
-                @switch (error.reason) {
-                  @case ('unsupported-type') {
-                    <span class="error-message">Unsupported file type. Please use PNG, JPEG, or PDF.</span>
-                  }
-                  @case ('exceeds-size-limit') {
-                    <span class="error-message">File exceeds 10 MB limit.</span>
-                  }
-                  @case ('read-error') {
-                    <span class="error-message">Failed to read file.</span>
-                  }
-                  @case ('pdf-generation-error') {
-                    <span class="error-message">Failed to process PDF. Try a different file or contact support.</span>
-                  }
-                }
-              </li>
-            }
-          </ul>
-        </div>
-      </div>
-    }
-
-    @if (isProcessingPdf) {
-      <div class="processing-indicator" role="status" aria-live="polite">
-        <div class="processing-content">
-          <div class="spinner"></div>
-          <p>Processing PDF: <strong>{{ processingPdfFileName }}</strong></p>
-          <p class="processing-hint">Extracting pages as images...</p>
-        </div>
-      </div>
-    }
-
-    <div class="workspace-grid">
-      <section class="workspace-main" aria-label="Image upload workspace">
-        <drag-drop-zone
-          [isDragging]="isDragging"
-          (filesSelected)="onFilesSelected($event)"
-          (openFileDialog)="onDragLeaveZone()"
-        ></drag-drop-zone>
-
-        <file-list
-          [uploadedFiles]="uploadedFiles"
-          (fileRemoved)="onFileRemoved($event)"
-          (fileEditRequested)="onFileEditRequested($event)"
-          (fileReordered)="onFileReordered($event)"
-          (fileRotated)="onFileRotated($event)"
-        ></file-list>
-
-        <pdf-preview
-          [uploadedFiles]="uploadedFiles"
-          [pdfSettings]="pdfSettings"
-        ></pdf-preview>
-      </section>
-
-      <pdf-settings-panel
-        [pdfSettings]="pdfSettings"
-        [uploadedFiles]="uploadedFiles"
-        [isGenerating]="isGenerating"
-        [generationProgress]="generationProgress"
-        (settingsChanged)="onPDFSettingsChanged($event)"
-        (generateClicked)="onGeneratePDF()"
-        (cancelClicked)="onCancelGeneration()"
-      ></pdf-settings-panel>
+@if (generalError) {
+  <div class="error-banner" role="alert">
+    <div class="error-content">
+      <strong>Error:</strong>
+      <p>{{ generalError }}</p>
     </div>
+  </div>
+}
+
+@if (validationErrors.length > 0) {
+  <div class="validation-error-banner" role="alert">
+    <div class="error-content">
+      <strong>Could not import {{ validationErrors.length }} file(s):</strong>
+      <ul>
+        @for (error of validationErrors; track error.fileName) {
+          <li>
+            <span class="error-file">{{ error.fileName }}</span>
+            @switch (error.reason) {
+              @case ('unsupported-type') {
+                <span class="error-message">Unsupported file type. Please use PNG, JPEG, or PDF.</span>
+              }
+              @case ('exceeds-size-limit') {
+                <span class="error-message">File exceeds 10 MB limit.</span>
+              }
+              @case ('read-error') {
+                <span class="error-message">Failed to read file.</span>
+              }
+              @case ('pdf-generation-error') {
+                <span class="error-message">Failed to process PDF. Try a different file or contact support.</span>
+              }
+            }
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+}
+
+@if (isProcessingPdf) {
+  <div class="processing-indicator" role="status" aria-live="polite">
+    <div class="processing-content">
+      <div class="spinner"></div>
+      <p>Processing PDF: <strong>{{ processingPdfFileName }}</strong></p>
+      <p class="processing-hint">Extracting pages as images...</p>
+    </div>
+  </div>
+}
+
+<div class="workspace-grid">
+  <section class="workspace-main" aria-label="Image upload workspace">
+    <drag-drop-zone
+      [isDragging]="isDragging"
+      (filesSelected)="onFilesSelected($event)"
+      (openFileDialog)="onDragLeaveZone()"
+    ></drag-drop-zone>
+
+    <file-list
+      [uploadedFiles]="uploadedFiles"
+      (fileRemoved)="onFileRemoved($event)"
+      (fileEditRequested)="onFileEditRequested($event)"
+      (fileReordered)="onFileReordered($event)"
+      (fileRotated)="onFileRotated($event)"
+    ></file-list>
+
+    <pdf-preview
+      [uploadedFiles]="uploadedFiles"
+      [pdfSettings]="pdfSettings"
+    ></pdf-preview>
   </section>
 
-  @if (editingFile && editingFileIndex !== null) {
-    <image-editor-modal
-      [file]="editingFile"
-      [index]="editingFileIndex"
-      (editApplied)="onImageEditApplied($event)"
-      (closed)="closeImageEditor()"
-    ></image-editor-modal>
-  }
-</main>
+  <pdf-settings-panel
+    [pdfSettings]="pdfSettings"
+    [uploadedFiles]="uploadedFiles"
+    [isGenerating]="isGenerating"
+    [generationProgress]="generationProgress"
+    (settingsChanged)="onPDFSettingsChanged($event)"
+    (generateClicked)="onGeneratePDF()"
+    (cancelClicked)="onCancelGeneration()"
+  ></pdf-settings-panel>
+</div>
+
+@if (editingFile && editingFileIndex !== null) {
+  <image-editor-modal
+    [file]="editingFile"
+    [index]="editingFileIndex"
+    (editApplied)="onImageEditApplied($event)"
+    (closed)="closeImageEditor()"
+  ></image-editor-modal>
+}

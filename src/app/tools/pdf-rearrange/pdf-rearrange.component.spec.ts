@@ -74,7 +74,7 @@ describe('PdfRearrangeComponent', () => {
         id: 'pdf-rearrange',
         name: 'Rearrange PDF',
         description: 'Reorder, delete, or duplicate pages in a PDF',
-        icon: 'PDF',
+        icon: 'fa-solid fa-copy',
         path: 'rearrange',
         category: 'rearrange',
         enabled: true,

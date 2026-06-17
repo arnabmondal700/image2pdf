@@ -5,20 +5,11 @@
   </div>
 
   <!-- Drag-drop zone -->
-  <div class="drop-zone"
-       [class.dragging]="isDragging"
-       (dragover)="onDragOverZone()"
-       (dragleave)="onDragLeaveZone()"
-       (drop)="onFilesSelected($event.dataTransfer?.files || [])">
-    <div class="drop-zone-content">
-      <span class="drop-icon">📄</span>
-      <p>Drop PDF here or click to select</p>
-      <label class="file-input-label">
-        <input type="file" accept=".pdf" (change)="onFilesSelected($event.target.files || [])" />
-        <span>Select PDF</span>
-      </label>
-    </div>
-  </div>
+  <drag-drop-zone
+    [isDragging]="isDragging"
+    (filesSelected)="onFilesSelected($event)"
+    (openFileDialog)="onFileDialogOpen()">
+  </drag-drop-zone>
 
   <!-- Error messages -->
   @if (generalError) {
@@ -199,7 +190,7 @@
   <!-- Empty state -->
   @if (!uploadedPdf) {
     <div class="empty-state">
-      <p class="empty-icon">🗜️</p>
+      <p class="empty-icon"><i class="fa-solid fa-compress"></i></p>
       <p class="empty-text">No PDF selected</p>
       <p class="empty-hint">Upload a PDF to compress it</p>
     </div>

@@ -12,7 +12,6 @@ import { PDFSettings } from '../../services/pdf.service';
 import { PdfSettingsStorageService } from '../../services/pdf-settings-storage.service';
 import { ToolDefinition } from '../tool.interface';
 
-import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { PdfSettingsPanelComponent } from '../../components/pdf-settings-panel/pdf-settings-panel.component';
 import { DocumentQueueComponent } from './document-queue/document-queue.component';
@@ -31,19 +30,11 @@ import { DocumentQueueComponent } from './document-queue/document-queue.componen
     CommonModule,
     FormsModule,
     DragDropModule,
-    AppHeaderComponent,
     DragDropZoneComponent,
     PdfSettingsPanelComponent,
     DocumentQueueComponent,
   ],
   template: `
-    <main class="app-shell">
-      <div class="ambient ambient-one"></div>
-      <div class="ambient ambient-two"></div>
-
-      <section class="app-card">
-        <app-header></app-header>
-
         <!-- Error display -->
         @if (generalError) {
           <div class="error-banner" role="alert">
@@ -118,8 +109,6 @@ import { DocumentQueueComponent } from './document-queue/document-queue.componen
             (cancelClicked)="onCancelGeneration()"
           ></pdf-settings-panel>
         </div>
-      </section>
-    </main>
   `,
   styles: [`
     .selection-controls {
