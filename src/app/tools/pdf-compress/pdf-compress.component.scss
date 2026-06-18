@@ -184,7 +184,7 @@
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 14px;
-  margin-bottom: 1.5rem;
+  margin: 1.5rem 0;
   backdrop-filter: blur(4px);
 
   .pdf-info-content {
@@ -205,7 +205,7 @@
 
       .pdf-name {
         font-weight: 500;
-        color: #ffffff;
+        color: var(--text-strong);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -213,7 +213,7 @@
 
       .pdf-meta {
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.68);
+        color: var(--text-muted);
         margin-top: 0.25rem;
 
         span {
@@ -272,7 +272,7 @@
 
   .control-label {
     font-weight: 500;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 0.9rem;
   }
 }
@@ -282,7 +282,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  color: var(--text-strong);
   font-size: 0.9rem;
 
   &:focus {
@@ -297,7 +297,7 @@
   }
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--text-muted);
   }
 }
 
@@ -344,14 +344,14 @@
   .radio-label {
     display: block;
     font-weight: 500;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 0.9rem;
   }
 
   .radio-description {
     display: block;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.64);
+    color: var(--text-muted);
     margin-top: 0.25rem;
   }
 }
@@ -406,8 +406,7 @@
   }
 
   .clear-button {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.82);
+    background: rgb(8 8 8 / 10%);
     border: 1px solid rgba(255, 255, 255, 0.14);
 
     &:hover:not(:disabled) {
@@ -460,7 +459,7 @@
 
   .result-label {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -468,7 +467,7 @@
   .result-value {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-strong);
 
     &.positive {
       color: #22c55e;
@@ -482,7 +481,7 @@
 
 .result-arrow {
   font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .download-button {
@@ -509,7 +508,7 @@
 .size-warning {
   margin-top: 0.75rem;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -536,7 +535,7 @@
 
     span {
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--text-muted);
     }
   }
 }
@@ -557,13 +556,13 @@
 
     .progress-status {
       font-size: 0.9rem;
-      color: #ffffff;
+      color: var(--text-strong);
       font-weight: 500;
     }
 
     .progress-count {
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--text-muted);
     }
   }
 
@@ -586,7 +585,7 @@
   .progress-percentage {
     text-align: right;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-muted);
   }
 }
 

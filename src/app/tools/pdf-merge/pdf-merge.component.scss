@@ -157,7 +157,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
+    margin: 1rem;
 
     h3 {
       margin: 0;
@@ -233,7 +233,7 @@
 
       .pdf-name {
         font-weight: 500;
-        color: #ffffff;
+        // color: #ffffff;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -242,7 +242,7 @@
 
       .pdf-meta {
         font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.58);
+        // color: rgba(255, 255, 255, 0.58);
         margin-top: 0.15rem;
       }
     }
@@ -295,7 +295,7 @@
 
   span {
     font-weight: 500;
-    color: #ffffff;
+    // color: #ffffff;
     font-size: 0.9rem;
   }
 
@@ -304,7 +304,7 @@
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    // color: #ffffff;
     font-size: 0.9rem;
 
     &:focus {
@@ -358,8 +358,8 @@
   }
 
   .clear-button {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.82);
+    background: rgb(8 8 8 / 10%);
+    // color: rgba(255, 255, 255, 0.82);
     border: 1px solid rgba(255, 255, 255, 0.14);
 
     &:hover:not(:disabled) {
@@ -388,7 +388,7 @@
 
     span {
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.6);
+      // color: rgba(255, 255, 255, 0.6);
     }
   }
 }
