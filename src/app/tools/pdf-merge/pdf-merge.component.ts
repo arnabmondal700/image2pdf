@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -6,6 +6,7 @@ import { FileService, FileObject, FileValidationError } from '../../services/fil
 import { PDFMergeService } from '../../services/pdf-merge.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
+import { SessionStorageService } from '../../services/storage/session-storage.service';
 
 @Component({
   selector: 'app-pdf-merge',
@@ -33,6 +34,8 @@ export class PdfMergeComponent implements OnInit {
     priority: 200
   };
 
+  private readonly sessionStorage = inject(SessionStorageService);
+
   constructor(
     private fileService: FileService,
     private pdfMergeService: PDFMergeService,
@@ -40,7 +43,38 @@ export class PdfMergeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Initialize
+    this.restoreSessionFiles();
+  }
+
+  /**
+   * Restore persisted session files from IndexedDB.
+   */
+  private async restoreSessionFiles(): Promise<void> {
+    try {
+      const restored = await this.sessionStorage.loadSession(this.toolDefinition.id);
+      if (restored && restored.length > 0) {
+        this.uploadedPdfs = restored;
+        this.cdr.detectChanges();
+      }
+    } catch {
+      // Ignore — keep empty queue
+    }
+  }
+
+  /**
+   * Persist the current file list to IndexedDB.
+   */
+  private async persistSessionFiles(): Promise<void> {
+    try {
+      await this.sessionStorage.createSession(
+        this.toolDefinition.id,
+        this.toolDefinition.id,
+        this.toolDefinition.name,
+        this.uploadedPdfs,
+      );
+    } catch {
+      // Best-effort
+    }
   }
 
   /**
@@ -62,6 +96,9 @@ export class PdfMergeComponent implements OnInit {
         this.validationErrors = result.errors;
       }
 
+      // Persist to IndexedDB
+      await this.persistSessionFiles();
+
       this.cdr.detectChanges();
     } catch (error) {
       this.generalError = error instanceof Error ? error.message : 'Error processing files';
@@ -72,19 +109,21 @@ export class PdfMergeComponent implements OnInit {
   /**
    * Remove PDF from list
    */
-  onPdfRemoved(index: number): void {
+  async onPdfRemoved(index: number): Promise<void> {
     this.uploadedPdfs = this.uploadedPdfs.filter((_, i) => i !== index);
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 
   /**
    * Handle file reordering via drag-drop
    */
-  onPdfReordered(event: CdkDragDrop<FileObject[]>): void {
+  async onPdfReordered(event: CdkDragDrop<FileObject[]>): Promise<void> {
     if (event.previousIndex !== event.currentIndex) {
       const reordered = [...this.uploadedPdfs];
       moveItemInArray(reordered, event.previousIndex, event.currentIndex);
       this.uploadedPdfs = reordered;
+      await this.persistSessionFiles();
       this.cdr.detectChanges();
     }
   }
@@ -141,10 +180,11 @@ export class PdfMergeComponent implements OnInit {
   /**
    * Clear all uploaded PDFs
    */
-  clearAll(): void {
+  async clearAll(): Promise<void> {
     this.uploadedPdfs = [];
     this.validationErrors = [];
     this.generalError = null;
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 

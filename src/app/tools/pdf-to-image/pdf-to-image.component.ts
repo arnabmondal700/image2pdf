@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -6,6 +6,7 @@ import { FileService, FileObject, FileValidationError } from '../../services/fil
 import { PdfToImageService, PdfToImageOptions, PdfToImageResult, ImageFormat, ExportProgress } from '../../services/pdf-to-image.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
+import { SessionStorageService } from '../../services/storage/session-storage.service';
 
 @Component({
   selector: 'app-pdf-to-image',
@@ -54,6 +55,8 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
     { value: 4, label: '4× (300 DPI)', description: 'Print quality' }
   ];
 
+  private readonly sessionStorage = inject(SessionStorageService);
+
   constructor(
     private fileService: FileService,
     private pdfToImageService: PdfToImageService,
@@ -63,12 +66,46 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Initialize
+    this.restoreSessionFiles();
   }
 
   ngOnDestroy(): void {
     this.unsubscribeProgress();
     this.cleanupImages();
+  }
+
+  /**
+   * Restore persisted session file from IndexedDB.
+   */
+  private async restoreSessionFiles(): Promise<void> {
+    try {
+      const restored = await this.sessionStorage.loadSession(this.toolDefinition.id);
+      if (restored && restored.length > 0) {
+        this.uploadedPdf = restored[0];
+        this.outputPrefix = this.pdfToImageService.sanitizeFileName(restored[0].name.replace(/\.[^/.]+$/, '')) || 'document';
+        this.pageCount = await this.pdfToImageService.getPageCount(this.uploadedPdf);
+        this.cdr.detectChanges();
+      }
+    } catch {
+      // Ignore — keep empty queue
+    }
+  }
+
+  /**
+   * Persist the current file to IndexedDB.
+   */
+  private async persistSessionFiles(): Promise<void> {
+    const files = this.uploadedPdf ? [this.uploadedPdf] : [];
+    try {
+      await this.sessionStorage.createSession(
+        this.toolDefinition.id,
+        this.toolDefinition.id,
+        this.toolDefinition.name,
+        files,
+      );
+    } catch {
+      // Best-effort
+    }
   }
 
   /**
@@ -124,6 +161,9 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
 
         // Clear previous errors
         this.validationErrors = [];
+
+        // Persist to IndexedDB
+        await this.persistSessionFiles();
       } else if (result.errors.length > 0) {
         this.validationErrors = result.errors;
       }
@@ -142,7 +182,7 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
   /**
    * Remove uploaded PDF
    */
-  onPdfRemoved(): void {
+  async onPdfRemoved(): Promise<void> {
     this.uploadedPdf = null;
     this.pageCount = 0;
     this.validationErrors = [];
@@ -150,6 +190,7 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
     this.exportedImages = [];
     this.exportProgress = null;
     this.cleanupImages();
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 
@@ -271,7 +312,7 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
   /**
    * Clear everything
    */
-  clearAll(): void {
+  async clearAll(): Promise<void> {
     if (this.isExporting) {
       this.pdfToImageService.cancelExport();
     }
@@ -288,6 +329,7 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
     this.options = this.pdfToImageService.getDefaultOptions();
     this.cleanupImages();
     this.unsubscribeProgress();
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 

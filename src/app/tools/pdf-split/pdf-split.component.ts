@@ -1,10 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PDFSplitService } from '../../services/pdf-split.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
+import { SessionStorageService } from '../../services/storage/session-storage.service';
 
 @Component({
   selector: 'app-pdf-split',
@@ -35,6 +36,8 @@ export class PdfSplitComponent implements OnInit {
     priority: 75
   };
 
+  private readonly sessionStorage = inject(SessionStorageService);
+
   constructor(
     private fileService: FileService,
     private pdfSplitService: PDFSplitService,
@@ -42,7 +45,41 @@ export class PdfSplitComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Initialize
+    this.restoreSessionFiles();
+  }
+
+  /**
+   * Restore persisted session file from IndexedDB.
+   */
+  private async restoreSessionFiles(): Promise<void> {
+    try {
+      const restored = await this.sessionStorage.loadSession(this.toolDefinition.id);
+      if (restored && restored.length > 0) {
+        this.uploadedPdf = restored[0];
+        // Re-fetch page count after restore
+        this.pageCount = await this.pdfSplitService.getPageCount(this.uploadedPdf);
+        this.cdr.detectChanges();
+      }
+    } catch {
+      // Ignore — keep empty queue
+    }
+  }
+
+  /**
+   * Persist the current file to IndexedDB.
+   */
+  private async persistSessionFiles(): Promise<void> {
+    const files = this.uploadedPdf ? [this.uploadedPdf] : [];
+    try {
+      await this.sessionStorage.createSession(
+        this.toolDefinition.id,
+        this.toolDefinition.id,
+        this.toolDefinition.name,
+        files,
+      );
+    } catch {
+      // Best-effort
+    }
   }
 
   /**
@@ -66,6 +103,9 @@ export class PdfSplitComponent implements OnInit {
         // Clear previous errors and page range
         this.validationErrors = [];
         this.pageRange = '';
+
+        // Persist to IndexedDB
+        await this.persistSessionFiles();
       } else if (result.errors.length > 0) {
         this.validationErrors = result.errors;
       }
@@ -84,12 +124,13 @@ export class PdfSplitComponent implements OnInit {
   /**
    * Remove uploaded PDF
    */
-  onPdfRemoved(): void {
+  async onPdfRemoved(): Promise<void> {
     this.uploadedPdf = null;
     this.pageCount = 0;
     this.pageRange = '';
     this.validationErrors = [];
     this.generalError = null;
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 
@@ -152,7 +193,7 @@ export class PdfSplitComponent implements OnInit {
   /**
    * Clear uploaded PDF
    */
-  clearAll(): void {
+  async clearAll(): Promise<void> {
     this.uploadedPdf = null;
     this.pageCount = 0;
     this.pageRange = '';
@@ -160,6 +201,7 @@ export class PdfSplitComponent implements OnInit {
     this.generalError = null;
     this.outputMode = 'single';
     this.splitFileName = 'split-document';
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 

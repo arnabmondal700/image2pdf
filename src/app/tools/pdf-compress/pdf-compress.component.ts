@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -7,6 +7,7 @@ import { PDFCompressService, CompressionLevel, CompressionResult } from '../../s
 import { ToolDefinition } from '../tool.interface';
 import { CompressionProgress } from '../../services/pdf-compression-worker.service';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
+import { SessionStorageService } from '../../services/storage/session-storage.service';
 
 @Component({
   selector: 'app-pdf-compress',
@@ -43,6 +44,8 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
     priority: 65
   };
 
+  private readonly sessionStorage = inject(SessionStorageService);
+
   constructor(
     private fileService: FileService,
     private pdfCompressService: PDFCompressService,
@@ -50,11 +53,44 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Initialize
+    this.restoreSessionFiles();
   }
 
   ngOnDestroy(): void {
     this.unsubscribeProgress();
+  }
+
+  /**
+   * Restore persisted session file from IndexedDB.
+   */
+  private async restoreSessionFiles(): Promise<void> {
+    try {
+      const restored = await this.sessionStorage.loadSession(this.toolDefinition.id);
+      if (restored && restored.length > 0) {
+        this.uploadedPdf = restored[0];
+        this.pageCount = await this.pdfCompressService.getPageCount(this.uploadedPdf);
+        this.cdr.detectChanges();
+      }
+    } catch {
+      // Ignore — keep empty queue
+    }
+  }
+
+  /**
+   * Persist the current file to IndexedDB.
+   */
+  private async persistSessionFiles(): Promise<void> {
+    const files = this.uploadedPdf ? [this.uploadedPdf] : [];
+    try {
+      await this.sessionStorage.createSession(
+        this.toolDefinition.id,
+        this.toolDefinition.id,
+        this.toolDefinition.name,
+        files,
+      );
+    } catch {
+      // Best-effort
+    }
   }
 
   /**
@@ -100,6 +136,9 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
 
         // Clear previous errors
         this.validationErrors = [];
+
+        // Persist to IndexedDB
+        await this.persistSessionFiles();
       } else if (result.errors.length > 0) {
         this.validationErrors = result.errors;
       }
@@ -118,13 +157,14 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
   /**
    * Remove uploaded PDF
    */
-  onPdfRemoved(): void {
+  async onPdfRemoved(): Promise<void> {
     this.uploadedPdf = null;
     this.pageCount = 0;
     this.validationErrors = [];
     this.generalError = null;
     this.compressionResult = null;
     this.compressionProgress = null;
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 
@@ -210,7 +250,7 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
   /**
    * Clear everything
    */
-  clearAll(): void {
+  async clearAll(): Promise<void> {
     // Cancel any ongoing compression
     if (this.isCompressing) {
       this.pdfCompressService.cancel();
@@ -226,6 +266,7 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
     this.compressFileName = 'compressed-document';
     this.isCompressing = false;
     this.unsubscribeProgress();
+    await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
 

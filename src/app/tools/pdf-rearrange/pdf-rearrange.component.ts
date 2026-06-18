@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -6,6 +6,7 @@ import { FileService, FileObject, FileValidationError } from '../../services/fil
 import { PdfRearrangeService } from '../../services/pdf-rearrange.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
+import { SessionStorageService } from '../../services/storage/session-storage.service';
 
 /**
  * Represents a page in the rearrangement UI
@@ -90,6 +91,8 @@ export class PdfRearrangeComponent implements OnInit {
     priority: 70
   };
 
+  private readonly sessionStorage = inject(SessionStorageService);
+
   constructor(
     private fileService: FileService,
     private pdfRearrangeService: PdfRearrangeService,
@@ -97,7 +100,42 @@ export class PdfRearrangeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Component initialization complete
+    this.restoreSessionFiles();
+  }
+
+  /**
+   * Restore persisted session file from IndexedDB.
+   */
+  private async restoreSessionFiles(): Promise<void> {
+    try {
+      const restored = await this.sessionStorage.loadSession(this.toolDefinition.id);
+      if (restored && restored.length > 0) {
+        this.uploadedPdf = restored[0];
+        this.pageCount = await this.pdfRearrangeService.getPageCount(this.uploadedPdf);
+        this.pages = this.createPageItems(this.pageCount);
+        this.outputFileName = this.uploadedPdf ? (this.pdfRearrangeService.sanitizeFileName(this.uploadedPdf.name) || 'rearranged-pdf') : '';
+        this.cdr.markForCheck();
+      }
+    } catch {
+      // Ignore — keep empty queue
+    }
+  }
+
+  /**
+   * Persist the current file to IndexedDB.
+   */
+  private async persistSessionFiles(): Promise<void> {
+    const files = this.uploadedPdf ? [this.uploadedPdf] : [];
+    try {
+      await this.sessionStorage.createSession(
+        this.toolDefinition.id,
+        this.toolDefinition.id,
+        this.toolDefinition.name,
+        files,
+      );
+    } catch {
+      // Best-effort
+    }
   }
 
   /**
@@ -142,6 +180,10 @@ export class PdfRearrangeComponent implements OnInit {
       this.pages = this.createPageItems(this.pageCount);
 
       this.outputFileName = this.uploadedPdf ? (this.pdfRearrangeService.sanitizeFileName(this.uploadedPdf.name) || 'rearranged-pdf') : '';
+
+      // Persist to IndexedDB
+      await this.persistSessionFiles();
+
       this.cdr.markForCheck();
     } catch (error) {
       this.uploadedPdf = null;
@@ -156,13 +198,14 @@ export class PdfRearrangeComponent implements OnInit {
   /**
    * Handle PDF removal
    */
-  onPdfRemoved(): void {
+  async onPdfRemoved(): Promise<void> {
     this.uploadedPdf = null;
     this.pageCount = 0;
     this.pages = [];
     this.outputFileName = '';
     this.validationErrors = [];
     this.generalError = null;
+    await this.persistSessionFiles();
     this.cdr.markForCheck();
   }
 
@@ -296,8 +339,14 @@ export class PdfRearrangeComponent implements OnInit {
   /**
    * Clear all pages and reset form
    */
-  clearAll(): void {
-    this.onPdfRemoved();
+  async clearAll(): Promise<void> {
+    this.uploadedPdf = null;
+    this.pageCount = 0;
+    this.pages = [];
+    this.outputFileName = '';
+    this.validationErrors = [];
+    this.generalError = null;
+    await this.persistSessionFiles();
     this.cdr.markForCheck();
   }
 

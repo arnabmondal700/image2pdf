@@ -1,10 +1,11 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PdfProtectionService, ProtectionOptions, ProtectionPermissions } from '../../services/pdf-protection.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
+import { SessionStorageService } from '../../services/storage/session-storage.service';
 
 /**
  * Component for PDF password protection and encryption
@@ -24,7 +25,7 @@ import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop
   templateUrl: './pdf-protect.component.html',
   styleUrl: './pdf-protect.component.scss'
 })
-export class PdfProtectComponent {
+export class PdfProtectComponent implements OnInit {
   /**
    * Operation mode: 'add' for adding password, 'remove' for removing password
    */
@@ -115,11 +116,50 @@ export class PdfProtectComponent {
     priority: 60
   };
 
+  private readonly sessionStorage = inject(SessionStorageService);
+
   constructor(
     private fileService: FileService,
     private pdfProtectionService: PdfProtectionService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  ngOnInit(): void {
+    this.restoreSessionFiles();
+  }
+
+  /**
+   * Restore persisted session file from IndexedDB.
+   */
+  private async restoreSessionFiles(): Promise<void> {
+    try {
+      const restored = await this.sessionStorage.loadSession(this.toolDefinition.id);
+      if (restored && restored.length > 0) {
+        this.uploadedPdf = restored[0];
+        this.outputFileName = this.pdfProtectionService.sanitizeFileName(this.uploadedPdf.name) || 'protected-pdf';
+        this.cdr.markForCheck();
+      }
+    } catch {
+      // Ignore — keep empty queue
+    }
+  }
+
+  /**
+   * Persist the current file to IndexedDB.
+   */
+  private async persistSessionFiles(): Promise<void> {
+    const files = this.uploadedPdf ? [this.uploadedPdf] : [];
+    try {
+      await this.sessionStorage.createSession(
+        this.toolDefinition.id,
+        this.toolDefinition.id,
+        this.toolDefinition.name,
+        files,
+      );
+    } catch {
+      // Best-effort
+    }
+  }
 
   /**
    * Helper to convert FileList to File array for template binding
@@ -157,6 +197,10 @@ export class PdfProtectComponent {
 
       // Set default output filename
       this.outputFileName = this.pdfProtectionService.sanitizeFileName(uploadedPdf.name) || 'protected-pdf';
+
+      // Persist to IndexedDB
+      await this.persistSessionFiles();
+
       this.cdr.markForCheck();
     } catch (error) {
       this.uploadedPdf = null;
@@ -169,7 +213,7 @@ export class PdfProtectComponent {
   /**
    * Handle PDF removal
    */
-  onPdfRemoved(): void {
+  async onPdfRemoved(): Promise<void> {
     this.uploadedPdf = null;
     this.outputFileName = '';
     this.validationErrors = [];
@@ -178,6 +222,7 @@ export class PdfProtectComponent {
     this.userPassword = '';
     this.confirmPassword = '';
     this.ownerPassword = '';
+    await this.persistSessionFiles();
     this.cdr.markForCheck();
   }
 
@@ -360,8 +405,15 @@ export class PdfProtectComponent {
   /**
    * Clear all inputs and reset form
    */
-  clearAll(): void {
-    this.onPdfRemoved();
+  async clearAll(): Promise<void> {
+    this.uploadedPdf = null;
+    this.outputFileName = '';
+    this.validationErrors = [];
+    this.generalError = null;
+    this.successMessage = null;
+    this.userPassword = '';
+    this.confirmPassword = '';
+    this.ownerPassword = '';
     this.mode = 'add';
     this.permissions = {
       canPrint: true,
@@ -373,6 +425,7 @@ export class PdfProtectComponent {
       canAssemble: true,
       canPrintHighRes: false
     };
+    await this.persistSessionFiles();
     this.cdr.markForCheck();
   }
 
