@@ -7,6 +7,9 @@
   <!-- Drop Zone -->
   <drag-drop-zone
     [isDragging]="isDragging"
+    [accept]="'application/pdf'"
+    dropTitle="Drop PDFs to build your PDF"
+    dropText="Tap to browse or drag PDF files here."
     (filesSelected)="onFilesSelected($event)"
     (openFileDialog)="onFileDialogOpen()">
   </drag-drop-zone>

@@ -11,8 +11,8 @@
       <i class="fa-solid fa-cloud-arrow-up"></i>
     </div>
     <div>
-      <p class="drop-title">Drop images or PDFs to build your PDF</p>
-      <p class="drop-text">Tap to browse or drag PNG, JPEG, or PDF files here.</p>
+      <p class="drop-title">{{ dropTitle }}</p>
+      <p class="drop-text">{{ dropText }}</p>
     </div>
     <p class="drop-hint">Up to 10MB per file</p>
   </div>
@@ -22,7 +22,7 @@
   #fileInput
   type="file"
   multiple
-  accept="image/png, image/jpeg, image/jpg, application/pdf"
+  [accept]="accept"
   (change)="onFilesSelected($event)"
   class="hidden-input"
 >

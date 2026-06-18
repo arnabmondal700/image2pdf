@@ -9,6 +9,9 @@ import { Component, EventEmitter, Input, Output, ViewChild, ElementRef } from '@
 export class DragDropZoneComponent {
   @ViewChild('fileInput', { read: ElementRef }) fileInput?: ElementRef<HTMLInputElement>;
   @Input() isDragging: boolean = false;
+  @Input() accept: string = 'image/png, image/jpeg, image/jpg, application/pdf';
+  @Input() dropTitle: string = 'Drop images or PDFs to build your PDF';
+  @Input() dropText: string = 'Tap to browse or drag PNG, JPEG, or PDF files here.';
   @Output() filesSelected = new EventEmitter<File[]>();
   @Output() openFileDialog = new EventEmitter<void>();
 
