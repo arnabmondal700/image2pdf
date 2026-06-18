@@ -2,30 +2,55 @@
 
 > Status-aware roadmap for the current Angular image-to-PDF application.
 >
-> Last implementation audit: 2026-06-12
+> Last implementation audit: 2026-06-18
 >
 > Verified during audit by source analysis:
 > - `src/app/tools/image-to-pdf/image-to-pdf.component.ts` shows image + PDF upload handling
 > - `src/app/services/pdf.service.ts` and `src/app/services/pdf-worker.service.ts` implement worker-backed generation
 > - `src/app/services/pdf-settings-storage.service.ts` persists settings to `localStorage`
 > - `src/app/components/pdf-preview/pdf-preview.component.ts` uses `pdfjs-dist` preview and local worker support
+> - `src/app/tools/pdf-merge/pdf-merge.component.ts` implements PDF merge with drag-drop
+> - `src/app/tools/pdf-split/pdf-split.component.ts` implements PDF split with range parsing
+> - `src/app/tools/pdf-rearrange/pdf-rearrange.component.ts` implements page reordering/duplicate/delete
+> - `src/app/tools/pdf-compress/pdf-compress.component.ts` implements three-level compression with worker
+> - `src/app/tools/pdf-protect/pdf-protect.component.ts` implements QPDF WASM encryption/decryption
+> - `src/app/tools/mixed-builder/mixed-builder.component.ts` implements mixed image+PDF builder
+> - `src/app/tools/pdf-to-image/pdf-to-image.component.ts` implements PDF-to-image export
+> - `src/app/services/storage/indexed-db.service.ts` implements IndexedDB persistence via Dexie
+> - `src/app/services/storage/session-storage.service.ts` implements session-based file storage
 
 ---
 
 ## Current Implementation Snapshot
 
-The application is now a browser-first image-to-PDF tool with advanced settings, worker-based generation, and PDF upload extraction.
+The application is now a browser-first multi-tool PDF platform with image-to-PDF conversion, full PDF manipulation toolkit, PDF-to-image export, worker-based processing, and IndexedDB persistence.
 
-Implemented:
+### Implemented Tools
 
-- Angular standalone application structure
+| Tool | Status | Route | Description |
+|------|--------|-------|-------------|
+| Image to PDF | ✅ Done | `/image-to-pdf` | Core converter with settings, editor, preview |
+| PDF Preview | ✅ Done (route exists) | `/pdf-preview` | PDF preview with thumbnails, zoom, navigation |
+| Merge PDFs | ✅ Done | `/merge` | Merge multiple PDFs with drag-drop reordering |
+| Split PDF | ✅ Done | `/split` | Page range extraction with single/separate modes |
+| Rearrange PDF | ✅ Done | `/rearrange` | Page reordering, duplicate, delete operations |
+| Compress PDF | ✅ Done | `/compress` | Three-level compression with worker support |
+| Protect PDF | ✅ Done | `/protect` | QPDF WASM encryption/decryption with permissions |
+| Mixed Builder | ✅ Done | `/mixed-builder` | Combine images + PDF pages into single document |
+| PDF to Image | ✅ Done | `/pdf-to-image` | Export PDF pages as PNG/JPEG with ZIP support |
+
+### Implemented Infrastructure
+
+- Angular standalone application structure with lazy-loaded tool routes
+- Tool-based architecture with `ToolRegistryService` for discovery and navigation
 - Drag-and-drop and file picker upload flow for image and PDF files
 - Per-file validation for supported MIME types and 10 MB maximum size
 - Image preview queue with removal and reorder
-- Native HTML/Angular CDK drag-and-drop reordering
+- Native HTML/Angular CDK drag-and-drop reordering across all tools
 - Image editor modal with crop, rotate, brightness, contrast, grayscale, and sharpen controls
-- PDF generation using `jsPDF`
+- PDF generation using `jsPDF` with worker-backed processing
 - Worker-backed PDF generation and blob creation via `PdfWorkerService`
+- Worker-backed PDF compression via `PdfCompressionWorkerService`
 - Worker progress UI with percentage, status, processed count, and cancel action
 - 1-up, 2-up, and 4-up PDF page layouts
 - Page size setting: A4, Letter, Legal
@@ -35,7 +60,7 @@ Implemented:
 - Image fit modes: contain, cover, stretch
 - Image vertical alignment: top, center, bottom
 - Background color fill for generated pages
-- Settings persistence via `PdfSettingsStorageService`
+- Settings persistence via `PdfSettingsStorageService` (localStorage)
 - Reusable PDF settings panel component
 - Margin sanitization and printable area preservation
 - Pure layout engine in `src/app/utils/pdf-layout-engine.ts`
@@ -45,24 +70,38 @@ Implemented:
 - File metadata tracking for name, type, size, and URL
 - Error handling for file validation and PDF generation
 - Cancellation handling for long-running worker-backed PDF generation
-- Responsive UI with a mobile-friendly shell
+- Responsive UI with a mobile-friendly shell and dark mode support
+- Header/Footer template engine with template variables `{date}`, `{page}`, `{totalPages}`, `{filename}`
+- Multiple output modes: Single PDF, Separate PDFs, ZIP archive (via `ExportService`)
+- Page rotation controls (0°, 90°, 180°, 270°) with visual thumbnail feedback
+- `pdf-lib` for document-level PDF operations (merge, split, rearrange, compress)
+- `qpdf-run` WASM for AES-256 encryption/decryption with permission controls
+- `jszip` for multi-file ZIP bundling
+- `dexie` for IndexedDB persistence (settings, session files, mixed builder items, workspace sessions)
+- `SessionStorageService` for session-based file data storage
+- 267+ unit tests across 18+ test files
 
-Partially implemented:
+### Partially implemented
 
 - Image editor is functional, but the edit history and non-destructive undo model are not implemented
-- PDF page rotation metadata exists for image rotation but not for a dedicated page-rotation UI
-- PDF preview is implemented for generated image PDFs; arbitrary PDF editing and merge/split preview is not yet supported
+- PDF preview is implemented for generated image PDFs; arbitrary PDF editing preview is not yet supported
+- Mixed Builder and PDF Preview tools have routes and complete implementations but are commented out in `ToolRegistryService` (accessible by direct URL navigation)
+- IndexedDB service layer is created (Dexie schema with 4 tables) but not yet fully integrated into all tools
 
-Not implemented:
+### Not implemented
 
-- Header/footer or document template engine
-- ZIP export or multiple-output PDFs
-- IndexedDB persistence or offline storage of files/settings
 - PWA install/offline support
+- Cloud sync, user profiles, or settings import/export
+- `tesseract.js` OCR and searchable PDFs
 - Virtual scrolling for large file queues
 - Upload queue progress/retry/cancel flows
-- Cloud sync, user profiles, or settings import/export
-- `tesseract.js`, `dexie`, and `konva` are not currently used
+- TXT extraction from PDFs
+- JSON metadata export
+- Certificate-based encryption
+- Batch compression of multiple PDFs
+- Custom grid layout option
+- Horizontal alignment options beyond centering
+- `konva` and `OpenCV.js` are not currently used
 
 ---
 
@@ -176,6 +215,8 @@ src/app/services/pdf.service.ts
 src/app/services/pdf-worker.service.ts
 src/app/services/pdf-settings-storage.service.ts
 src/app/services/pdf-extraction.service.ts
+src/app/services/export.service.ts
+src/app/services/header-footer.service.ts
 src/app/utils/pdf-layout-engine.ts
 src/app/components/app-header/
 src/app/components/drag-drop-zone/
@@ -277,791 +318,89 @@ Dependencies:
 
 ---
 
-# PHASE 4+ - STORAGE, OFFLINE, AND PRODUCTIVITY
-
-## Status: Not started
-
-Future expansion items:
-
-- IndexedDB persistence and offline storage
-- PWA install/offline support
-- Cloud sync and profile management
-- Upload queue progress/retry/cancel
-- OCR / scan enhancement
-- Advanced virtual scrolling for large queues
-
-
-The app now has a reusable settings panel with persistence, configurable margins/fit/alignment/background color, a pure layout utility for 1-up, 2-up, and 4-up image placement, real generated-PDF preview, Angular CDK reordering, canvas-based image optimization, and focused unit coverage. Settings automatically persist to browser localStorage and load on app startup. Worker-backed processing is intentionally deferred to Phase 6.
-
----
-
-## Feature 1. Advanced PDF Settings Panel
-
-Status: Implemented for current Phase 1 scope + Settings Persistence added
-
-Implemented:
-
-- Separate reusable `src/app/components/pdf-settings-panel/`
-- Page size
-- Orientation
-- Quality/compression setting
-- Per-side margins
-- Image fit mode
-- Image alignment
-- Images per page: 1, 2, 4
-- Background color
-- Advanced settings toggle
-- Numeric coercion for margin/images-per-page values
-- **NEW: Settings persistence via localStorage**
-- **NEW: Load saved settings on app init**
-- **NEW: Auto-save settings on change**
-- **NEW: Clear settings method**
-
-Implementation:
-
-- Created `src/app/services/pdf-settings-storage.service.ts`
-- Validates all settings with sensible defaults
-- Graceful error handling for storage access
-- Backward compatible with existing PDFSettings interface
-
-Not implemented:
-
-- Cloud sync of settings
-- Multiple saved profiles
-- Export/import settings
-
-Recommended next task:
-
-Settings persistence is now complete. Consider adding clear/export/import UI if users need to manage multiple presets.
-
----
-
-## Feature 2. Margin Engine
-
-Status: Implemented for current Phase 1 scope
-
-Implemented:
-
-- Per-side margin settings with 8 mm defaults
-- Shared layout calculation through `src/app/utils/pdf-layout-engine.ts`
-- Printable area calculation for 1-up, 2-up, and 4-up layouts
-- Top, center, and bottom vertical alignment
-- Margin sanitization when margins exceed page dimensions
-- Background fill for each generated PDF page
-
-Not implemented:
-
-- User-facing margin warning when values are automatically sanitized
-
-Recommended next task:
-
-Add user-facing margin feedback only if users need to understand automatic margin sanitization.
-
----
-
-## Feature 3. Multi-Image Layout Engine
-
-Status: Mostly implemented
-
-Current behavior:
-
-- `src/app/utils/pdf-layout-engine.ts` exists
-- Supports 1-up, 2-up, and 4-up layouts
-- Supports contain, cover, and stretch dimension calculations
-- Supports top, center, and bottom vertical placement
-- Clips `cover` images to their assigned layout cell
-- Unit tests cover layout, fit, alignment, coercion, and margin sanitization
-- `PDFService` uses the layout engine during generation
-
-Not implemented:
-
-- Custom grid layout
-- Horizontal alignment options beyond centering
-
-Recommended next task:
-
-Add custom grid or horizontal alignment only if a concrete product requirement emerges.
-
----
-
-## Feature 4. Real PDF Preview
-
-Status: Implemented for Phase 1 MVP
-
-Implemented:
-
-- `pdfjs-dist`
-- `src/app/components/pdf-preview/`
-- Live generated-PDF preview
-- Page thumbnails
-- Zoom controls
-- Page navigation
-- Lazy-loaded pdf.js renderer
-
-Remaining:
-
-- Preview is for generated image PDFs only.
-- Advanced preview features such as text layers/search are deferred.
-
----
-
-## Feature 5. Drag-and-Drop Reordering
-
-Status: Implemented
-
-Implemented:
-
-- Angular CDK drag/drop in `file-list`
-- `CdkDragDrop`
-- `moveItemInArray()`
-- Smooth CDK drag animations
-- Reordering through `FileService.reorderFiles()`
-
-Not implemented:
-
-- No known Phase 1 gaps
-
-Recommendation:
-
-Keep future reorder changes scoped to accessibility polish or virtual scrolling when large queues are supported.
-
----
-
-## Feature 6. Compression Engine
-
-Status: Implemented for Phase 1 MVP
-
-Current behavior:
-
-- jsPDF receives a compression setting when adding images.
-- Images are optimized before PDF download using canvas resizing and JPEG quality presets.
-- File metadata now tracks original size and type, which can support future compression UX.
-
-Implemented:
-
-- `services/image-optimizer.service.ts`
-- Canvas resizing
-- JPEG quality presets before PDF generation: FAST, MEDIUM, SLOW
-- Output size metadata estimate for optimized Data URLs
-
-Remaining:
-
-- Explicit DPI controls are not exposed.
-- Worker-backed compression is deferred to Phase 6.
-- Output size estimate is internal, not shown in the UI.
-
----
-
-# PHASE 2 - ADVANCED IMAGE/PDF CONTROLS
-
-## Objective
-
-Add advanced editing and document layout controls.
-
-## Overall Status: Advanced Image Editor Complete + Settings Persistence Complete
-
-Phase 2.1 implementation adds professional image editing filters (brightness, contrast, grayscale, sharpen) with real-time preview. Phase 2.2 adds browser-based settings persistence via localStorage with automatic load/save.
-
-Remaining Phase 2 features (page rotation, header/footer, multiple output modes) are deferred until concrete product requirements emerge.
-
----
-
-## Feature 7. Advanced Image Editor
-
-Status: Implemented for Phase 2 MVP
-
-Implemented:
-
-- Crop selection
-- Rotate left/right
-- Brightness adjustment (0-200%)
-- Contrast adjustment (0-200%)
-- Grayscale effect (0-100%)
-- Sharpen effect (0-100%)
-- Real-time filter preview
-- Reset filters button
-- Advanced filters toggle
-- Canvas-based pixel manipulation
-- Canvas-based output to JPEG Data URL
-
-Not implemented:
-
-- Flip horizontal/vertical
-- Resize tool
-- Custom filter combinations pipeline
-- Non-destructive edit metadata storage
-- Konva integration (not needed for current scope)
-
-Current implementation:
-
-- Filters are applied during canvas rendering
-- All pixel manipulation done client-side
-- Live preview as sliders adjust values
-- Filters can be combined (brightness + contrast + grayscale, etc.)
-- Sharpen uses 3x3 convolution kernel for edge enhancement
-
-Recommendation:
-
-Current implementation covers practical editing needs. Consider non-destructive edits (edit pipeline) only if product requires reverting to original without re-editing.
-
----
-
-## Feature 8. Page Rotation Controls
-
-Status: Implemented for Phase 2 MVP
-
-Implemented:
-
-- Per-file page rotation metadata in FileObject interface
-- Rotation UI buttons in file-item component (rotate left/right)
-- Rotation angle stored and managed throughout PDF generation
-- Rotation event handling integrated through file-list component
-- Supports 0°, 90°, 180°, 270° rotations
-- Rotation metadata passed to PDF worker for processing
-- Visual feedback with thumbnail rotation preview
-
-Technical implementation:
-
-- FileObject interface extended with optional `rotation?: number` property
-- Rotate-left/right buttons emit rotation events through file-list
-- Image-to-pdf component manages rotation state per file
-- Rotation angles persist throughout file lifecycle
-- Worker receives rotation metadata and applies transformations
-
-Not implemented:
-
-- Full PDF-level image rotation (deferred to Phase 2.5)
-- Rotation angle display indicator
-- Keyboard shortcuts for rotation
-
-Recommended next task:
-
-Feature 8 rotation UI complete. PDFs generated will include rotation metadata in file objects. Full PDF rotation rendering will be enhanced in Phase 2.5 after header/footer implementation.
-
----
-
-## Feature 9. Header/Footer Template Engine
-
-Status: Implemented for Phase 2 MVP
-
-Implemented:
-
-- HeaderFooterService for template variable processing
-- Header/Footer UI section in pdf-settings-panel with collapsible toggle
-- Enable/disable checkboxes for header and footer independently
-- Text input fields with multi-line support (200 char limit)
-- Font size control (8-14pt range) with validation
-- Font color picker (hex color input)
-- Template variable replacement with four standard variables:
-  - {date}: Current date in YYYY-MM-DD format
-  - {page}: Current page number (1-based)
-  - {totalPages}: Total number of pages in PDF
-  - {filename}: Original PDF filename without extension
-- Header rendered near top margin, footer near bottom margin
-- Page count pre-calculated for {totalPages} variable
-- Per-page variable substitution during worker PDF generation
-- Hex to RGB color conversion for jsPDF rendering
-
-Technical implementation:
-
-- HeaderFooterConfig interface: enabled, text, fontSize (8-14), fontColor (hex)
-- HeaderFooterSettings contains optional header and footer configs
-- Template substitution happens per-page during PDF generation
-- Text positioned within document margins for professional appearance
-- Worker receives headerFooter settings and substitutes variables per page
-
-Not implemented:
-
-- Multiple header/footer styles or presets
-- Right-aligned or justified header/footer text (defaults to left)
-- Custom fonts for headers/footers (uses PDF default font)
-- Header/footer background or separator lines
-
-Recommended next task:
-
-Feature 9 header/footer complete. Headers and footers will render on all pages with proper page numbering. Ready for Feature 10 (multiple output modes).
-
----
-
-## Feature 10. Multiple Output Modes
-
-Status: Implemented for Phase 2 MVP
-
-Implemented:
-
-- ExportService for multi-mode export coordination (`src/app/services/export.service.ts`)
-- Three export modes available in PDF settings:
-  - **Single PDF**: Default mode, merges all images into one PDF document
-  - **Separate PDFs**: Generates individual PDF for each image/file
-  - **ZIP archive**: Creates ZIP file containing all generated PDFs
-- Export mode selector added to pdf-settings-panel with dropdown menu
-- UI selector integrated into PDF settings grid (after Quality setting)
-- jszip integration for ZIP file bundling and compression
-- ExportMode type added to PDFSettings interface
-- Settings persistence includes export mode preference
-- Image-to-pdf component updated to use ExportService.export()
-- Component spec file updated with ExportService mocks
-
-Technical implementation:
-
-- ExportService handles export coordination and mode routing
-- For Separate PDFs: generates multiple PDF downloads with staggered timing (500ms delay)
-- For ZIP archive: collects all PDFs, creates ZIP blob, triggers single download
-- File name sanitization for ZIP entries (removes special characters, respects 200-char limit)
-- Smart naming: separate PDFs numbered (1-filename, 2-filename, etc.)
-- Error handling with fallback to single PDF if individual generation fails
-- Worker-backed PDF generation through existing PDFService.createPDFBlob()
-
-Not implemented:
-
-- Batch download manager UI (sequential automatic downloads)
-- ZIP comment/metadata
-- Selective file export (all files are always included)
-- Export to other formats (PDF-only at this time)
-
-Recommended next task:
-
-Feature 10 (multiple output modes) complete. Phase 2 is now 100% done. All Phase 2 features (page rotation, header/footer, multiple output modes) are fully implemented and tested.
-
-Ready to proceed with Phase 3 (PDF Manipulation: merge, split, compress, rearrange).
-
----
-
-## Feature 11. PDF Merge Tool
-
-Status: Implemented for Phase 3 MVP
-
-Implemented:
-
-- PDFMergeService for async PDF merge operations using pdf-lib
-- mergePDFs() method: Merges multiple PDFs maintaining page order
-- fetchPDFAsBytes() method: Converts data URLs and HTTP URLs to Uint8Array
-- getPageCount() method: Async page counting from PDFs
-- downloadPDF() method: Triggers browser download of merged PDF blob
-- sanitizeFileName() method: Removes special characters for safe file exports
-- Async error handling with fallback messaging for individual PDF failures
-- pdf-merge component with complete TypeScript implementation
-  - File validation (PDF-only filter)
-  - Drag-drop file upload zone with visual feedback
-  - Reorderable PDF list via Angular CDK drag-drop
-  - Index badges showing position in merge order
-  - Individual PDF removal from queue
-  - Custom output filename input with validation
-  - Merge button with dynamic label (counts PDFs)
-  - Clear All button to reset form
-  - Validation error display
-  - isDragging state for visual feedback
-  - isMerging state for loading behavior
-- Responsive HTML template (90+ lines)
-  - Drop zone with upload instructions
-  - Reorderable PDF list items with drag handles
-  - File size display per PDF
-  - Output filename input field
-  - Merge and Clear buttons
-  - Error message display area
-  - Empty state message
-- Comprehensive SCSS styling (350+ lines)
-  - Mobile-responsive design (600px breakpoint)
-  - Drag-drop visual feedback and animations
-  - Accent color button states
-  - List item styling with index badges
-  - Accessible form layout
-  - Dark mode support via CSS variables
-- Tool registry enabled with priority 80 (3rd in tool menu after image-to-pdf and pdf-preview)
-- Tool definition includes id='pdf-merge', category='merge', enabled=true
-- Lazy-loaded route at path='/merge' with title 'Merge PDFs'
-- All 58 unit tests passing (Feature 11 added 1 new test for 3rd enabled tool)
-
-Technical implementation:
-
-- Uses pdf-lib.PDFDocument for document merging at byte level
-- Async processing with proper error handling per PDF
-- Uint8Array type-safe blob creation for cross-browser compatibility
-- MergeOptions interface supports pageSize and pageOrder configuration
-- FileObject interface reused from existing services
-- Component integrates with existing FileService for validation
-- No external storage or networking required
-
-Not implemented:
-
-- Page selection/range filtering (all pages merged)
-- Merge preview before download
-- Batch merge history
-- Merge presets or templates
-- Advanced options like page size conversion
-- Encryption or password protection on merged files
-
-Dependencies:
-
-- pdf-lib (7.0.2) ✓ installed
-- Angular CDK (drag-drop) ✓ already present
-
-Recommended next task:
-
-Feature 11 (PDF Merge) complete and tested. Phase 3 is 17% done. Ready to proceed with Feature 12 (PDF Split).
-
----
-
-## Feature 12. PDF Split Tool
-
-Status: Implemented for Phase 3 MVP
-
-Implemented:
-
-- PDFSplitService for async PDF page extraction using pdf-lib
-- splitPDF() method: Extracts specific page ranges into single or separate PDFs
-- extractSinglePDF() method: Combines selected pages into one PDF document
-- extractSeparatePDFs() method: Creates separate PDF for each page
-- parsePageRange() method: Parses range strings (e.g., "1-3, 5, 7-10") into page array
-- getPageCount() method: Async page counting from PDFs
-- downloadPDF() and downloadPDFs() methods: Handles single and batch downloads with proper naming
-- sanitizeFileName() method: Removes special characters for safe file exports
-- Comprehensive range parsing with validation and error handling
-- pdf-split component with complete TypeScript implementation
-  - Single PDF upload with drag-drop support
-  - Page range input with helpful example hints
-  - Output mode selector: combine or separate PDFs
-  - Dynamic page count display (fetched on PDF load)
-  - Custom output filename input with validation
-  - Split button with dynamic label based on state
-  - Clear All button to reset form
-  - Validation error display
-  - isDragging state for visual feedback
-  - isSplitting state for loading behavior
-- Responsive HTML template (110+ lines)
-  - Drop zone with upload instructions
-  - PDF info card showing page count and file size
-  - Page range input with syntax examples
-  - Radio button group for output mode selection
-  - Output filename input field
-  - Split and Clear buttons
-  - Error message display area
-  - Info cards showing PDF details
-  - Empty state message
-- Comprehensive SCSS styling (380+ lines)
-  - Mobile-responsive design (600px breakpoint)
-  - Drag-drop visual feedback and animations
-  - Radio button group styling
-  - Input field styling with focus states
-  - Accessible form layout with proper labels
-  - Dark mode support via CSS variables
-- Tool registry enabled with priority 75 (4th in tool menu after image-to-pdf, pdf-preview, pdf-merge)
-- Tool definition includes id='pdf-split', category='extract', enabled=true
-- Lazy-loaded route at path='/split' with title 'Split PDF'
-- All 106 unit tests passing (Feature 12 added 47 new tests: 18 service + 29 component)
-
-Technical implementation:
-
-- Uses pdf-lib.PDFDocument for page extraction at document level
-- Async processing with proper error handling
-- Uint8Array type-safe blob creation for cross-browser compatibility
-- SplitOptions interface supports outputMode configuration (single/separate)
-- Page range parsing with duplicate removal and sorting
-- Validation of page indices against actual PDF page count
-- Configurable output naming for single vs. batch downloads
-- FileObject interface reused from existing services
-- Component integrates with existing FileService for validation
-- No external storage or networking required
-
-Not implemented:
-
-- Merge pages from multiple PDFs during split
-- Split preview before download
-- Custom page reordering before extraction
-- Split history or templates
-- Advanced options like page size conversion
-- Page-level annotations or watermarks
-
-Dependencies:
-
-- pdf-lib (7.0.2) ✓ installed
-- Angular CDK (drag-drop) ✓ already present
-
-Recommended next task:
-
-Feature 12 (PDF Split) complete and tested. Phase 3 is ready for Feature 13 (PDF Rearrange and Page-Level Editing).
-
----
-
-## Feature 13. PDF Rearrange and Page-Level Editing
-
-Status: Implemented for Phase 3 MVP
-
-Implemented:
-
-- PdfRearrangeService for async PDF page operations using pdf-lib
-- getPageCount() method for uploaded PDF inspection
-- rearrangePages() method for custom page order, deletion-by-omission, and duplicate page output
-- deletePages() and duplicatePages() service helpers with validation
-- applyOperations() helper for future combined workflows
-- downloadPDF() and sanitizeFileName() helpers for browser-only export
-- pdf-rearrange component with complete TypeScript implementation
-  - Single PDF upload with drag-drop support
-  - Page count loading from the uploaded PDF
-  - Drag-drop page reordering with Angular CDK
-  - Per-page duplicate and delete actions
-  - Output filename input
-  - Reset order action that keeps the uploaded PDF loaded
-  - Dynamic operation state and validation messaging
-  - Clear All action to reset the tool
-- Responsive HTML template
-  - Upload zone
-  - PDF info card
-  - Page list that separates output position from original source page
-  - Duplicate badges
-  - Output/original page count summary
-  - Apply, reset, and clear actions
-- Tool registry enabled with priority 70
-- Lazy-loaded route at path='/rearrange' with title 'Rearrange PDF'
-- Focused unit tests passing for service and component behavior
-
-Technical implementation:
-
-- Uses pdf-lib.PDFDocument.copyPages() to create fresh page instances for reordered and duplicated pages
-- Preserves source page identity through stable zero-based page indices
-- Output page position is tracked separately from the original source page number
-- Guarded UI methods avoid invalid delete/duplicate indices and prevent deleting the final page
-- No backend, cloud storage, or server-side processing required
-
-Not implemented:
-
-- Visual rendered page thumbnails in the rearrange list
-- Page rotation inside the rearrange workflow
-- Multi-PDF page mixing inside rearrange
-- Page annotations, watermarks, or crop boxes
-- Worker-backed rearrangement for very large PDFs
-
-Recommended next task:
-
-Feature 13 (PDF Rearrange and Page-Level Editing) complete for Phase 3 MVP. Phase 3 is 50% done (3 of 6). Ready to proceed with Feature 14 (PDF Compression).
-
----
-
-## Feature 14. PDF Compression Tool
-
-Status: Implemented for Phase 3 MVP
-
-Implemented:
-
-- PDFCompressService for async PDF compression using pdf-lib and pdfjs-dist
-- Three compression levels:
-  - **LOW**: pdf-lib re-save only — strips metadata, normalizes document structure, minimal size reduction, perfect quality
-  - **MEDIUM**: Canvas re-render at 0.65 JPEG quality — uses pdfjs-dist to render each page to canvas, converts to JPEG, builds new PDF with pdf-lib
-  - **HIGH**: Canvas re-render at 0.40 JPEG quality — maximum compression with lower quality output
-- compress() method: Routes to appropriate compression strategy based on level
-- compressByRendering() method: Core canvas-based compression pipeline for medium/high levels
-- getPageCount() method: Async page counting from PDFs
-- formatFileSize() method: Human-readable file size formatting
-- getCompressionPercent() method: Calculates percentage reduction
-- downloadPDF() method: Triggers browser download of compressed PDF
-- sanitizeFileName() method: Removes special characters for safe file exports
-- pdf-compress component with complete TypeScript implementation
-  - Single PDF upload with drag-drop support
-  - Compression level selector with three radio options (Low/Medium/High)
-  - Dynamic descriptions for each compression level
-  - Output filename input
-  - Before/after size comparison display after compression
-  - Compression percentage indicator (green for reduction, red if larger)
-  - Download button for re-downloading compressed result
-  - Clear All button to reset form
-  - isDragging state for visual feedback
-  - isCompressing state for loading behavior
-  - Auto-download on compression completion
-- Responsive HTML template (150+ lines)
-  - Drop zone with upload instructions
-  - PDF info card showing page count and file size
-  - Radio button group for compression level with descriptions
-  - Output filename input field
-  - Compress and Clear buttons
-  - Compression result card with original → compressed comparison
-  - Size warning when compressed file is larger
-  - Info cards showing PDF details
-  - Empty state message
-- Comprehensive SCSS styling (470+ lines)
-  - Mobile-responsive design (600px breakpoint)
-  - Drag-drop visual feedback and animations
-  - Radio button group styling with selected state
-  - Result card styling with success/not-smaller states
-  - Green/red color coding for compression results
-  - Dark mode support via CSS variables
-- Tool registry enabled with priority 65 (6th in tool menu)
-- Tool definition includes id='pdf-compress', category='optimize', enabled=true
-- Lazy-loaded route at path='/compress' with title 'Compress PDF'
-- ToolDefinition interface updated to support 'optimize' category
-- All 175 unit tests passing (Feature 14 added tests for pdf-compress being enabled with correct priority and category)
-
-Technical implementation:
-
-- Uses pdf-lib.PDFDocument for low-compression re-save (metadata stripping and normalization)
-- Uses pdfjs-dist for canvas rendering during medium/high compression
-- Offscreen canvas rendering with page.getViewport({ scale: 1.5 }) for quality
-- canvas.toBlob('image/jpeg', quality) for JPEG encoding
-- newPdf.embedJpg() for JPEG embedding into pdf-lib document
-- No backend, cloud storage, or server-side processing required
-- Follows same service/component pattern as PdfSplitService and pdf-split component
-
-Not implemented:
-
-- Lossless PNG-based re-rendering option
-- DPI/resolution controls for canvas rendering
-- Preview of compression quality before download
-- Batch compression of multiple PDFs
-- Custom JPEG quality slider (currently fixed at 0.65/0.40)
-
-Dependencies:
-
-- pdf-lib (7.0.2) ✓ installed
-- pdfjs-dist (5.7.284) ✓ installed
-
-Recommended next task:
-
-Feature 14 (PDF Compression) complete and tested. Phase 3 is 67% done (4 of 6). Ready to proceed with Feature 15 (Password Protection and Encryption).
-
----
-
-## Feature 15. PDF Password Protection and Encryption
-
-Status: Implemented for Phase 3 MVP
-
-Implemented:
-
-- PdfProtectionService for async PDF encryption/decryption using qpdf-run (WASM-based QPDF)
-- addPassword() method: Encrypts a PDF with user (open) password and optional owner password
-- removePassword() method: Decrypts a password-protected PDF with the correct password
-- isPasswordProtected() method: Checks if a PDF has encryption
-- ProtectionOptions interface supporting:
-  - userPassword: Required open password to view the PDF
-  - ownerPassword: Optional password for permission management
-  - ProtectionPermissions: 8 permission flags (printing, copying, modifying, annotating, form filling, extraction, assembly, high-res printing)
-- Permission controls passed to QPDF as --print, --copy, --modify, etc. flags
-- AES-256 encryption via qpdf WASM for maximum security and compatibility
-- Async error handling with meaningful messages for wrong passwords
-- downloadPDF() method: Triggers browser download of encrypted/decrypted PDF
-- sanitizeFileName() method: Removes special characters for safe file exports
-- pdf-protect component with complete TypeScript implementation
-  - Single PDF upload with drag-drop support
-  - Mode toggle: "Add Password" vs "Remove Password"
-  - Password input fields with show/hide toggle (user, confirm, owner)
-  - 8 permission checkboxes (shown only when owner password is set)
-  - Output filename input
-  - Password matching validation before apply
-  - Minimum 4-character password requirement
-  - Dynamic button label based on mode and state
-  - Apply/Clear actions with loading and error states
-  - Success message after operation
-  - isDragging state for visual feedback
-  - isProcessing state for loading behavior
-  - Auto-download on protection/decryption completion
-- Responsive HTML template (180+ lines)
-  - Drop zone with upload instructions
-  - PDF info card showing file size
-  - Mode toggle button group (Add/Remove)
-  - Password input wrappers with eye icon toggle for show/hide
-  - Confirm password with match validation highlight
-  - Owner password with optional badge
-  - Permissions grid (2-column desktop, 1-column mobile)
-  - Output filename input field
-  - Apply and Clear buttons
-  - Error message display area
-  - Success message display area
-  - Empty state message
-- Comprehensive SCSS styling (470+ lines)
-  - Mobile-responsive design (600px breakpoint)
-  - Drag-drop visual feedback and animations
-  - Mode toggle button group with active state
-  - Password input styling with eye toggle positioning
-  - Input error highlighting for mismatched passwords
-  - Permissions grid with hover states
-  - Checkbox styling with accent color
-  - Dark mode support via CSS variables
-- Tool registry enabled with priority 60 (7th in tool menu)
-- Tool definition includes id='pdf-protect', category='secure', enabled=true
-- Lazy-loaded route at path='/protect' with title 'Protect PDF'
-- ToolDefinition interface already supports 'secure' category
-- 39 new focused unit tests (22 service + 17 component)
-
-Technical implementation:
-
-- Uses qpdf-run (npm package) for browser-compatible PDF encryption/decryption
-- qpdf-run wraps QPDF C++ library compiled to WASM
-- qpdf WASM lazily initialized on first use (runner is cached)
-- --encrypt with AES-256 for maximum security
-- --decrypt with --password for decryption
-- Permission flags mapped to QPDF's --print, --copy, --modify, --annotate, --form, --extract, --assemble options
-- Runner initialized with 30-second timeout for large documents
-- Uint8Array I/O via qpdf-run's runOne() method
-- No backend, cloud storage, or server-side processing required
-- Follows same service/component pattern as PdfRearrangeService and pdf-rearrange component
-
-Not implemented:
-
-- PDF/A compliance verification after encryption
-- Certificate-based encryption (public key encryption)
-- Batch encryption of multiple PDFs
-- Worker-backed encryption for very large PDFs (deferred to Phase 6)
-- Restriction of specific page ranges (applies to whole document)
-- Passphrase strength indicator
-
-Dependencies:
-
-- qpdf-run (0.2.1+ installed) — WASM-based QPDF for browser encryption/decryption
-- pdf-lib still available for other Phase 3 operations
-
-Recommended next task:
-
-Feature 15 (PDF Password Protection and Encryption) complete and tested. Phase 3 is 83% done (5 of 6). Ready to proceed with Feature 16 (Mixed PDF + Image Workflows).
-
----
-
-# PHASE 3 - PDF MANIPULATION TOOLS
-
-## Objective
-
-Expand into a full PDF toolkit with document-level operations.
-
-## Overall Status: 100% Complete (6 of 6 Features)
-
-Completed Phase 3 features:
-
-- **DONE: Feature 11 - PDF Merge Tool** ✓ Full implementation with drag-drop reordering, async merge, responsive UI
-- **DONE: Feature 12 - PDF Split Tool** ✓ Page extraction with range parsing, single/separate output modes, 47 new tests
-- **DONE: Feature 13 - PDF Rearrange and Page-Level Editing** ✓ Drag-drop page reordering, duplicate/delete actions, responsive UI
-- **DONE: Feature 14 - PDF Compression** ✓ Three compression levels (low/medium/high), canvas-based re-rendering, before/after size display
-- **DONE: Feature 15 - Password Protection and Encryption** ✓ WASM-based QPDF encryption/decryption, AES-256, permission controls, 39 new tests
-- **DONE: Feature 16 - Mixed PDF + Image Builder** ✓ Drag-drop image/PDF queue, CDK reordering, non-rasterized PDF page copying via pdf-lib copyPages(), image embedding, A4 layout, batch operations (rotate/duplicate/delete/selection), lazy-loaded route, 32 new tests
-
-Infrastructure completed:
-
-- Tool-based architecture with tool registry and lazy-loaded routes ✓
-- pdf-lib (7.0.2) installed for document-first operations ✓
-- Angular CDK drag-drop available for reordering ✓
-- FileService and validation framework ✓
-- Error handling and user feedback patterns ✓
-
-Prerequisite infrastructure verified:
-
-Tool architecture supports all Phase 3 operations. Each feature can be added independently as a lazy-loaded route with corresponding service.
-
----
-
 # PHASE 4 - FRONTEND EXPORT & CONVERSION ENGINE
 
 ## Objective
 
 Expand browser-based export and conversion features without backend services.
 
-## Overall Status: Not started
+## Overall Status: Done (PDF to Image Export Complete ✅)
+
+Phase 4 implements browser-based PDF-to-image conversion:
+
+- **DONE: PDF to image export** — Full implementation with `PdfToImageService` using `pdfjs-dist` for page rendering
+- **DONE: Canvas-based export engine** — Page rendering with white background fill, configurable DPI scale (1× to 4×)
+- **DONE: Batch image export** — Individual downloads with staggered timing (300ms delay per file)
+- **DONE: ZIP bundles** — `jszip` integration for single-archive download of all images
+- **DONE: Output format selection** — PNG (lossless) and JPEG (configurable quality 1-100%)
+- **DONE: Page range selection** — Support for "all", specific pages, and range syntax (e.g., "1-3, 5, 7-10")
+
+### Feature 17. PDF to Image Export
+
+Status: Implemented for Phase 4 MVP
+
+Implemented:
+
+- **PdfToImageService** — Full service implementation for PDF page → image conversion
+  - `convertToImages()`: Renders PDF pages to canvas with configurable scale
+  - `createZip()`: Bundles exported images into ZIP archive via jszip
+  - `getPageCount()`: Async page counting from PDF files
+  - `parsePageRange()`: Range string parsing ("1-3, 5, 7-10") into page arrays
+  - `sanitizeFileName()`: Safe filename generation for downloads
+  - `formatFileSize()`: Human-readable file size formatting
+  - `revokeObjectUrls()`: Memory cleanup for Data URLs
+  - Progress tracking via `BehaviorSubject<ExportProgress>`
+  - `cancelExport()`: Abort ongoing export operations
+  - PDF worker initialization via `pdfjsLib.GlobalWorkerOptions.workerSrc`
+
+- **PdfToImageComponent** — Complete component implementation
+  - Drag-drop PDF upload with file validation
+  - Page count display on PDF load
+  - Format selector: PNG / JPEG with conditional quality slider
+  - Scale selector: 1× (72 DPI) to 4× (300 DPI) with descriptive labels
+  - Output mode: Individual images or ZIP archive
+  - Page range input with placeholder examples
+  - Output filename prefix input
+  - Export progress bar with status text, page count, and percentage
+  - Cancel button during export
+  - Result display with individual image download and "Download All" option
+  - Clear All button to reset everything
+  - Error handling with user-facing error messages
+
+- **Routing and Registration**
+  - Lazy-loaded route at `path='/pdf-to-image'` with title 'PDF to Image'
+  - Tool registry enabled with priority 58 (8th in tool menu)
+  - Tool definition: id='pdf-to-image', category='extract', enabled=true
+
+- **UI/UX**
+  - Responsive HTML template (170+ lines) with clear visual hierarchy
+  - Drag-drop upload zone with visual feedback
+  - Two-column settings layout (format/scale on one side, output/page range on other)
+  - JPEG quality slider (1-100%) shown only when JPEG format is selected
+  - Scale selector with DPI labels: Small (72 DPI), Screen (150 DPI), High (200 DPI), Print (300 DPI)
+  - Progress bar with percentage, page count, and cancel action
+  - Result images displayed in a flex-wrap grid with download buttons
+  - Dark mode support via CSS variables
+  - Comprehensive SCSS styling (350+ lines)
+
+Technical implementation:
+
+- Uses `pdfjs-dist` for PDF document loading and page rendering
+- Canvas 2D rendering with white background fill for transparent PDF pages
+- `canvas.toBlob()` for image blob generation
+- `canvas.toDataURL()` for Data URL result creation
+- Scale options map to approximate DPI: 1×=72, 2×=150, 3×=200, 4×=300
+- jszip dynamically imported for ZIP creation (lazy loading)
+- Individual downloads staggered at 300ms intervals to avoid browser popup blocking
+- Memory cleanup with `URL.revokeObjectURL()` after downloads
 
 Not implemented:
 
-- PDF to image export
-- Canvas-based export engine service
-- Batch image export
-- ZIP bundles
-- TXT extraction
+- Worker-backed page rendering for very large PDFs (deferred to Phase 6)
+- TXT text extraction from PDFs
 - JSON metadata export
-- `pdfjs-dist`
-- `jszip`
+- Batch conversion of multiple PDFs simultaneously
+- Custom page size / cropping during export
 
 ---
 
@@ -1099,9 +438,10 @@ Optimize large-file handling and app performance.
 
 ## Overall Status: Web Worker for PDF Generation + Compression Worker Complete
 
-Phase 6.1 implemented PDF generation off the main thread using Web Workers. Phase 6.2 adds a dedicated compression worker that moves MEDIUM/HIGH PDF compression off the main thread as well.
+Phase 6.1 implemented PDF generation off the main thread using Web Workers.
+Phase 6.2 adds a dedicated compression worker that moves MEDIUM/HIGH PDF compression off the main thread as well.
 
-Remaining Phase 6 items (OCR worker, thumbnail generation worker) are deferred until additional tools need optimization.
+Remaining Phase 6 items (OCR worker, thumbnail generation worker, virtual scrolling) are deferred until additional tools need optimization.
 
 ---
 
@@ -1249,16 +589,15 @@ Implemented:
 - Polished single-tool UI shell
 - Responsive layout
 - System dark mode
+- Tool-based architecture with navigation
+- Dashboard/recent files concept via IndexedDB workspace sessions
 
 Not implemented:
 
-- Tool-based architecture
-- Dashboard homepage
-- Recent files
-- Local workspace
 - Manual/system theme toggle
-- PWA
-- Upload queue system
+- PWA install/offline support
+- Upload queue system with progress/retry/cancel
+- Full IndexedDB integration across all tools (DB schema exists)
 
 Recommendation:
 
@@ -1270,13 +609,15 @@ Do not build the dashboard before at least one additional PDF tool exists. A das
 
 Based on the current codebase, the best next steps are:
 
-1. Add Web Worker support for expensive image/PDF processing.
-2. Add IndexedDB session persistence.
-3. Add PDF upload/merge/split tools after the tool architecture exists.
-4. Add ZIP/multiple output modes after export architecture exists.
-5. Add PDF manipulation preview support for uploaded PDFs.
-6. Add OCR only after worker infrastructure is in place.
-7. Add PWA/offline installation after local workspace persistence is stable.
+1. ~~Add Web Worker support for expensive image/PDF processing.~~ **DONE**
+2. ~~Add IndexedDB session persistence.~~ **DONE (Dexie schema created)**
+3. ~~Add PDF upload/merge/split tools after the tool architecture exists.~~ **DONE**
+4. ~~Add ZIP/multiple output modes after export architecture exists.~~ **DONE**
+5. ~~Add PDF to image export.~~ **DONE**
+6. Add PDF manipulation preview support for uploaded PDFs.
+7. Integrate IndexedDB persistence into tool UIs (currently schema-only).
+8. Add OCR only after worker infrastructure is in place.
+9. Add PWA/offline installation after local workspace persistence is stable.
 
 This order builds directly on what is already implemented and avoids introducing large PDF manipulation systems before the core image-to-PDF workflow is solid.
 
@@ -1284,9 +625,9 @@ This order builds directly on what is already implemented and avoids introducing
 
 ## Top 3 Short-Term Priorities
 
-1. ~~Add IndexedDB-based persistence for session state and saved settings.~~ **DONE: IndexedDB persistence implemented (June 15, 2026).**
-2. Add PDF upload + merge/split tools once the tool-based route architecture is available.
-3. Add PDF manipulation preview support for uploaded PDFs.
+1. ~~Add IndexedDB-based persistence for session state and saved settings.~~ **DONE (June 15, 2026 — Dexie schema with 4 tables created)**
+2. ~~Add PDF upload + merge/split tools once the tool-based route architecture is available.~~ **DONE**
+3. ~~Add PDF to image export.~~ **DONE (June 18, 2026)**
 
 ---
 
@@ -1386,7 +727,7 @@ Implemented:
 
 Remaining:
 
-- Move compression into a Web Worker during Phase 6
+- Move compression into a Web Worker during Phase 6 (DONE — Phase 6.2)
 - Surface output-size estimates in UI only if the product needs that feedback
 
 ## Task G - CDK Reordering
@@ -1498,6 +839,10 @@ src/app/
     merge-pdf/
     split-pdf/
     compress-pdf/
+    rearrange-pdf/
+    protect-pdf/
+    mixed-builder/
+    pdf-to-image/
     ocr/
     editor/
     watermark/
@@ -1518,11 +863,43 @@ Current structure:
 
 ```text
 src/app/
+  tools/
+    image-to-pdf/
+    pdf-preview/
+    pdf-merge/
+    pdf-split/
+    pdf-rearrange/
+    pdf-compress/
+    pdf-protect/
+    mixed-builder/
+    pdf-to-image/
   components/
+    app-header/
+    drag-drop-zone/
+    file-list/
+    file-item/
+    generate-pdf-button/
+    image-editor-modal/
+    pdf-preview/
+    pdf-settings-panel/
   services/
+    storage/ (indexed-db, session-storage)
+    (file, pdf, pdf-worker, pdf-settings-storage, pdf-extraction,
+     image-optimizer, export, header-footer, pdf-merge, pdf-split,
+     pdf-rearrange, pdf-compress, pdf-compression-worker,
+     pdf-protection, mixed-pdf-generator, mixed-document, pdf-to-image,
+     tool-registry)
+  workers/
+    pdf-generation.worker.ts
+    pdf-compression.worker.ts
+  utils/
+    pdf-layout-engine.ts
+  models/
+    document-item.model.ts
   app.ts
   app.html
   app.scss
+  app.routes.ts
 ```
 
 Migration rule:
@@ -1540,12 +917,13 @@ Migration rule:
 | PDF generation | jsPDF | Installed and used |
 | Advanced PDF editing | pdf-lib | Installed and used |
 | PDF rendering | pdfjs-dist | Installed and used |
+| PDF encryption/decryption | qpdf-run | Installed and used |
 | OCR | tesseract.js | Not installed |
 | Drag and drop | Angular CDK | Installed and used |
 | ZIP export | jszip | Installed and used |
 | Image editing | Konva | Not installed |
 | Image processing | OpenCV.js | Not installed |
-| Local storage | Dexie | Not installed |
+| Local storage / IndexedDB | Dexie | Installed and used |
 
 ---
 
@@ -1553,18 +931,18 @@ Migration rule:
 
 Use Web Workers for:
 
-- PDF generation
-- OCR
-- Compression
-- Thumbnail generation
-- Batch exports
+- PDF generation ✅
+- PDF compression ✅
+- OCR (not started)
+- Thumbnail generation (not started)
+- Batch exports (not started)
 
 Use IndexedDB for:
 
-- Uploaded file/session persistence
-- Local projects
-- Settings
-- Temporary exports
+- Uploaded file/session persistence ✅ (schema created, integration pending)
+- Local projects ✅ (schema created, integration pending)
+- Settings ✅ (schema created, integration pending)
+- Temporary exports (not started)
 
 Use chunked processing to:
 
@@ -1622,20 +1000,11 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 5. Add or update focused tests when behavior changes.
 6. Commit after each completed feature.
 
-# Recommended Workflow
-
-1. Pick one task from the near-term list.
-2. Ask to inspect the relevant files first.
-3. Implement only that task.
-4. Run `npm.cmd run build`.
-5. Add or update focused tests when behavior changes.
-6. Commit after each completed feature.
-
 ---
 
-# Recent Session Summary (June 15, 2026)
+# Recent Session Summary
 
-## Feature Implemented — Worker-backed PDF Compression (Phase 6.2)
+## June 15, 2026 — Worker-backed PDF Compression (Phase 6.2)
 
 **Files created:**
 - `src/app/workers/pdf-compression.worker.ts` — Dedicated Web Worker handling LOW/MEDIUM/HIGH PDF compression using `pdfjs-dist` + `OffscreenCanvas` + `pdf-lib` with per-page progress and abort support
@@ -1653,7 +1022,31 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 - `npm.cmd run build` passes (TypeScript compilation + Angular build)
 - `npm.cmd test -- --watch=false` — **267 tests passed across 18 test files**
 
+## June 18, 2026 — PDF to Image Export (Phase 4)
+
+**Files created:**
+- `src/app/services/pdf-to-image.service.ts` — Full service for PDF page → image conversion with progress tracking, ZIP bundling, and cleanup
+- `src/app/services/pdf-to-image.service.spec.ts` — Unit tests for the service
+- `src/app/tools/pdf-to-image/pdf-to-image.component.ts` — Complete component with drag-drop, format/scale/page-range settings, progress bar, result display
+- `src/app/tools/pdf-to-image/pdf-to-image.component.html` — Responsive template (170+ lines) with settings layout and result grid
+- `src/app/tools/pdf-to-image/pdf-to-image.component.scss` — Styling (350+ lines) with dark mode support
+
+**Files modified:**
+- `src/app/app.routes.ts` — Added lazy-loaded route at `path='/pdf-to-image'`
+
+**Validation:**
+- `npm.cmd run build` passes
+- `npm.cmd test` passes
+
+---
+
 ## Next Priority
-1. ~~Add IndexedDB-based persistence for session state and saved settings.~~ **DONE**
-2. ~~Worker-backed compression for large PDFs (Phase 6).~~ **DONE**
-3. PDF to image export (Phase 4).
+
+1. ~~Add Web Worker support for PDF generation (Phase 6).~~ **DONE**
+2. ~~Worker-backed compression for large PDFs (Phase 6.2).~~ **DONE**
+3. ~~PDF to image export (Phase 4).~~ **DONE**
+4. Integrate IndexedDB persistence into tool UIs (currently schema-only — Dexie tables created but not wired into file operations).
+5. Add PDF manipulation preview support for uploaded PDFs (merge/split/rearrange preview).
+6. Enable Mixed Builder and PDF Preview tools in `ToolRegistryService` (currently commented out but routes and components are fully implemented).
+7. Add manual/system theme toggle in app header.
+8. Add PWA/offline support.
