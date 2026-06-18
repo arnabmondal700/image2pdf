@@ -26,7 +26,7 @@ export interface ProcessFilesResult {
 export class FileService {
   private readonly allowedImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
   private readonly allowedPdfTypes = ['application/pdf'];
-  private readonly maxFileSize = 10 * 1024 * 1024; // 10MB
+  private readonly maxFileSize = 50 * 1024 * 1024; // 50MB
 
   /**
    * Get all allowed file types (images + PDFs)

@@ -19,7 +19,7 @@ describe('FileService', () => {
   });
 
   it('reports oversized image files', async () => {
-    const oversizedBytes = new Uint8Array(10 * 1024 * 1024 + 1);
+    const oversizedBytes = new Uint8Array(50 * 1024 * 1024 + 1);
     const file = new File([oversizedBytes], 'large.jpg', { type: 'image/jpeg' });
 
     const result = await service.processFiles([file]);
