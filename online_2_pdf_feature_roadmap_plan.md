@@ -615,7 +615,7 @@ Based on the current codebase, the best next steps are:
 5. ~~Add PDF to image export.~~ **DONE**
 6. ~~Add manual/system theme toggle in app header.~~ **DONE**
 7. ~~Add PDF manipulation preview support for uploaded PDFs.~~ **DONE (June 23, 2026 — rearrange page thumbnails via PdfToImageService.renderPageThumbnails())**
-8. Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — schema exists).
+8. ~~Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — schema exists).~~ **SKIPPED PERMANENTLY**
 9. Add OCR only after worker infrastructure is in place.
 10. ~~Add PWA/offline installation after local workspace persistence is stable.~~ **DONE (June 23, 2026)**
 

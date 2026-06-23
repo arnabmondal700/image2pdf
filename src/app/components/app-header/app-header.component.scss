@@ -33,6 +33,12 @@
   }
 }
 
+@media (max-width: 759px) {
+  .brand-mark {
+    display: none;
+  }
+}
+
 .header-copy {
   min-width: 0;
 }
