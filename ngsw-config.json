@@ -1,0 +1,38 @@
+{
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app-shell",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/", "/*.js", "/*.css", "/*.html"]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/**",
+          "/favicon.ico",
+          "/manifest.json",
+          "/pdf.worker.min.mjs",
+          "/qpdf-lib/**"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "fonts",
+      "urls": ["https://fonts.googleapis.com/**", "https://fonts.gstatic.com/**"],
+      "cacheConfig": {
+        "maxSize": 20,
+        "maxAge": "30d",
+        "strategy": "freshness"
+      }
+    }
+  ]
+}
