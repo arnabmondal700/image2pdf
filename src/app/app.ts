@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { AppHeaderComponent } from './components/app-header/app-header.component';
+import { OfflineBannerComponent } from './components/offline-banner/offline-banner.component';
+import { UpdateNotificationComponent } from './components/update-notification/update-notification.component';
 
 /**
  * Root application component - Shell for tool-based architecture
@@ -14,7 +16,9 @@ import { AppHeaderComponent } from './components/app-header/app-header.component
   imports: [
     CommonModule,
     RouterOutlet,
-    AppHeaderComponent
+    AppHeaderComponent,
+    OfflineBannerComponent,
+    UpdateNotificationComponent
   ],
   template: `
     <main class="app-shell">
@@ -22,7 +26,9 @@ import { AppHeaderComponent } from './components/app-header/app-header.component
       <div class="ambient ambient-two"></div>
 
       <section class="app-card">
+        <app-offline-banner></app-offline-banner>
         <app-header></app-header>
+        <app-update-notification></app-update-notification>
 
         <router-outlet></router-outlet>
       </section>

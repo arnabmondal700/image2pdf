@@ -6,33 +6,74 @@
       "installMode": "prefetch",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/", "/*.js", "/*.css", "/*.html"]
+        "files": [
+          "/",
+          "/*.html",
+          "/*.js",
+          "/*.css",
+          "/*.json"
+        ]
       }
     },
     {
-      "name": "assets",
+      "name": "fonts",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/fonts/**"
+        ]
+      }
+    },
+    {
+      "name": "images",
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
         "files": [
-          "/assets/**",
-          "/favicon.ico",
-          "/manifest.json",
+          "/assets/icons/**",
+          "/favicon.ico"
+        ]
+      }
+    },
+    {
+      "name": "pdf-workers",
+      "installMode": "prefetch",
+      "updateMode": "lazy",
+      "resources": {
+        "files": [
           "/pdf.worker.min.mjs",
-          "/qpdf-lib/**"
+          "/qpdf-lib/**",
+          "/assets/**/*.wasm"
         ]
       }
     }
   ],
   "dataGroups": [
     {
-      "name": "fonts",
+      "name": "google-fonts",
       "urls": ["https://fonts.googleapis.com/**", "https://fonts.gstatic.com/**"],
       "cacheConfig": {
         "maxSize": 20,
         "maxAge": "30d",
         "strategy": "freshness"
       }
+    },
+    {
+      "name": "external-assets",
+      "urls": ["https://cdnjs.cloudflare.com/**"],
+      "cacheConfig": {
+        "maxSize": 10,
+        "maxAge": "30d",
+        "strategy": "performance"
+      }
     }
+  ],
+  "navigationUrls": [
+    "/**",
+    "!/**/*.*",
+    "!/sw.js",
+    "!/ngsw-worker.js",
+    "!/service-worker.js"
   ]
 }

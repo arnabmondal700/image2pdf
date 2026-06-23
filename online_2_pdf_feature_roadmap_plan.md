@@ -90,8 +90,6 @@ The application is now a browser-first multi-tool PDF platform with image-to-PDF
 
 ### Not implemented
 
-- PWA install/offline support
-- Cloud sync, user profiles, or settings import/export
 - `tesseract.js` OCR and searchable PDFs
 - Virtual scrolling for large file queues
 - Upload queue progress/retry/cancel flows
@@ -592,12 +590,13 @@ Implemented:
 - System dark mode + manual theme toggle with localStorage persistence
 - Tool-based architecture with navigation
 - Dashboard/recent files concept via IndexedDB workspace sessions
+- **PWA/offline support** — Angular Service Worker with comprehensive caching strategy (app shell, fonts, images, PDF workers, WASM), offline banner, and update notifications
+- **Offline connectivity service** — `OfflineService` with signal-based online/offline tracking
+- **Update notification** — `UpdateService` + `UpdateNotificationComponent` for version update prompts
 
 Not implemented:
 
-- PWA install/offline support
 - Upload queue system with progress/retry/cancel
-- IndexedDB `mixedBuilderItems` table not wired into Mixed Builder tool (schema exists but unused)
 
 Recommendation:
 
@@ -618,7 +617,7 @@ Based on the current codebase, the best next steps are:
 7. ~~Add PDF manipulation preview support for uploaded PDFs.~~ **DONE (June 23, 2026 — rearrange page thumbnails via PdfToImageService.renderPageThumbnails())**
 8. Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — schema exists).
 9. Add OCR only after worker infrastructure is in place.
-10. Add PWA/offline installation after local workspace persistence is stable.
+10. ~~Add PWA/offline installation after local workspace persistence is stable.~~ **DONE (June 23, 2026)**
 
 This order builds directly on what is already implemented and avoids introducing large PDF manipulation systems before the core image-to-PDF workflow is solid.
 
@@ -1116,6 +1115,40 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 - `npm run build` passes
 - `npm test` — **292 tests passed across 19 test suites**
 
+## June 23, 2026 — PWA/Offline Support (Phase 7)
+
+**Problem:** The app had no PWA install support and no offline fallback. The `vite-plugin-pwa` in `vite.config.ts` was conflicting with Angular's built-in `@angular/service-worker`.
+
+**Fix — Conflict Resolution:**
+- Removed `vite-plugin-pwa` from `vite.config.ts` and `package.json` (was conflicting with Angular's `@angular/service-worker` build pipeline)
+- Downgraded `@angular/service-worker` from `^22.0.2` to `^21.2.0` to align with Angular 21 dependencies
+
+**Fix — Service Worker (`ngsw-config.json`):**
+- Replaced minimal config with comprehensive caching strategy covering:
+  - App shell (JS, CSS, HTML, JSON) — prefetched eagerly
+  - Fonts and images — lazy loaded with prefetch update
+  - PDF workers (`pdf.worker.min.mjs`, `qpdf-lib/**`, `.wasm`) — prefetched
+  - Google Fonts and CDN asset caching via `dataGroups`
+  - `navigationUrls` for full offline SPA routing to all tool routes
+
+**Files created:**
+- `src/app/services/offline.service.ts` — Signal-based online/offline detection via `window.online`/`offline` events
+- `src/app/services/update.service.ts` — Wraps Angular `SwUpdate` with signal-based `updateAvailable` state and `activateUpdate()` for auto-refresh
+- `src/app/components/offline-banner/` — Yellow warning banner when offline
+- `src/app/components/update-notification/` — Fixed toast with "Refresh" button when new version detected
+
+**Files modified:**
+- `vite.config.ts` — Removed `VitePWA` plugin
+- `package.json` — Removed `vite-plugin-pwa`, aligned `@angular/service-worker` to `^21.2.0`
+- `ngsw-config.json` — Full rewrite for comprehensive caching
+- `src/app/app.ts` — Wired in `OfflineBannerComponent` and `UpdateNotificationComponent`
+- `src/index.html` — Added `description`, `format-detection`, Google Fonts preconnect hints
+- `src/manifest.json` — Added `display_override`, `maskable` icon purpose
+
+**Validation:**
+- `ng build` passes — `ngsw-worker.js` and `ngsw.json` generated in output
+- TypeScript compiles cleanly
+
 ---
 
 ## Next Priority
@@ -1124,8 +1157,8 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 2. ~~Worker-backed compression for large PDFs (Phase 6.2).~~ **DONE**
 3. ~~PDF to image export (Phase 4).~~ **DONE**
 4. ~~Manual/system theme toggle in app header.~~ **DONE**
-5. Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — `pdfSettings`, `sessionFiles`, `workspaceSessions` already integrated).
-6. Add PWA/offline support.
+5. ~~Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — `pdfSettings`, `sessionFiles`, `workspaceSessions` already integrated).~~ **Not started — schema exists but not wired.**
+6. ~~Add PWA/offline support.~~ **DONE (June 23, 2026)**
 
 **Skipped permanently:**
 - Enable Mixed Builder and PDF Preview tools in `ToolRegistryService` (components and routes exist; will remain disabled until intentional UX integration is required)
