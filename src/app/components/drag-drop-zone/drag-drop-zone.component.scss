@@ -107,14 +107,12 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .drop-zone {
-    background:
-      linear-gradient(135deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.46)),
-      radial-gradient(circle at 50% 0%, rgba(129, 140, 248, 0.22), transparent 42%);
-  }
+:host-context([data-theme="dark"]) .drop-zone {
+  background:
+    linear-gradient(135deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.46)),
+    radial-gradient(circle at 50% 0%, rgba(129, 140, 248, 0.22), transparent 42%);
+}
 
-  .drop-hint {
-    background: rgba(30, 41, 59, 0.72);
-  }
+:host-context([data-theme="dark"]) .drop-hint {
+  background: rgba(30, 41, 59, 0.72);
 }

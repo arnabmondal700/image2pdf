@@ -2,13 +2,14 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ToolRegistryService } from '../../tools/tool-registry.service';
 import type { ToolDefinition } from '../../tools/tool.interface';
+import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-header',
   templateUrl: './app-header.component.html',
   styleUrls: ['./app-header.component.scss'],
   standalone: true,
-  imports: [RouterLink, RouterLinkActive]
+  imports: [RouterLink, RouterLinkActive, ThemeToggleComponent]
 })
 export class AppHeaderComponent {
   private readonly toolRegistry = inject(ToolRegistryService);

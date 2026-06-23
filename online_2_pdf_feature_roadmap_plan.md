@@ -23,7 +23,7 @@
 
 ## Current Implementation Snapshot
 
-The application is now a browser-first multi-tool PDF platform with image-to-PDF conversion, full PDF manipulation toolkit, PDF-to-image export, worker-based processing, and IndexedDB persistence.
+The application is now a browser-first multi-tool PDF platform with image-to-PDF conversion, full PDF manipulation toolkit, PDF-to-image export, worker-based processing, manual/system theme toggle, and IndexedDB persistence.
 
 ### Implemented Tools
 
@@ -70,7 +70,7 @@ The application is now a browser-first multi-tool PDF platform with image-to-PDF
 - File metadata tracking for name, type, size, and URL
 - Error handling for file validation and PDF generation
 - Cancellation handling for long-running worker-backed PDF generation
-- Responsive UI with a mobile-friendly shell and dark mode support
+- Responsive UI with a mobile-friendly shell and **manual/system theme toggle** with localStorage persistence
 - Header/Footer template engine with template variables `{date}`, `{page}`, `{totalPages}`, `{filename}`
 - Multiple output modes: Single PDF, Separate PDFs, ZIP archive (via `ExportService`)
 - Page rotation controls (0°, 90°, 180°, 270°) with visual thumbnail feedback
@@ -79,14 +79,14 @@ The application is now a browser-first multi-tool PDF platform with image-to-PDF
 - `jszip` for multi-file ZIP bundling
 - `dexie` for IndexedDB persistence (settings, session files, mixed builder items, workspace sessions)
 - `SessionStorageService` for session-based file data storage
-- 267+ unit tests across 18+ test files
+- 292+ unit tests across 19+ test files
 
 ### Partially implemented
 
 - Image editor is functional, but the edit history and non-destructive undo model are not implemented
 - PDF preview is implemented for generated image PDFs; arbitrary PDF editing preview is not yet supported
-- Mixed Builder and PDF Preview tools have routes and complete implementations but are commented out in `ToolRegistryService` (accessible by direct URL navigation)
-- IndexedDB service layer is created (Dexie schema with 4 tables) but not yet fully integrated into all tools
+- Mixed Builder and PDF Preview tools have routes and complete implementations but remain intentionally disabled in `ToolRegistryService` (enable when UX integration is ready)
+- IndexedDB: `pdfSettings`, `sessionFiles`, and `workspaceSessions` tables are fully integrated; `mixedBuilderItems` table is schema-only and not wired into any service
 
 ### Not implemented
 
@@ -195,6 +195,7 @@ Legend:
 
 - Done: implemented enough to use
 - Partial: usable subset exists, but not roadmap-complete
+- Skipped: explicitly excluded from current roadmap
 - Not started: no implementation found
 
 ---
@@ -588,16 +589,15 @@ Implemented:
 
 - Polished single-tool UI shell
 - Responsive layout
-- System dark mode
+- System dark mode + manual theme toggle with localStorage persistence
 - Tool-based architecture with navigation
 - Dashboard/recent files concept via IndexedDB workspace sessions
 
 Not implemented:
 
-- Manual/system theme toggle
 - PWA install/offline support
 - Upload queue system with progress/retry/cancel
-- Full IndexedDB integration across all tools (DB schema exists)
+- IndexedDB `mixedBuilderItems` table not wired into Mixed Builder tool (schema exists but unused)
 
 Recommendation:
 
@@ -614,12 +614,16 @@ Based on the current codebase, the best next steps are:
 3. ~~Add PDF upload/merge/split tools after the tool architecture exists.~~ **DONE**
 4. ~~Add ZIP/multiple output modes after export architecture exists.~~ **DONE**
 5. ~~Add PDF to image export.~~ **DONE**
-6. Add PDF manipulation preview support for uploaded PDFs.
-7. Integrate IndexedDB persistence into tool UIs (currently schema-only).
-8. Add OCR only after worker infrastructure is in place.
-9. Add PWA/offline installation after local workspace persistence is stable.
+6. ~~Add manual/system theme toggle in app header.~~ **DONE**
+7. Add PDF manipulation preview support for uploaded PDFs.
+8. Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — schema exists).
+9. Add OCR only after worker infrastructure is in place.
+10. Add PWA/offline installation after local workspace persistence is stable.
 
 This order builds directly on what is already implemented and avoids introducing large PDF manipulation systems before the core image-to-PDF workflow is solid.
+
+**Skipped permanently:**
+- Enable Mixed Builder and PDF Preview tools in `ToolRegistryService` (components and routes exist; will remain disabled until intentional UX integration)
 
 ---
 
@@ -882,7 +886,7 @@ src/app/
     image-editor-modal/
     pdf-preview/
     pdf-settings-panel/
-  services/
+   services/
     storage/ (indexed-db, session-storage)
     (file, pdf, pdf-worker, pdf-settings-storage, pdf-extraction,
      image-optimizer, export, header-footer, pdf-merge, pdf-split,
@@ -996,7 +1000,7 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 1. Pick one task from the near-term list.
 2. Ask to inspect the relevant files first.
 3. Implement only that task.
-4. Run `npm.cmd run build`.
+4. Run `npm run build`.
 5. Add or update focused tests when behavior changes.
 6. Commit after each completed feature.
 
@@ -1035,8 +1039,8 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 - `src/app/app.routes.ts` — Added lazy-loaded route at `path='/pdf-to-image'`
 
 **Validation:**
-- `npm.cmd run build` passes
-- `npm.cmd test` passes
+- `npm run build` passes
+- `npm test` passes
 
 ## June 23, 2026 — PDF Preview for Uploaded PDFs (Priority 5)
 
@@ -1055,7 +1059,27 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 - `src/app/components/pdf-preview/pdf-preview.component.ts` — Added retry scheduling when canvas ViewChild not ready
 
 **Validation:**
-- `npm.cmd run build` passes (no errors, only pre-existing budget warnings)
+- `npm run build` passes (no errors, only pre-existing budget warnings)
+
+## June 23, 2026 — Manual/System Theme Toggle (Phase 7)
+
+**Files created:**
+- `src/app/services/theme.service.ts` — Injectable service managing `'light' | 'dark' | 'system'` modes via Angular Signals with localStorage persistence (`app-theme` key). Applies `data-theme` attribute on `<html>` and listens to `prefers-color-scheme` changes when in system mode.
+- `src/app/components/theme-toggle/theme-toggle.component.ts` — Standalone button group with sun (light), moon (dark), and desktop (system) Font Awesome icons
+- `src/app/components/theme-toggle/theme-toggle.component.scss` — Compact pill-shaped toggle styled for both light and dark contexts
+
+**Files modified:**
+- `src/styles.scss` — Replaced `@media (prefers-color-scheme: dark)` with `:root[data-theme="dark"]` selector for CSS custom properties
+- `src/app/app.scss` — Migrated dark-mode overrides from `@media` to `:host-context([data-theme="dark"])`
+- `src/app/components/app-header/app-header.component.scss` — Migrated header dark overrides; changed layout from `grid` to `flex` so brand-mark, header-copy, and theme toggle sit in a single row
+- `src/app/components/app-header/app-header.component.html` — Injected `<app-theme-toggle>` into `.header-top`
+- `src/app/components/app-header/app-header.component.ts` — Added `ThemeToggleComponent` to imports
+- `src/setup-vitest.ts` — Added `matchMedia` polyfill for jsdom test environment
+- `src/app/components/drag-drop-zone/drag-drop-zone.component.scss` — Migrated dark override from `@media` to `:host-context([data-theme="dark"])`
+
+**Validation:**
+- `npm run build` passes
+- `npm test` — **292 tests passed across 19 test suites**
 
 ---
 
@@ -1064,8 +1088,10 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 1. ~~Add Web Worker support for PDF generation (Phase 6).~~ **DONE**
 2. ~~Worker-backed compression for large PDFs (Phase 6.2).~~ **DONE**
 3. ~~PDF to image export (Phase 4).~~ **DONE**
-4. Integrate IndexedDB persistence into tool UIs (currently schema-only — Dexie tables created but not wired into file operations).
-5. Add PDF manipulation preview support for uploaded PDFs (merge/split/rearrange preview).
-6. Enable Mixed Builder and PDF Preview tools in `ToolRegistryService` (currently commented out but routes and components are fully implemented).
-7. Add manual/system theme toggle in app header.
-8. Add PWA/offline support.
+4. ~~Manual/system theme toggle in app header.~~ **DONE**
+5. Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — `pdfSettings`, `sessionFiles`, `workspaceSessions` already integrated).
+6. Add PDF manipulation preview support for uploaded PDFs (merge/split/rearrange preview).
+7. Add PWA/offline support.
+
+**Skipped permanently:**
+- Enable Mixed Builder and PDF Preview tools in `ToolRegistryService` (components and routes exist; will remain disabled until intentional UX integration is required)

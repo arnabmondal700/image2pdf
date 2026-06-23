@@ -1,0 +1,54 @@
+.theme-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+  }
+
+  &.active {
+    background: rgba(255, 255, 255, 0.92);
+    color: #4f46e5;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.22);
+  }
+}
+
+:host-context([data-theme="dark"]) .theme-toggle {
+  background: rgba(0, 0, 0, 0.22);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:host-context([data-theme="dark"]) .theme-btn {
+  color: rgba(255, 255, 255, 0.7);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+
+  &.active {
+    background: rgba(255, 255, 255, 0.94);
+    color: #312e81;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  }
+}

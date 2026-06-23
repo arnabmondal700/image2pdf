@@ -96,7 +96,7 @@
     }
   }
 
-  @media (prefers-color-scheme: dark) {
+  :host-context([data-theme="dark"]) & {
     background: rgba(127, 29, 29, 0.2);
     color: #fca5a5;
     border-color: rgba(248, 113, 113, 0.3);
@@ -131,7 +131,7 @@
     }
   }
 
-  @media (prefers-color-scheme: dark) {
+  :host-context([data-theme="dark"]) & {
     background: rgba(127, 29, 29, 0.2);
     color: #fca5a5;
     border-color: rgba(248, 113, 113, 0.3);
@@ -178,7 +178,7 @@
     }
   }
 
-  @media (prefers-color-scheme: dark) {
+  :host-context([data-theme="dark"]) & {
     background: rgba(30, 58, 138, 0.2);
     color: #93c5fd;
     border-color: rgba(96, 165, 250, 0.3);
@@ -228,10 +228,9 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .app-shell {
+  :host-context([data-theme="dark"]) .app-shell,
+  :host-context([data-theme="dark"]) :host .app-shell {
     background:
       radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.12), transparent 28%),
       linear-gradient(135deg, #312e81 0%, #581c87 100%);
   }
-}

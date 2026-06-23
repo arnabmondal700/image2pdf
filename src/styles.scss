@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --accent: #6366f1;
   --accent-soft: #7c3aed;
   --danger: #f43f5e;
@@ -55,23 +55,22 @@ canvas {
   max-width: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --accent: #818cf8;
-    --accent-soft: #c4b5fd;
-    --danger: #fb7185;
-    --text-strong: #f8fafc;
-    --text-body: #d1d5db;
-    --text-muted: #a7b0c0;
-    --glass-bg: rgba(15, 23, 42, 0.72);
-    --glass-border: rgba(255, 255, 255, 0.14);
-    --panel-bg: rgba(15, 23, 42, 0.72);
-    --panel-border: rgba(255, 255, 255, 0.12);
-    --input-bg: rgba(30, 41, 59, 0.82);
-    --input-border: rgba(255, 255, 255, 0.14);
-    --summary-bg: rgba(30, 41, 59, 0.62);
-    --focus-ring: rgba(129, 140, 248, 0.2);
-    --shadow-md: 0 18px 40px rgba(0, 0, 0, 0.22);
-    --shadow-xl: 0 30px 90px rgba(0, 0, 0, 0.34);
-  }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --accent: #818cf8;
+  --accent-soft: #c4b5fd;
+  --danger: #fb7185;
+  --text-strong: #f8fafc;
+  --text-body: #d1d5db;
+  --text-muted: #a7b0c0;
+  --glass-bg: rgba(15, 23, 42, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --panel-bg: rgba(15, 23, 42, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --input-bg: rgba(30, 41, 59, 0.82);
+  --input-border: rgba(255, 255, 255, 0.14);
+  --summary-bg: rgba(30, 41, 59, 0.62);
+  --focus-ring: rgba(129, 140, 248, 0.2);
+  --shadow-md: 0 18px 40px rgba(0, 0, 0, 0.22);
+  --shadow-xl: 0 30px 90px rgba(0, 0, 0, 0.34);
 }

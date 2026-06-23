@@ -5,10 +5,14 @@
 }
 
 .header-top {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
   gap: 14px;
   align-items: center;
+}
+
+.theme-toggle-float {
+  margin-left: auto;
+  align-self: flex-start;
 }
 
 .brand-mark {
@@ -131,16 +135,16 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .brand-mark {
-    background: rgba(15, 23, 42, 0.72);
+[data-theme="dark"] .brand-mark,
+:host-context([data-theme="dark"]) .brand-mark {
+  background: rgba(15, 23, 42, 0.72);
 
-    span {
-      color: #c4b5fd;
-    }
+  span {
+    color: #c4b5fd;
   }
+}
 
-  .tool-nav {
-    border-top-color: rgba(255, 255, 255, 0.10);
-  }
+[data-theme="dark"] .tool-nav,
+:host-context([data-theme="dark"]) .tool-nav {
+  border-top-color: rgba(255, 255, 255, 0.10);
 }
