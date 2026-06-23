@@ -2,16 +2,24 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PdfRearrangeComponent } from './pdf-rearrange.component';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PdfRearrangeService } from '../../services/pdf-rearrange.service';
+import { PdfToImageService } from '../../services/pdf-to-image.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { vi } from 'vitest';
+
+// Mock pdfjs-dist to avoid DOMMatrix errors in test environment
+vi.mock('pdfjs-dist', () => ({
+  GlobalWorkerOptions: {},
+  getDocument: vi.fn()
+}));
 
 describe('PdfRearrangeComponent', () => {
   let component: PdfRearrangeComponent;
   let fixture: ComponentFixture<PdfRearrangeComponent>;
   let fileService: FileService;
   let pdfRearrangeService: PdfRearrangeService;
+  let pdfToImageService: PdfToImageService;
   let mockPdfFile: FileObject;
 
   beforeEach(async () => {
@@ -27,17 +35,25 @@ describe('PdfRearrangeComponent', () => {
       sanitizeFileName: vi.fn()
     };
 
+    const pdfToImageServiceSpy = {
+      renderPageThumbnails: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [PdfRearrangeComponent, CommonModule, FormsModule, DragDropModule],
       providers: [
         { provide: FileService, useValue: fileServiceSpy },
-        { provide: PdfRearrangeService, useValue: pdfRearrangeServiceSpy }
+        { provide: PdfRearrangeService, useValue: pdfRearrangeServiceSpy },
+        { provide: PdfToImageService, useValue: pdfToImageServiceSpy }
       ]
     }).compileComponents();
 
     fileService = TestBed.inject(FileService);
     pdfRearrangeService = TestBed.inject(PdfRearrangeService);
+    pdfToImageService = TestBed.inject(PdfToImageService);
     fixture = TestBed.createComponent(PdfRearrangeComponent);
+    (pdfRearrangeService.getPageCount as any).mockResolvedValue(3);
+    (pdfRearrangeService.sanitizeFileName as any).mockReturnValue('test');
     component = fixture.componentInstance;
 
     // Setup mock PDF file
@@ -103,6 +119,34 @@ describe('PdfRearrangeComponent', () => {
       expect(component.outputFileName).toBe('test');
     });
 
+    it('should generate thumbnails after successful PDF upload', async () => {
+      const mockThumbnails = ['thumb0', 'thumb1', 'thumb2'];
+      (pdfToImageService.renderPageThumbnails as any).mockResolvedValue(mockThumbnails);
+
+      (fileService.processFiles as any).mockResolvedValue({ successful: [mockPdfFile], errors: [] });
+      (pdfRearrangeService.getPageCount as any).mockResolvedValue(3);
+      (pdfRearrangeService.sanitizeFileName as any).mockReturnValue('test');
+
+      await component.onFilesSelected([mockPdfFile as any]);
+
+      expect(pdfToImageService.renderPageThumbnails).toHaveBeenCalledWith(mockPdfFile, 0.3, expect.any(Object));
+      expect(component.thumbnails).toEqual(mockThumbnails);
+      expect(component.isGeneratingThumbnails).toBe(false);
+    });
+
+    it('should handle thumbnail generation failure gracefully', async () => {
+      (pdfToImageService.renderPageThumbnails as any).mockRejectedValue(new Error('Thumbnail failed'));
+
+      (fileService.processFiles as any).mockResolvedValue({ successful: [mockPdfFile], errors: [] });
+      (pdfRearrangeService.getPageCount as any).mockResolvedValue(3);
+      (pdfRearrangeService.sanitizeFileName as any).mockReturnValue('test');
+
+      await component.onFilesSelected([mockPdfFile as any]);
+
+      expect(component.isGeneratingThumbnails).toBe(false);
+      expect(component.thumbnails).toEqual([]);
+    });
+
     it('should handle non-PDF files validation', async () => {
       const txtFile: FileObject = {
         name: 'test.txt',
@@ -156,6 +200,7 @@ describe('PdfRearrangeComponent', () => {
       component.uploadedPdf = mockPdfFile;
       component.pageCount = 5;
       component.pages = [{ index: 0, displayIndex: 1 }];
+      component.thumbnails = ['thumb0'];
       component.outputFileName = 'test';
       component.validationErrors = [{ fileName: 'test.pdf', reason: 'unsupported-type' }];
       component.generalError = 'Some error';
@@ -165,6 +210,7 @@ describe('PdfRearrangeComponent', () => {
       expect(component.uploadedPdf).toBeNull();
       expect(component.pageCount).toBe(0);
       expect(component.pages).toEqual([]);
+      expect(component.thumbnails).toEqual([]);
       expect(component.outputFileName).toBe('');
       expect(component.validationErrors).toEqual([]);
       expect(component.generalError).toBeNull();
@@ -457,6 +503,7 @@ describe('PdfRearrangeComponent', () => {
       component.uploadedPdf = mockPdfFile;
       component.pageCount = 5;
       component.pages = [{ index: 0, displayIndex: 1 }];
+      component.thumbnails = ['thumb0'];
       component.outputFileName = 'test';
       component.generalError = 'Some error';
 
@@ -465,6 +512,7 @@ describe('PdfRearrangeComponent', () => {
       expect(component.uploadedPdf).toBeNull();
       expect(component.pageCount).toBe(0);
       expect(component.pages).toEqual([]);
+      expect(component.thumbnails).toEqual([]);
       expect(component.outputFileName).toBe('');
       expect(component.generalError).toBeNull();
     });

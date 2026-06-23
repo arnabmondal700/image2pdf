@@ -313,6 +313,83 @@ export class PdfToImageService {
   }
 
   /**
+   * Render low-resolution thumbnails for all pages of a PDF
+   *
+   * Uses pdfjs-dist to render each page as a data URL at a reduced scale.
+   * Returns an array where each element is either a data URL string or null
+   * (if that specific page failed to render).
+   *
+   * @param pdfFile - The PDF FileObject to render
+   * @param scale - Optional scale factor (default 0.3 for fast thumbnail rendering)
+   * @param signal - Optional AbortSignal to cancel rendering early
+   * @returns Promise resolving to an array of data URLs (or nulls)
+   */
+  async renderPageThumbnails(
+    pdfFile: FileObject,
+    scale: number = 0.3,
+    signal?: AbortSignal
+  ): Promise<(string | null)[]> {
+    if (!this.pdfWorkerInitialized) {
+      throw new Error('PDF processing not available – worker failed to initialize');
+    }
+
+    if (!pdfFile) {
+      throw new Error('No PDF file provided');
+    }
+
+    try {
+      const pdfBytes = await this.fetchPDFAsBytes(pdfFile.url);
+      const pdf = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
+      const totalPages = pdf.numPages;
+
+      if (totalPages === 0) {
+        return [];
+      }
+
+      const thumbnails: (string | null)[] = [];
+
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        if (signal?.aborted) {
+          break;
+        }
+
+        try {
+          const page = await pdf.getPage(pageNum);
+          const viewport = page.getViewport({ scale });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            throw new Error('Could not create 2D canvas context');
+          }
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          await page.render({ canvasContext: ctx, viewport } as any).promise;
+
+          const dataUrl = canvas.toDataURL('image/png', 0.7);
+          thumbnails.push(dataUrl);
+
+          canvas.width = 0;
+          canvas.height = 0;
+        } catch {
+          thumbnails.push(null);
+        }
+      }
+
+      return thumbnails;
+    } catch (error) {
+      throw new Error(
+        `Failed to render thumbnails: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
    * Convert canvas to Blob
    */
   private canvasToBlob(canvas: HTMLCanvasElement, mimeType: string, quality: number): Promise<Blob> {

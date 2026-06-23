@@ -69,6 +69,15 @@
         cdkDrag
         class="page-item"
         [class.duplicate]="page.isDuplicate">
+        <div class="page-thumbnail">
+          <img *ngIf="thumbnails[i]" [src]="thumbnails[i]" alt="Page {{ page.displayIndex }}" />
+          <div *ngIf="!thumbnails[i] && isGeneratingThumbnails" class="thumbnail-placeholder">
+            Loading...
+          </div>
+          <div *ngIf="!thumbnails[i] && !isGeneratingThumbnails" class="thumbnail-placeholder">
+            No preview
+          </div>
+        </div>
         <div class="page-drag-handle" cdkDragHandle title="Drag to reorder" aria-label="Drag to reorder">::</div>
         <div class="page-info">
           <span class="page-index">{{ page.displayIndex }}</span>

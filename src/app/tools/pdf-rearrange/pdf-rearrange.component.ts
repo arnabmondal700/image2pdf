@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FileService, FileObject, FileValidationError } from '../../services/file.service';
 import { PdfRearrangeService } from '../../services/pdf-rearrange.service';
+import { PdfToImageService } from '../../services/pdf-to-image.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
@@ -78,6 +79,21 @@ export class PdfRearrangeComponent implements OnInit {
   generalError: string | null = null;
 
   /**
+   * Thumbnail data URLs for each page (parallel to `pages`)
+   */
+  thumbnails: (string | null)[] = [];
+
+  /**
+   * Whether thumbnail generation is in progress
+   */
+  isGeneratingThumbnails = false;
+
+  /**
+   * AbortController for cancelling in-progress thumbnail generation
+   */
+  private thumbnailAbortController: AbortController | null = null;
+
+  /**
    * Tool definition for registration
    */
   toolDefinition: ToolDefinition = {
@@ -96,6 +112,7 @@ export class PdfRearrangeComponent implements OnInit {
   constructor(
     private fileService: FileService,
     private pdfRearrangeService: PdfRearrangeService,
+    private pdfToImageService: PdfToImageService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -181,6 +198,9 @@ export class PdfRearrangeComponent implements OnInit {
 
       this.outputFileName = this.uploadedPdf ? (this.pdfRearrangeService.sanitizeFileName(this.uploadedPdf.name) || 'rearranged-pdf') : '';
 
+      // Generate page thumbnails
+      await this.generateThumbnails();
+
       // Persist to IndexedDB
       await this.persistSessionFiles();
 
@@ -199,9 +219,11 @@ export class PdfRearrangeComponent implements OnInit {
    * Handle PDF removal
    */
   async onPdfRemoved(): Promise<void> {
+    this.cancelThumbnailGeneration();
     this.uploadedPdf = null;
     this.pageCount = 0;
     this.pages = [];
+    this.thumbnails = [];
     this.outputFileName = '';
     this.validationErrors = [];
     this.generalError = null;
@@ -340,9 +362,11 @@ export class PdfRearrangeComponent implements OnInit {
    * Clear all pages and reset form
    */
   async clearAll(): Promise<void> {
+    this.cancelThumbnailGeneration();
     this.uploadedPdf = null;
     this.pageCount = 0;
     this.pages = [];
+    this.thumbnails = [];
     this.outputFileName = '';
     this.validationErrors = [];
     this.generalError = null;
@@ -404,6 +428,46 @@ export class PdfRearrangeComponent implements OnInit {
     event.preventDefault();
     this.isDragging = false;
     void this.onFilesSelected(this.toFileArray(event.dataTransfer?.files));
+  }
+
+  /**
+   * Generate thumbnails for all pages of the currently loaded PDF.
+   */
+  private async generateThumbnails(): Promise<void> {
+    if (!this.uploadedPdf) {
+      this.thumbnails = [];
+      return;
+    }
+
+    this.thumbnailAbortController?.abort();
+    this.thumbnailAbortController = new AbortController();
+
+    this.isGeneratingThumbnails = true;
+    this.thumbnails = [];
+    this.cdr.markForCheck();
+
+    try {
+      const results = await this.pdfToImageService.renderPageThumbnails(
+        this.uploadedPdf,
+        0.3,
+        this.thumbnailAbortController.signal
+      );
+      this.thumbnails = results;
+    } catch {
+      this.thumbnails = this.thumbnails.length > 0 ? this.thumbnails : [];
+    } finally {
+      this.isGeneratingThumbnails = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  /**
+   * Cancel any in-progress thumbnail generation.
+   */
+  private cancelThumbnailGeneration(): void {
+    this.thumbnailAbortController?.abort();
+    this.thumbnailAbortController = null;
+    this.isGeneratingThumbnails = false;
   }
 
   private createPageItems(pageCount: number): PageItem[] {

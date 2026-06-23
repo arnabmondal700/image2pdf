@@ -615,7 +615,7 @@ Based on the current codebase, the best next steps are:
 4. ~~Add ZIP/multiple output modes after export architecture exists.~~ **DONE**
 5. ~~Add PDF to image export.~~ **DONE**
 6. ~~Add manual/system theme toggle in app header.~~ **DONE**
-7. Add PDF manipulation preview support for uploaded PDFs.
+7. ~~Add PDF manipulation preview support for uploaded PDFs.~~ **DONE (June 23, 2026 — rearrange page thumbnails via PdfToImageService.renderPageThumbnails())**
 8. Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — schema exists).
 9. Add OCR only after worker infrastructure is in place.
 10. Add PWA/offline installation after local workspace persistence is stable.
@@ -1061,6 +1061,41 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 **Validation:**
 - `npm run build` passes (no errors, only pre-existing budget warnings)
 
+## June 23, 2026 — PDF Page Thumbnails on Rearrange Page
+
+**Problem:** The PDF rearrange page showed pages as plain numbered list items with no visual preview of what each page actually looks like.
+
+**Fix — Service (`src/app/services/pdf-to-image.service.ts`):**
+- Added `renderPageThumbnails()` method that renders all PDF pages as low-resolution data URLs using `pdfjs-dist`
+- Default scale 0.3 for fast thumbnail rendering (~90% fewer pixels than full resolution)
+- Returns array of data URLs with `null` for any page that fails to render
+- Supports `AbortSignal` for cancellation when user clears/resets
+
+**Fix — Component (`src/app/tools/pdf-rearrange/pdf-rearrange.component.ts`):**
+- Injected `PdfToImageService`
+- Added `thumbnails`, `isGeneratingThumbnails`, and `thumbnailAbortController` state
+- `generateThumbnails()` called after successful PDF upload; cancels previous in-progress generation
+- Thumbnails cleared on PDF removal or clear-all with `cancelThumbnailGeneration()`
+
+**Fix — Template (`src/app/tools/pdf-rearrange/pdf-rearrange.component.html`):**
+- Added `.page-thumbnail` block in each `.page-item` showing rendered preview image or "Loading..."/"No preview" placeholder
+
+**Fix — Styles (`src/app/tools/pdf-rearrange/pdf-rearrange.component.scss`):**
+- Added `.page-thumbnail` styles: 90×110px container with rounded corners, contained image fit, placeholder text styling
+
+**Files modified:**
+- `src/app/services/pdf-to-image.service.ts`
+- `src/app/tools/pdf-rearrange/pdf-rearrange.component.ts`
+- `src/app/tools/pdf-rearrange/pdf-rearrange.component.html`
+- `src/app/tools/pdf-rearrange/pdf-rearrange.component.scss`
+- `src/app/tools/pdf-rearrange/pdf-rearrange.component.spec.ts`
+
+**Validation:**
+- All 45 tests pass
+- TypeScript compiles cleanly
+
+---
+
 ## June 23, 2026 — Manual/System Theme Toggle (Phase 7)
 
 **Files created:**
@@ -1090,8 +1125,7 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 3. ~~PDF to image export (Phase 4).~~ **DONE**
 4. ~~Manual/system theme toggle in app header.~~ **DONE**
 5. Wire `mixedBuilderItems` IndexedDB table into the Mixed Builder tool (optional — `pdfSettings`, `sessionFiles`, `workspaceSessions` already integrated).
-6. Add PDF manipulation preview support for uploaded PDFs (merge/split/rearrange preview).
-7. Add PWA/offline support.
+6. Add PWA/offline support.
 
 **Skipped permanently:**
 - Enable Mixed Builder and PDF Preview tools in `ToolRegistryService` (components and routes exist; will remain disabled until intentional UX integration is required)
