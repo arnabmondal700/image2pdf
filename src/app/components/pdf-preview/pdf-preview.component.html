@@ -24,12 +24,18 @@
     }
   </div>
 
-  @if (uploadedFiles.length === 0) {
+  @if (!pdfBlob && uploadedFiles.length === 0) {
     <div class="preview-empty">
       <p>Add images to preview the generated PDF.</p>
     </div>
   } @else {
     <div class="preview-body">
+      @if (pdfBlob && totalPages === 0 && !isRendering) {
+        <div class="preview-empty">
+          <p>Loading PDF preview&hellip;</p>
+        </div>
+      }
+
       @if (thumbnails.length > 1) {
         <div class="thumbnail-strip" aria-label="PDF page thumbnails">
           @for (thumbnail of thumbnails; track thumbnail.pageNumber) {

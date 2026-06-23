@@ -6,11 +6,12 @@ import { PDFSplitService } from '../../services/pdf-split.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
+import { PdfPreviewComponent } from '../../components/pdf-preview/pdf-preview.component';
 
 @Component({
   selector: 'app-pdf-split',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropZoneComponent],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent, PdfPreviewComponent],
   templateUrl: './pdf-split.component.html',
   styleUrls: ['./pdf-split.component.scss']
 })
@@ -24,6 +25,7 @@ export class PdfSplitComponent implements OnInit {
   outputMode: 'single' | 'separate' = 'single';
   splitFileName: string = 'split-document';
   isDragging = false;
+  previewBlob: Blob | null = null;
 
   toolDefinition: ToolDefinition = {
     id: 'pdf-split',
@@ -58,6 +60,7 @@ export class PdfSplitComponent implements OnInit {
         this.uploadedPdf = restored[0];
         // Re-fetch page count after restore
         this.pageCount = await this.pdfSplitService.getPageCount(this.uploadedPdf);
+        this.updatePreviewBlob();
         this.cdr.detectChanges();
       }
     } catch {
@@ -83,6 +86,41 @@ export class PdfSplitComponent implements OnInit {
   }
 
   /**
+   * Convert a Data URL to a Blob directly (avoids fetch() which
+   * may fail on data URLs in some browsers).
+   */
+  private dataUrlToBlob(dataUrl: string): Blob | null {
+    try {
+      const [meta, base64] = dataUrl.split(',');
+      const mimeMatch = meta.match(/:(.*?);/);
+      if (!mimeMatch) return null;
+      const mimeType = mimeMatch[1];
+      const byteChars = atob(base64);
+      const bytes = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        bytes[i] = byteChars.charCodeAt(i);
+      }
+      return new Blob([bytes], { type: mimeType });
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Update preview blob from the currently uploaded PDF.
+   */
+  private updatePreviewBlob(): void {
+    if (!this.uploadedPdf) {
+      console.log('[SplitPreview] updatePreviewBlob: no uploadedPdf');
+      this.previewBlob = null;
+      return;
+    }
+    console.log('[SplitPreview] updatePreviewBlob: converting url, prefix=', this.uploadedPdf.url.slice(0, 60));
+    this.previewBlob = this.dataUrlToBlob(this.uploadedPdf.url);
+    console.log('[SplitPreview] updatePreviewBlob: result size=', this.previewBlob?.size ?? 'null');
+  }
+
+  /**
    * Handle file selection from drag-drop or file picker
    */
   async onFilesSelected(files: FileList | File[]): Promise<void> {
@@ -103,6 +141,9 @@ export class PdfSplitComponent implements OnInit {
         // Clear previous errors and page range
         this.validationErrors = [];
         this.pageRange = '';
+
+        // Update preview blob
+        this.updatePreviewBlob();
 
         // Persist to IndexedDB
         await this.persistSessionFiles();
@@ -130,6 +171,7 @@ export class PdfSplitComponent implements OnInit {
     this.pageRange = '';
     this.validationErrors = [];
     this.generalError = null;
+    this.previewBlob = null;
     await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
@@ -199,6 +241,7 @@ export class PdfSplitComponent implements OnInit {
     this.pageRange = '';
     this.validationErrors = [];
     this.generalError = null;
+    this.previewBlob = null;
     this.outputMode = 'single';
     this.splitFileName = 'split-document';
     await this.persistSessionFiles();

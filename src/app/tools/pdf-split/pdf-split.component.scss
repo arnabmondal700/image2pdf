@@ -428,6 +428,12 @@
   }
 }
 
+.preview-section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--panel-border);
+}
+
 /* Split info */
 .split-info {
   display: grid;

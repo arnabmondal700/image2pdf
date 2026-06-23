@@ -136,6 +136,15 @@
           <span>{{ outputMode === 'single' ? 'output PDF' : 'output PDF(s)' }}</span>
         </div>
       </div>
+
+      <!-- PDF Preview Section -->
+      <div class="preview-section">
+        <div class="section-header">
+          <h3>Preview</h3>
+          <p class="hint">Page-by-page preview of the uploaded PDF</p>
+        </div>
+        <pdf-preview [pdfBlob]="previewBlob" />
+      </div>
     </div>
   }
 

@@ -7,11 +7,12 @@ import { PDFMergeService } from '../../services/pdf-merge.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
+import { PdfPreviewComponent } from '../../components/pdf-preview/pdf-preview.component';
 
 @Component({
   selector: 'app-pdf-merge',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule, DragDropZoneComponent],
+  imports: [CommonModule, FormsModule, DragDropModule, DragDropZoneComponent, PdfPreviewComponent],
   templateUrl: './pdf-merge.component.html',
   styleUrls: ['./pdf-merge.component.scss']
 })
@@ -22,6 +23,8 @@ export class PdfMergeComponent implements OnInit {
   isMerging = false;
   mergeFileName: string = 'merged-document';
   isDragging = false;
+  previewBlob: Blob | null = null;
+  selectedPreviewIndex = 0;
 
   toolDefinition: ToolDefinition = {
     id: 'pdf-merge',
@@ -54,6 +57,7 @@ export class PdfMergeComponent implements OnInit {
       const restored = await this.sessionStorage.loadSession(this.toolDefinition.id);
       if (restored && restored.length > 0) {
         this.uploadedPdfs = restored;
+        this.updatePreviewBlob();
         this.cdr.detectChanges();
       }
     } catch {
@@ -78,6 +82,54 @@ export class PdfMergeComponent implements OnInit {
   }
 
   /**
+   * Convert a Data URL to a Blob directly (avoids fetch() which
+   * may fail on data URLs in some browsers).
+   */
+  private dataUrlToBlob(dataUrl: string): Blob | null {
+    try {
+      const [meta, base64] = dataUrl.split(',');
+      const mimeMatch = meta.match(/:(.*?);/);
+      if (!mimeMatch) {
+        console.warn('[MergePreview] dataUrlToBlob: mime match failed', dataUrl.slice(0, 80));
+        return null;
+      }
+      const mimeType = mimeMatch[1];
+      const byteChars = atob(base64);
+      const bytes = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        bytes[i] = byteChars.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: mimeType });
+      console.log('[MergePreview] dataUrlToBlob: success', { mimeType, size: blob.size });
+      return blob;
+    } catch (err) {
+      console.warn('[MergePreview] dataUrlToBlob: error', err);
+      return null;
+    }
+  }
+
+  /**
+   * Update the preview blob to show the first uploaded PDF.
+   */
+  private updatePreviewBlob(): void {
+    if (this.uploadedPdfs.length === 0) {
+      this.previewBlob = null;
+      return;
+    }
+    const idx = Math.min(this.selectedPreviewIndex, this.uploadedPdfs.length - 1);
+    this.previewBlob = this.dataUrlToBlob(this.uploadedPdfs[idx].url);
+  }
+
+  /**
+   * Select a specific PDF in the list to preview.
+   */
+  selectPreviewFile(index: number): void {
+    if (index < 0 || index >= this.uploadedPdfs.length) return;
+    this.selectedPreviewIndex = index;
+    this.previewBlob = this.dataUrlToBlob(this.uploadedPdfs[index].url);
+  }
+
+  /**
    * Handle files from drag-drop or file picker
    */
   async onFilesSelected(files: FileList | File[]): Promise<void> {
@@ -90,11 +142,15 @@ export class PdfMergeComponent implements OnInit {
       
       if (pdfs.length > 0) {
         this.uploadedPdfs = [...this.uploadedPdfs, ...pdfs];
+        this.selectedPreviewIndex = 0;
       }
       
       if (result.errors.length > 0) {
         this.validationErrors = result.errors;
       }
+
+      // Update preview blob
+      this.updatePreviewBlob();
 
       // Persist to IndexedDB
       await this.persistSessionFiles();
@@ -111,6 +167,10 @@ export class PdfMergeComponent implements OnInit {
    */
   async onPdfRemoved(index: number): Promise<void> {
     this.uploadedPdfs = this.uploadedPdfs.filter((_, i) => i !== index);
+    if (this.selectedPreviewIndex >= this.uploadedPdfs.length) {
+      this.selectedPreviewIndex = Math.max(0, this.uploadedPdfs.length - 1);
+    }
+    this.updatePreviewBlob();
     await this.persistSessionFiles();
     this.cdr.detectChanges();
   }
@@ -184,6 +244,7 @@ export class PdfMergeComponent implements OnInit {
     this.uploadedPdfs = [];
     this.validationErrors = [];
     this.generalError = null;
+    this.previewBlob = null;
     await this.persistSessionFiles();
     this.cdr.detectChanges();
   }

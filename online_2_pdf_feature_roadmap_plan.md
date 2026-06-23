@@ -2,7 +2,7 @@
 
 > Status-aware roadmap for the current Angular image-to-PDF application.
 >
-> Last implementation audit: 2026-06-18
+> Last implementation audit: 2026-06-23
 >
 > Verified during audit by source analysis:
 > - `src/app/tools/image-to-pdf/image-to-pdf.component.ts` shows image + PDF upload handling
@@ -1037,6 +1037,25 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 **Validation:**
 - `npm.cmd run build` passes
 - `npm.cmd test` passes
+
+## June 23, 2026 — PDF Preview for Uploaded PDFs (Priority 5)
+
+**Problem:** The `pdf-preview` component's template had `<canvas #previewCanvas>` inside the `@else` structural branch. When `pdfBlob` was set but `totalPages === 0`, the "Loading PDF preview…" `@else if` branch was active instead — the canvas never existed in the DOM, so `@ViewChild` could never resolve, causing an infinite retry loop with "Canvas ViewChild not ready yet" logs.
+
+**Fix — Template (`pdf-preview.component.html`):**
+- Restructured the `@else` block so the canvas is **always rendered** when data is present
+- Moved the "Loading PDF preview…" text into a conditional **overlay inside** the `@else` block instead of a separate structural branch
+
+**Fix — Component (`pdf-preview.component.ts`):**
+- Added explicit canvas availability check in `performRefresh()` before calling `refreshPreview()`
+- If canvas isn't ready, resets `isRefreshing` and schedules a `setTimeout` retry after 400ms
+
+**Files modified:**
+- `src/app/components/pdf-preview/pdf-preview.component.html` — Template restructured to always render canvas
+- `src/app/components/pdf-preview/pdf-preview.component.ts` — Added retry scheduling when canvas ViewChild not ready
+
+**Validation:**
+- `npm.cmd run build` passes (no errors, only pre-existing budget warnings)
 
 ---
 

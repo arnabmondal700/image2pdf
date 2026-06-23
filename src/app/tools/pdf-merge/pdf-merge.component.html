@@ -93,6 +93,33 @@
           <span>{{ uploadedPdfs.length === 1 ? 'PDF' : 'PDFs' }} selected</span>
         </div>
       </div>
+
+      <!-- PDF Preview Section -->
+      <div class="preview-section">
+        <div class="section-header">
+          <h3>Preview PDF</h3>
+          <p class="hint">Click a filename below to preview that PDF</p>
+        </div>
+
+        <!-- File selector for preview -->
+        <div class="preview-file-selector">
+          @for (pdf of uploadedPdfs; track pdf.url; let index = $index) {
+            <button
+              type="button"
+              class="preview-file-button"
+              [class.active]="index === selectedPreviewIndex"
+              (click)="selectPreviewFile(index)"
+              [title]="'Preview ' + pdf.name"
+            >
+              <span class="preview-file-name">{{ pdf.name }}</span>
+              <span class="preview-file-size">{{ (pdf.size / 1024 / 1024).toFixed(2) }} MB</span>
+            </button>
+          }
+        </div>
+
+        <!-- PDF preview component -->
+        <pdf-preview [pdfBlob]="previewBlob" />
+      </div>
     </div>
   }
 
