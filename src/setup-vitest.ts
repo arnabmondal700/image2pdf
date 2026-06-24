@@ -15,6 +15,14 @@
 // 1. Register the JIT compiler
 import '@angular/compiler';
 
+import { DOMMatrix, DOMPoint, ImageData } from 'canvas';
+
+Object.assign(globalThis, {
+  DOMMatrix,
+  DOMPoint,
+  ImageData,
+});
+
 // 2. Load zone.js and its testing patches
 import 'zone.js';
 import 'zone.js/testing';

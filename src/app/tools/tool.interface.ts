@@ -32,7 +32,7 @@ export interface ToolDefinition {
   /**
    * Category for grouping tools (e.g., 'convert', 'merge', 'compress', 'edit', 'rearrange')
    */
-  category: 'convert' | 'merge' | 'compress' | 'edit' | 'extract' | 'secure' | 'rearrange' | 'optimize';
+  category: 'convert' | 'merge' | 'compress' | 'edit' | 'extract' | 'secure' | 'rearrange' | 'optimize' | 'ocr';
 
   /**
    * Whether this tool is enabled in the current build

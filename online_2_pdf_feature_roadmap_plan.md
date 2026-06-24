@@ -1162,3 +1162,828 @@ The near-term product should stay focused on making image-to-PDF excellent befor
 
 **Skipped permanently:**
 - Enable Mixed Builder and PDF Preview tools in `ToolRegistryService` (components and routes exist; will remain disabled until intentional UX integration is required)
+
+# Developer-Ready OCR Implementation Plan for `image2pdf`
+
+This document is written as a development task list that can be directly implemented in your Angular application.
+
+---
+
+# Feature Goal
+
+Add **OCR-powered Searchable PDF generation**.
+
+Users should be able to:
+
+* Enable OCR from settings.
+* Choose OCR language.
+* Generate searchable PDFs.
+* See OCR progress.
+* Work completely offline.
+* Reuse cached OCR results.
+
+---
+
+# Step 1 — Install OCR Dependency
+
+## Task
+
+Install Tesseract.js.
+
+```bash
+npm install tesseract.js
+```
+
+---
+
+# Step 2 — Create OCR Models
+
+## File
+
+```text
+src/app/models/ocr-result.model.ts
+```
+
+## Code
+
+```ts
+export interface OCRBoundingBox {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+export interface OCRWord {
+  text: string;
+  confidence: number;
+  bbox: OCRBoundingBox;
+}
+
+export interface OCRResult {
+  text: string;
+  confidence: number;
+  words: OCRWord[];
+}
+
+export type OCRStatus =
+  | 'idle'
+  | 'queued'
+  | 'processing'
+  | 'completed'
+  | 'failed';
+
+export interface OCRState {
+  status: OCRStatus;
+  progress: number;
+  error?: string;
+}
+
+export interface OCRProgressEvent {
+  status: string;
+  progress: number;
+}
+
+export interface OCRSettings {
+  enabled: boolean;
+  language: string;
+  cacheResults: boolean;
+}
+```
+
+---
+
+# Step 3 — Extend Document Model
+
+## File
+
+```text
+src/app/models/document-item.model.ts
+```
+
+## Add
+
+```ts
+import {
+  OCRResult,
+  OCRState
+} from './ocr-result.model';
+```
+
+Inside interface:
+
+```ts
+ocrState?: OCRState;
+
+ocrResult?: OCRResult;
+
+ocrLanguage?: string;
+```
+
+---
+
+# Step 4 — Create OCR Worker
+
+## File
+
+```text
+src/app/workers/ocr.worker.ts
+```
+
+## Code
+
+```ts
+/// <reference lib="webworker" />
+
+import Tesseract from 'tesseract.js';
+
+addEventListener('message', async ({ data }) => {
+
+  const { image, language } = data;
+
+  try {
+
+    const result = await Tesseract.recognize(
+      image,
+      language,
+      {
+        logger: progress => {
+          postMessage({
+            type: 'progress',
+            payload: progress
+          });
+        }
+      }
+    );
+
+    postMessage({
+      type: 'success',
+      payload: {
+        text: result.data.text,
+        confidence: result.data.confidence,
+        words: result.data.words.map(word => ({
+          text: word.text,
+          confidence: word.confidence,
+          bbox: {
+            x0: word.bbox.x0,
+            y0: word.bbox.y0,
+            x1: word.bbox.x1,
+            y1: word.bbox.y1
+          }
+        }))
+      }
+    });
+
+  } catch (error) {
+
+    postMessage({
+      type: 'error',
+      payload: error
+    });
+
+  }
+
+});
+```
+
+---
+
+# Step 5 — Create OCR Service
+
+## File
+
+```text
+src/app/services/ocr.service.ts
+```
+
+## Responsibilities
+
+* Manage worker lifecycle.
+* Expose Observable API.
+* Handle cancellation.
+* Provide OCR results.
+
+---
+
+## Code
+
+```ts
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class OcrService {
+
+  recognize(
+    image: Blob,
+    language: string
+  ): Observable<any> {
+
+    return new Observable(observer => {
+
+      const worker = new Worker(
+        new URL('../workers/ocr.worker', import.meta.url),
+        { type: 'module' }
+      );
+
+      worker.postMessage({
+        image,
+        language
+      });
+
+      worker.onmessage = ({ data }) => {
+
+        if (data.type === 'progress') {
+
+          observer.next({
+            type: 'progress',
+            payload: data.payload
+          });
+
+        }
+
+        if (data.type === 'success') {
+
+          observer.next({
+            type: 'result',
+            payload: data.payload
+          });
+
+          observer.complete();
+          worker.terminate();
+        }
+
+        if (data.type === 'error') {
+
+          observer.error(data.payload);
+          worker.terminate();
+        }
+      };
+
+      return () => worker.terminate();
+
+    });
+
+  }
+}
+```
+
+---
+
+# Step 6 — Add OCR Settings
+
+## File
+
+```text
+src/app/services/pdf-settings-storage.service.ts
+```
+
+## Add
+
+```ts
+enableOCR: false,
+ocrLanguage: 'eng',
+cacheOCR: true
+```
+
+---
+
+## Add methods
+
+```ts
+getEnableOCR(): boolean {}
+
+setEnableOCR(value: boolean): void {}
+
+getOCRLanguage(): string {}
+
+setOCRLanguage(language: string): void {}
+```
+
+---
+
+# Step 7 — Update Settings Panel UI
+
+## File
+
+```text
+src/app/components/pdf-settings-panel/pdf-settings-panel.component.ts
+```
+
+## Add
+
+```ts
+enableOCR = false;
+
+ocrLanguage = 'eng';
+```
+
+---
+
+## File
+
+```text
+pdf-settings-panel.component.html
+```
+
+## Add
+
+```html
+<div class="ocr-settings">
+
+  <label>
+    <input
+      type="checkbox"
+      [(ngModel)]="enableOCR">
+    Enable OCR
+  </label>
+
+  <select [(ngModel)]="ocrLanguage">
+
+    <option value="eng">
+      English
+    </option>
+
+    <option value="ben">
+      Bengali
+    </option>
+
+    <option value="eng+ben">
+      English + Bengali
+    </option>
+
+  </select>
+
+</div>
+```
+
+---
+
+# Step 8 — Show OCR Status in File List
+
+## File
+
+```text
+src/app/components/file-item/file-item.component.ts
+```
+
+Add helpers:
+
+```ts
+get isOCRProcessing() {
+  return this.file.ocrState?.status === 'processing';
+}
+
+get ocrProgress() {
+  return this.file.ocrState?.progress ?? 0;
+}
+```
+
+---
+
+## File
+
+```text
+file-item.component.html
+```
+
+Add:
+
+```html
+@if (file.ocrState) {
+
+<div class="ocr-status">
+
+  <small>
+
+    OCR:
+    {{ file.ocrState.status }}
+
+  </small>
+
+  @if (file.ocrState.status === 'processing') {
+
+    <progress
+      [value]="file.ocrState.progress"
+      max="100">
+    </progress>
+
+  }
+
+</div>
+
+}
+```
+
+---
+
+# Step 9 — Add OCR Orchestration
+
+## File
+
+```text
+src/app/tools/image-to-pdf/image-to-pdf.component.ts
+```
+
+---
+
+Inject
+
+```ts
+private ocrService = inject(OcrService);
+```
+
+---
+
+Add:
+
+```ts
+async processOCR() {
+
+  if (!this.settings.enableOCR)
+    return;
+
+  for (const file of this.files) {
+
+    file.ocrState = {
+      status: 'processing',
+      progress: 0
+    };
+
+    await new Promise<void>((resolve, reject) => {
+
+      this.ocrService
+        .recognize(
+          file.file,
+          this.settings.ocrLanguage
+        )
+        .subscribe({
+
+          next: event => {
+
+            if (event.type === 'progress') {
+
+              file.ocrState = {
+                status: 'processing',
+                progress:
+                  Math.round(
+                    event.payload.progress * 100
+                  )
+              };
+            }
+
+            if (event.type === 'result') {
+
+              file.ocrResult =
+                event.payload;
+
+              file.ocrState = {
+                status: 'completed',
+                progress: 100
+              };
+
+              resolve();
+            }
+
+          },
+
+          error: err => {
+
+            file.ocrState = {
+              status: 'failed',
+              progress: 0,
+              error: err
+            };
+
+            reject(err);
+
+          }
+
+        });
+
+    });
+
+  }
+
+}
+```
+
+---
+
+# Step 10 — Trigger OCR Before PDF Generation
+
+Locate:
+
+```ts
+generatePdf()
+```
+
+Modify:
+
+```ts
+async generatePdf() {
+
+  if (this.settings.enableOCR) {
+    await this.processOCR();
+  }
+
+  await this.pdfService.generate(
+    this.files,
+    this.settings
+  );
+
+}
+```
+
+---
+
+# Step 11 — Create Coordinate Mapper
+
+## File
+
+```text
+src/app/utils/ocr-coordinate-mapper.ts
+```
+
+## Code
+
+```ts
+export class OCRCoordinateMapper {
+
+  static map(
+    bbox: any,
+    imageWidth: number,
+    imageHeight: number,
+    pdfWidth: number,
+    pdfHeight: number
+  ) {
+
+    return {
+
+      x:
+        (bbox.x0 / imageWidth) *
+        pdfWidth,
+
+      y:
+        (bbox.y0 / imageHeight) *
+        pdfHeight
+
+    };
+
+  }
+
+}
+```
+
+---
+
+# Step 12 — Modify PDF Generation
+
+Most important step.
+
+---
+
+## File
+
+```text
+src/app/services/pdf.service.ts
+```
+
+Locate:
+
+```ts
+pdf.addImage(...)
+```
+
+Immediately after:
+
+```ts
+if (
+  settings.enableOCR &&
+  file.ocrResult
+) {
+
+  this.addOCRTextLayer(
+    pdf,
+    file
+  );
+
+}
+```
+
+---
+
+# Step 13 — Add Hidden Text Layer
+
+Inside:
+
+```ts
+pdf.service.ts
+```
+
+Add:
+
+```ts
+private addOCRTextLayer(
+  pdf: jsPDF,
+  file: DocumentItem
+) {
+
+  if (!file.ocrResult)
+    return;
+
+  const pageWidth =
+    pdf.internal.pageSize.getWidth();
+
+  const pageHeight =
+    pdf.internal.pageSize.getHeight();
+
+  const imageWidth =
+    file.width;
+
+  const imageHeight =
+    file.height;
+
+  pdf.setFontSize(1);
+
+  pdf.setTextColor(
+    255,
+    255,
+    255
+  );
+
+  file.ocrResult.words
+    .forEach(word => {
+
+      const mapped =
+        OCRCoordinateMapper.map(
+          word.bbox,
+          imageWidth,
+          imageHeight,
+          pageWidth,
+          pageHeight
+        );
+
+      pdf.text(
+        word.text,
+        mapped.x,
+        mapped.y
+      );
+
+    });
+
+}
+```
+
+---
+
+# Step 14 — Add OCR Cache
+
+## File
+
+```text
+src/app/services/storage/indexed-db.service.ts
+```
+
+Add:
+
+```ts
+saveOCR(
+  id: string,
+  result: OCRResult
+) {}
+
+getOCR(
+  id: string
+): Promise<OCRResult | null> {}
+```
+
+Recommended object store:
+
+```ts
+ocr-cache
+```
+
+---
+
+# Step 15 — Reuse OCR Cache
+
+Inside:
+
+```ts
+processOCR()
+```
+
+Add:
+
+```ts
+const cached =
+  await this.db.getOCR(
+    file.id
+  );
+
+if (cached) {
+
+  file.ocrResult = cached;
+
+  file.ocrState = {
+    status: 'completed',
+    progress: 100
+  };
+
+  continue;
+}
+```
+
+After successful OCR:
+
+```ts
+await this.db.saveOCR(
+  file.id,
+  file.ocrResult
+);
+```
+
+---
+
+# Step 16 — Add Retry Button
+
+## File
+
+```text
+file-item.component.html
+```
+
+```html
+@if (
+ file.ocrState?.status === 'failed'
+){
+
+<button
+ (click)="retryOCR()">
+
+ Retry OCR
+
+</button>
+
+}
+```
+
+---
+
+# Step 17 — Testing Checklist
+
+## OCR
+
+* Single image.
+* Multiple images.
+* Large image.
+* Rotated image.
+* Bengali text.
+* English text.
+
+## PDF
+
+* Search text.
+* Copy text.
+* Open in Adobe Reader.
+* Open in Chrome PDF viewer.
+
+## Performance
+
+* 20 images.
+* Mobile device.
+* Offline mode.
+
+---
+
+# Final Architecture
+
+```text
+image-to-pdf.component
+            │
+            ▼
+      OcrService
+            │
+            ▼
+      OCR Worker
+            │
+            ▼
+      OCR Result
+            │
+            ▼
+     IndexedDB Cache
+            │
+            ▼
+       PDF Service
+            │
+            ▼
+ Invisible Text Layer
+            │
+            ▼
+    Searchable PDF
+```
+
+This implementation will fit naturally into your existing Angular architecture and reuse your current worker, storage, and service patterns.

@@ -1,0 +1,40 @@
+<div class="ocr-tool">
+  <h2>Image to Searchable PDF</h2>
+  <p class="description">Upload an image or scanned PDF to extract text and create a searchable PDF.</p>
+
+  <div class="settings">
+    <label>
+      <span>Language</span>
+      <input type="text" [(ngModel)]="language" placeholder="eng" />
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" [(ngModel)]="preserveLayout" />
+      <span>Preserve layout</span>
+    </label>
+  </div>
+
+  <drag-drop-zone
+    [accept]="'image/png, image/jpeg, image/jpg, application/pdf'"
+    (filesSelected)="onFilesSelected($event)"
+  ></drag-drop-zone>
+
+  <div class="actions" *ngIf="file && !result">
+    <button class="primary" (click)="createSearchablePdf()" [disabled]="isProcessing">Create Searchable PDF</button>
+    <button class="secondary" (click)="clear()">Clear</button>
+  </div>
+
+  <div class="progress" *ngIf="progress">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="progress.total ? (progress.current / progress.total) * 100 : 0"></div>
+    </div>
+    <div class="progress-text">{{ progress.status }} ({{ progress.current }}/{{ progress.total }})</div>
+    <button class="secondary" (click)="cancel()" *ngIf="isProcessing">Cancel</button>
+  </div>
+
+  <div class="error" *ngIf="error">{{ error }}</div>
+
+  <div class="result" *ngIf="result">
+    <div class="success">Searchable PDF ready: {{ result.name }}</div>
+    <button class="primary" (click)="download()">Download PDF</button>
+  </div>
+</div>

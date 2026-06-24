@@ -82,6 +82,22 @@ export const routes: Routes = [
       ),
     data: { title: 'PDF to Image', toolId: 'pdf-to-image' }
   },
+  {
+    path: 'ocr-to-searchable-pdf',
+    loadComponent: () =>
+      import('./tools/image-to-searchable-pdf/image-to-searchable-pdf.component').then(
+        m => m.ImageToSearchablePdfComponent
+      ),
+    data: { title: 'Image to Searchable PDF', toolId: 'image-to-searchable-pdf' }
+  },
+  {
+    path: 'ocr-text-export',
+    loadComponent: () =>
+      import('./tools/ocr-text-export/ocr-text-export.component').then(
+        m => m.OcrTextExportComponent
+      ),
+    data: { title: 'OCR Text Export', toolId: 'ocr-text-export' }
+  },
   // Catch-all redirect
   {
     path: '**',

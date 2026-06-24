@@ -111,6 +111,29 @@ export class ToolRegistryService {
       priority: 58
     });
 
+    // OCR Tools - Phase 5 (disabled by default)
+    this.registerTool({
+      id: 'image-to-searchable-pdf',
+      name: 'Image to Searchable PDF',
+      description: 'Upload an image or scanned PDF to extract text and create a searchable PDF',
+      icon: 'fa-solid fa-magnifying-glass',
+      path: 'ocr-to-searchable-pdf',
+      category: 'ocr',
+      enabled: false,
+      priority: 50
+    });
+
+    this.registerTool({
+      id: 'ocr-text-export',
+      name: 'OCR Text Export',
+      description: 'Upload an image or scanned PDF to extract text and download as .txt',
+      icon: 'fa-solid fa-file-lines',
+      path: 'ocr-text-export',
+      category: 'extract',
+      enabled: false,
+      priority: 48
+    });
+
     // Mixed PDF Builder - Combine images and PDF pages
     // this.registerTool({
     //   id: 'mixed-builder',

@@ -1,0 +1,96 @@
+.ocr-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .description {
+    margin: 0;
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+  }
+
+  .settings {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    input[type='text'] {
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text);
+      min-width: 8rem;
+    }
+
+    .checkbox {
+      cursor: pointer;
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .progress-bar {
+      height: 1rem;
+      border-radius: 0.75rem;
+      background: var(--progress-track);
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: var(--progress-fill);
+        transition: width 0.2s ease;
+      }
+    }
+
+    .progress-text {
+      font-size: 0.85rem;
+      color: var(--secondary-text);
+    }
+  }
+
+  .error {
+    color: #b94a48;
+    background: #f2dede;
+    border: 1px solid #ebccd1;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .result {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .success {
+      color: #3c763d;
+      background: #dff0d8;
+      border: 1px solid #d6e9c6;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+  }
+}

@@ -31,10 +31,12 @@
     "pdfjs-dist": "^5.7.284",
     "qpdf-run": "^0.2.1",
     "rxjs": "~7.8.0",
+    "tesseract.js": "^7.0.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.16.0"
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.6.1",
     "@angular/build": "^21.2.7",
     "@angular/cli": "^21.2.7",
     "@angular/compiler-cli": "^21.2.0",
