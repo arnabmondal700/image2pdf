@@ -73,6 +73,8 @@ export class OcrService {
 
     this.cancelRequested = false;
 
+    console.log('[ocr.service] recognize() called', file.name, file.type, 'workerSupported:', this.isWorkerSupported());
+
     if (this.isWorkerSupported()) {
       return this.recognizeWithWorker(file, { language, preserveLayout });
     }
@@ -81,6 +83,7 @@ export class OcrService {
   }
 
   cancel(): void {
+    console.log('[ocr.service] cancel() called');
     const reject = this.activeReject;
     this.cancelRequested = true;
     this.pdfToImageService.cancelExport();
@@ -88,6 +91,7 @@ export class OcrService {
     void this.terminateActiveTesseractWorker();
     this.progressSubject.next(null);
     if (reject) {
+      console.log('[ocr.service] Rejecting with OcrCancelledError');
       reject(new OcrCancelledError());
     }
   }
@@ -100,7 +104,131 @@ export class OcrService {
     return typeof Worker !== 'undefined';
   }
 
+  private async renderInputToImageFiles(file: FileObject): Promise<FileObject[]> {
+    const type = (file.type || '').toLowerCase();
+    console.log('[ocr.service] renderInputToImageFiles:', file.name, 'type:', type);
+
+    if (type.includes('pdf')) {
+      console.log('[ocr.service] Converting PDF to images...');
+      const images = await this.pdfToImageService.convertToImages(
+        {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          url: file.url
+        },
+        {
+          pageRange: 'all',
+          format: 'png',
+          jpegQuality: 0.92,
+          scale: 2,
+          outputMode: 'individual'
+        }
+      );
+      console.log('[ocr.service] PDF converted to', images.length, 'images');
+
+      return images.map((img) => ({
+        name: img.name,
+        type: 'image/png',
+        size: img.blob.size,
+        url: img.dataUrl
+      }));
+    }
+
+    console.log('[ocr.service] Not a PDF, returning file as-is');
+    return [file];
+  }
+
+  private recognizeWithWorker(file: FileObject, options: Required<OcrOptions>): Promise<OcrResult> {
+    console.log('[ocr.service] recognizeWithWorker() entered');
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.terminateWorker();
+        this.activeReject = reject;
+        this.cancelRequested = false;
+
+        console.log('[ocr.service] Calling renderInputToImageFiles...');
+        const images = this.cancelRequested
+          ? []
+          : await this.renderInputToImageFiles(file);
+        console.log('[ocr.service] renderInputToImageFiles returned', images.length, 'images');
+
+        if (this.cancelRequested) {
+          console.log('[ocr.service] Cancelled after renderInputToImageFiles');
+          throw new OcrCancelledError();
+        }
+
+        const total = images.length;
+        console.log('[ocr.service] Setting progress: current=0 total=' + total + ' status="Starting OCR..."');
+        this.progressSubject.next({ current: 0, total, status: 'Starting OCR...' });
+
+        this.worker = new Worker(new URL('../workers/ocr.worker.ts', import.meta.url), {
+          type: 'module'
+        });
+        console.log('[ocr.service] Worker created');
+
+        this.worker.onmessage = (event: MessageEvent<OcrWorkerResponse>) => {
+          const data = event.data;
+          console.log('[ocr.service] Worker message received:', data.type);
+
+          if (data.type === 'progress') {
+            console.log('[ocr.service] PROGRESS UPDATE:', data.current, '/', data.total, data.status);
+            this.progressSubject.next({
+              current: data.current,
+              total: data.total,
+              status: data.status
+            });
+            return;
+          }
+
+          if (data.type === 'complete') {
+            console.log('[ocr.service] COMPLETE received:', data.pages.length, 'pages,', data.durationMs, 'ms');
+            this.terminateWorker();
+            this.progressSubject.next(null);
+            resolve({
+              pages: data.pages,
+              totalPages: data.totalPages,
+              durationMs: data.durationMs
+            });
+            return;
+          }
+
+          console.log('[ocr.service] ERROR received:', data.message);
+          this.terminateWorker();
+          this.progressSubject.next(null);
+          reject(new Error(data.message));
+        };
+
+        this.worker.onerror = (error) => {
+          console.log('[ocr.service] Worker raw onerror:', error.message, error);
+          this.terminateWorker();
+          this.progressSubject.next(null);
+          reject(new Error(`OCR worker error: ${error.message}`));
+        };
+
+        const messagePayload = {
+          type: 'start',
+          images: images.map((img) => ({
+            name: img.name,
+            type: img.type,
+            size: img.size,
+            url: img.url
+          })),
+          options
+        };
+        console.log('[ocr.service] Posting start to worker, images count:', messagePayload.images.length);
+        this.worker.postMessage(messagePayload);
+      } catch (error) {
+        console.log('[ocr.service] recognizeWithWorker caught error:', error);
+        this.terminateWorker();
+        this.progressSubject.next(null);
+        reject(error);
+      }
+    });
+  }
+
   private recognizeWithFallback(file: FileObject, language: string, preserveLayout: boolean): Promise<OcrResult> {
+    console.log('[ocr.service] Using fallback path (no worker)');
     return new Promise(async (resolve, reject) => {
       this.activeReject = reject;
       const startTime = performance.now();
@@ -124,70 +252,8 @@ export class OcrService {
     });
   }
 
-  private recognizeWithWorker(file: FileObject, options: Required<OcrOptions>): Promise<OcrResult> {
-    return new Promise((resolve, reject) => {
-      try {
-        this.terminateWorker();
-        this.activeReject = reject;
-        this.progressSubject.next({ current: 0, total: 0, status: 'Starting OCR...' });
-
-        this.worker = new Worker(new URL('../workers/ocr.worker.ts', import.meta.url), {
-          type: 'module'
-        });
-
-        this.worker.onmessage = (event: MessageEvent<OcrWorkerResponse>) => {
-          const data = event.data;
-
-          if (data.type === 'progress') {
-            this.progressSubject.next({
-              current: data.current,
-              total: data.total,
-              status: data.status
-            });
-            return;
-          }
-
-          if (data.type === 'complete') {
-            this.terminateWorker();
-            this.progressSubject.next(null);
-            resolve({
-              pages: data.pages,
-              totalPages: data.totalPages,
-              durationMs: data.durationMs
-            });
-            return;
-          }
-
-          this.terminateWorker();
-          this.progressSubject.next(null);
-          reject(new Error(data.message));
-        };
-
-        this.worker.onerror = (error) => {
-          this.terminateWorker();
-          this.progressSubject.next(null);
-          reject(new Error(`OCR worker error: ${error.message}`));
-        };
-
-        this.worker.postMessage({
-          type: 'start',
-          file: {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            url: file.url
-          },
-          options
-        });
-      } catch (error) {
-        this.terminateWorker();
-        this.progressSubject.next(null);
-        reject(error);
-      }
-    });
-  }
-
   private async processFile(file: FileObject, language: string, preserveLayout: boolean): Promise<OcrPageResult[]> {
+    console.log('[ocr.service] processFile() started');
     const imageFiles = await this.renderInputToImageFiles(file);
     if (this.cancelRequested) {
       throw new OcrCancelledError();
@@ -210,41 +276,12 @@ export class OcrService {
       results.push({ pageNumber: i + 1, ...result });
     }
 
+    console.log('[ocr.service] processFile() done, pages:', results.length);
     return results;
   }
 
-  private async renderInputToImageFiles(file: FileObject): Promise<FileObject[]> {
-    const type = (file.type || '').toLowerCase();
-
-    if (type.includes('pdf')) {
-      const images = await this.pdfToImageService.convertToImages(
-        {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          url: file.url
-        },
-        {
-          pageRange: 'all',
-          format: 'png',
-          jpegQuality: 0.92,
-          scale: 2,
-          outputMode: 'individual'
-        }
-      );
-
-      return images.map((img) => ({
-        name: img.name,
-        type: 'image/png',
-        size: img.blob.size,
-        url: img.dataUrl
-      }));
-    }
-
-    return [file];
-  }
-
   private async recognizeImageFile(file: FileObject, language: string, _preserveLayout: boolean): Promise<{ text: string; confidence: number }> {
+    console.log('[ocr.service] recognizeImageFile:', file.name);
     const tesseract = await import('tesseract.js');
     const worker = await (tesseract as any).createWorker(language);
     this.activeTesseractWorker = worker;
@@ -255,9 +292,11 @@ export class OcrService {
       }
 
       const imageUrl = file.url.startsWith('data:') ? file.url : await this.fileUrlToDataUrl(file.url);
+      console.log('[ocr.service] Calling worker.recognize()...');
       const result = await worker.recognize(imageUrl);
       const text = (result.data.text || '').trim();
       const confidence = typeof result.data.confidence === 'number' ? result.data.confidence : 0;
+      console.log('[ocr.service] recognizeImageFile done, text length:', text.length, 'confidence:', confidence);
       return { text, confidence };
     } finally {
       this.activeTesseractWorker = null;
@@ -278,6 +317,7 @@ export class OcrService {
 
   private terminateWorker(): void {
     if (this.worker) {
+      console.log('[ocr.service] Terminating worker');
       this.worker.terminate();
       this.worker = null;
     }

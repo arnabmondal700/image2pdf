@@ -31,6 +31,7 @@ export class AppHeaderComponent {
       case 'pdf-protect': return 'fa-solid fa-lock';
       case 'pdf-to-image': return 'fa-solid fa-file-image';
       case 'mixed-builder': return 'fa-solid fa-cubes';
+      case 'image-to-searchable-pdf': return 'fa-solid fa-magnifying-glass';
       default: return 'fa-solid fa-file-pdf';
     }
   }

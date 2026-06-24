@@ -5,7 +5,9 @@
   <div class="settings">
     <label>
       <span>Language</span>
-      <input type="text" [(ngModel)]="language" placeholder="eng" />
+      <select [(ngModel)]="language">
+        <option *ngFor="let lang of availableLanguages" [value]="lang.code">{{ lang.label }}</option>
+      </select>
     </label>
     <label class="checkbox">
       <input type="checkbox" [(ngModel)]="preserveLayout" />
@@ -27,7 +29,7 @@
     <div class="progress-bar">
       <div class="progress-fill" [style.width.%]="progress.total ? (progress.current / progress.total) * 100 : 0"></div>
     </div>
-    <div class="progress-text">{{ progress.status }} ({{ progress.current }}/{{ progress.total }})</div>
+    <div class="progress-text">{{ progress.status }} ({{ (progress.current / progress.total) * 100 | number:'1.0-0' }}%)</div>
     <button class="secondary" (click)="cancel()" *ngIf="isProcessing">Cancel</button>
   </div>
 

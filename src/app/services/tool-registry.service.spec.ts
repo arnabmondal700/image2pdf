@@ -102,11 +102,12 @@ describe('ToolRegistryService', () => {
     expect(compress?.category).toBe('optimize');
   });
 
-  it('should have pdf-to-image as the last enabled tool (lowest priority)', () => {
+  it('should have image-to-searchable-pdf and pdf-to-image as enabled tools', () => {
     const enabledTools = service.getEnabledTools();
-    expect(enabledTools.length).toBe(7);
-    const lastTool = enabledTools[enabledTools.length - 1];
-    expect(lastTool.id).toBe('pdf-to-image');
+    expect(enabledTools.length).toBe(8);
+    const toolIds = enabledTools.map((t) => t.id);
+    expect(toolIds).toContain('image-to-searchable-pdf');
+    expect(toolIds).toContain('pdf-to-image');
   });
 
   it('should have pdf-to-image as enabled with priority 58', () => {

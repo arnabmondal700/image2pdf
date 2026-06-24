@@ -148,7 +148,12 @@ describe('OcrService', () => {
       onmessage: ((event: MessageEvent) => void) | null = null;
       onerror: ((event: ErrorEvent) => void) | null = null;
       terminate = vi.fn();
-      postMessage = vi.fn(() => {
+      postMessage = vi.fn((message: any) => {
+        if (message.type === 'start') {
+          expect(message.images).toEqual([
+            expect.objectContaining({ name: 'test.png', type: 'image/png', url: 'data:image/png;base64,abc' })
+          ]);
+        }
         this.onmessage?.({ data: { type: 'progress', current: 0, total: 1, status: 'Starting OCR...' } } as MessageEvent);
         this.onmessage?.({
           data: {

@@ -111,7 +111,7 @@ export class ToolRegistryService {
       priority: 58
     });
 
-    // OCR Tools - Phase 5 (disabled by default)
+    // OCR Tools
     this.registerTool({
       id: 'image-to-searchable-pdf',
       name: 'Image to Searchable PDF',
@@ -119,8 +119,8 @@ export class ToolRegistryService {
       icon: 'fa-solid fa-magnifying-glass',
       path: 'ocr-to-searchable-pdf',
       category: 'ocr',
-      enabled: false,
-      priority: 50
+      enabled: true,
+      priority: 55
     });
 
     this.registerTool({
