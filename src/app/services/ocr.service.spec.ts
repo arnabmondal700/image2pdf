@@ -70,7 +70,10 @@ describe('OcrService', () => {
       type: 'image/png'
     });
 
-    expect(tesseractMock.createWorker).toHaveBeenCalledWith('eng');
+    expect(tesseractMock.createWorker).toHaveBeenCalledWith('eng', {
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+      logger: expect.any(Function)
+    });
     expect(mockWorker.recognize).toHaveBeenCalledWith('data:image/png;base64,abc');
     expect(mockWorker.terminate).toHaveBeenCalled();
     expect(result.pages).toEqual([{ pageNumber: 1, text: 'Hello World', confidence: 95 }]);

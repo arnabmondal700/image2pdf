@@ -82,9 +82,7 @@ addEventListener('message', async (event: MessageEvent<OcrWorkerRequest>) => {
       const result = await recognizeImageFile(
         imageFile,
         data.options.language || 'eng',
-        data.options.preserveLayout ?? true,
-        i,
-        total
+        data.options.preserveLayout ?? true
       );
       pages.push({
         pageNumber: i + 1,
@@ -136,25 +134,13 @@ function throwIfCancelled(): void {
 async function recognizeImageFile(
   file: OcrImageInput,
   language: string,
-  preserveLayout: boolean,
-  pageIndex: number,
-  totalPages: number
+  preserveLayout: boolean
 ): Promise<OcrPageResult> {
   console.log('[ocr.worker] recognizeImageFile:', file.name, 'lang:', language);
   const tesseract = await import('tesseract.js');
   console.log('[ocr.worker] tesseract.js loaded, creating worker...');
-  const worker = await (tesseract as any).createWorker(language, undefined, {
-    logger: (message: { progress?: number; status?: string }) => {
-      if (!message.status) {
-        return;
-      }
-      // Combine pageIndex with tesseract's per-page progress for accurate bar fill
-      const combinedCurrent = typeof message.progress === 'number'
-        ? pageIndex + (message.progress / totalPages)
-        : pageIndex;
-      const percent = typeof message.progress === 'number' ? ` ${Math.round(message.progress * 100)}%` : '';
-      sendProgress(combinedCurrent, totalPages, `${message.status}${percent}`);
-    }
+  const worker = await (tesseract as any).createWorker(language, {
+    langPath: 'https://tessdata.projectnaptha.com/4.0.0'
   });
   activeTesseractWorker = worker;
   console.log('[ocr.worker] tesseract worker created');

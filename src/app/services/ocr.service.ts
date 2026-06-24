@@ -283,7 +283,10 @@ export class OcrService {
   private async recognizeImageFile(file: FileObject, language: string, _preserveLayout: boolean): Promise<{ text: string; confidence: number }> {
     console.log('[ocr.service] recognizeImageFile:', file.name);
     const tesseract = await import('tesseract.js');
-    const worker = await (tesseract as any).createWorker(language);
+    const worker = await (tesseract as any).createWorker(language, {
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+      logger: () => {} // Suppress tesseract's own logging on main thread
+    });
     this.activeTesseractWorker = worker;
 
     try {
@@ -296,6 +299,12 @@ export class OcrService {
       const result = await worker.recognize(imageUrl);
       const text = (result.data.text || '').trim();
       const confidence = typeof result.data.confidence === 'number' ? result.data.confidence : 0;
+
+      // Detect if language data may have failed to load (tesseract falls back silently)
+      if (text.length === 0 && confidence === 0) {
+        console.warn('[ocr.service] Empty result with zero confidence - possible language data issue for:', language);
+      }
+
       console.log('[ocr.service] recognizeImageFile done, text length:', text.length, 'confidence:', confidence);
       return { text, confidence };
     } finally {

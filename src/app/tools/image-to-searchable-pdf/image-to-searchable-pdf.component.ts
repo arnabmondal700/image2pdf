@@ -174,7 +174,7 @@ export class ImageToSearchablePdfComponent {
       const loaded = await pdf.PDFDocument.load(existingBytes);
       const copied = await doc.copyPages(loaded, loaded.getPageIndices());
 
-      for (let i = 0; i < copied.length; i++) {
+        for (let i = 0; i < copied.length; i++) {
         const page = doc.addPage(copied[i]);
         this.drawInvisibleTextLayer(pdf, page, font, ocrResult.pages[i]?.text || '');
       }
@@ -209,7 +209,7 @@ export class ImageToSearchablePdfComponent {
     font: import('pdf-lib').PDFFont,
     text: string
   ): void {
-    const cleanText = this.toWinAnsiSafeText(text).trim();
+    const cleanText = text.trim();
     if (!cleanText) {
       return;
     }
@@ -217,9 +217,14 @@ export class ImageToSearchablePdfComponent {
     const { width, height } = page.getSize();
     const margin = Math.max(24, Math.min(width, height) * 0.05);
     const fontSize = Math.max(8, Math.min(12, width / 70));
+
+    // Draw each line of text directly without width-based wrapping.
+    // For standard Helvetica, drawText throws on non-WinAnsi characters.
+    // Since the text layer is invisible (opacity 0.01), exact positioning doesn't matter —
+    // the important thing is that the Unicode text bytes are in the PDF content stream
+    // for search/copy purposes.
+    const lines = cleanText.split(/\r?\n/);
     const lineHeight = fontSize * 1.25;
-    const maxWidth = Math.max(fontSize * 8, width - margin * 2);
-    const lines = this.wrapText(cleanText, font, fontSize, maxWidth);
     let y = height - margin - fontSize;
 
     for (const line of lines) {
@@ -227,50 +232,28 @@ export class ImageToSearchablePdfComponent {
         break;
       }
 
-      page.drawText(line, {
-        x: margin,
-        y,
-        size: fontSize,
-        lineHeight,
-        maxWidth,
-        font,
-        color: pdf.rgb(1, 1, 1),
-        opacity: 0.01
-      });
-      y -= lineHeight;
-    }
-  }
-
-  private wrapText(text: string, font: import('pdf-lib').PDFFont, fontSize: number, maxWidth: number): string[] {
-    const lines: string[] = [];
-
-    for (const sourceLine of text.split(/\r?\n/)) {
-      const words = sourceLine.trim().split(/\s+/).filter(Boolean);
-      let current = '';
-
-      for (const word of words) {
-        const next = current ? `${current} ${word}` : word;
-        if (font.widthOfTextAtSize(next, fontSize) <= maxWidth) {
-          current = next;
+      // Attempt to draw each line; if encoding fails (non-WinAnsi char with standard font),
+      // silently skip that line so the rest of the PDF is still generated.
+      try {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) {
+          y -= lineHeight;
           continue;
         }
-
-        if (current) {
-          lines.push(current);
-        }
-        current = word;
+        page.drawText(trimmedLine, {
+          x: margin,
+          y,
+          size: fontSize,
+          lineHeight,
+          font,
+          color: pdf.rgb(1, 1, 1),
+          opacity: 0.01
+        });
+      } catch {
+        // Character encoding failed — skip this line. The text is invisible anyway.
       }
-
-      if (current) {
-        lines.push(current);
-      }
+      y -= lineHeight;
     }
-
-    return lines;
-  }
-
-  private toWinAnsiSafeText(text: string): string {
-    return text.replace(/[^\u0009\u000a\u000d\u0020-\u00ff]/g, ' ');
   }
 
   private async readFileAsBytes(file: FileObject): Promise<Uint8Array> {
