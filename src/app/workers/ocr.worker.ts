@@ -68,6 +68,7 @@ addEventListener('message', async (event: MessageEvent<OcrWorkerRequest>) => {
     const imageFiles = data.images;
     const total = imageFiles.length;
     console.log('[ocr.worker] Starting processing', total, 'images');
+    console.log('[ocr.worker] Requested language:', data.options.language);
 
     sendProgress(0, total, 'Starting OCR...');
 
@@ -84,6 +85,7 @@ addEventListener('message', async (event: MessageEvent<OcrWorkerRequest>) => {
         data.options.language || 'eng',
         data.options.preserveLayout ?? true
       );
+      console.log('[ocr.worker] After recognizeImageFile, text length:', result.text.length, 'confidence:', result.confidence);
       pages.push({
         pageNumber: i + 1,
         ...result
@@ -138,9 +140,13 @@ async function recognizeImageFile(
 ): Promise<OcrPageResult> {
   console.log('[ocr.worker] recognizeImageFile:', file.name, 'lang:', language);
   const tesseract = await import('tesseract.js');
-  console.log('[ocr.worker] tesseract.js loaded, creating worker...');
+  console.log('[ocr.worker] tesseract.js loaded, creating worker with lang:', language);
+
+  const langPath = 'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast';
+  console.log('[ocr.worker] Using tessdata CDN:', langPath);
+
   const worker = await (tesseract as any).createWorker(language, {
-    langPath: 'https://tessdata.projectnaptha.com/4.0.0'
+    langPath
   });
   activeTesseractWorker = worker;
   console.log('[ocr.worker] tesseract worker created');
@@ -157,6 +163,9 @@ async function recognizeImageFile(
     const text = (result.data.text || '').trim();
     const confidence = typeof result.data.confidence === 'number' ? result.data.confidence : 0;
     console.log('[ocr.worker] Recognition result: text length=' + text.length + ' confidence=' + confidence);
+    if (!text) {
+      console.warn('[ocr.worker] Empty OCR result for language:', language, '- check if traineddata is available at', langPath);
+    }
     return { text, confidence };
   } finally {
     activeTesseractWorker = null;

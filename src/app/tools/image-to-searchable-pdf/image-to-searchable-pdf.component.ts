@@ -174,7 +174,7 @@ export class ImageToSearchablePdfComponent {
       const loaded = await pdf.PDFDocument.load(existingBytes);
       const copied = await doc.copyPages(loaded, loaded.getPageIndices());
 
-        for (let i = 0; i < copied.length; i++) {
+      for (let i = 0; i < copied.length; i++) {
         const page = doc.addPage(copied[i]);
         this.drawInvisibleTextLayer(pdf, page, font, ocrResult.pages[i]?.text || '');
       }
@@ -218,11 +218,6 @@ export class ImageToSearchablePdfComponent {
     const margin = Math.max(24, Math.min(width, height) * 0.05);
     const fontSize = Math.max(8, Math.min(12, width / 70));
 
-    // Draw each line of text directly without width-based wrapping.
-    // For standard Helvetica, drawText throws on non-WinAnsi characters.
-    // Since the text layer is invisible (opacity 0.01), exact positioning doesn't matter —
-    // the important thing is that the Unicode text bytes are in the PDF content stream
-    // for search/copy purposes.
     const lines = cleanText.split(/\r?\n/);
     const lineHeight = fontSize * 1.25;
     let y = height - margin - fontSize;
@@ -232,8 +227,6 @@ export class ImageToSearchablePdfComponent {
         break;
       }
 
-      // Attempt to draw each line; if encoding fails (non-WinAnsi char with standard font),
-      // silently skip that line so the rest of the PDF is still generated.
       try {
         const trimmedLine = line.trim();
         if (!trimmedLine) {
@@ -250,7 +243,7 @@ export class ImageToSearchablePdfComponent {
           opacity: 0.01
         });
       } catch {
-        // Character encoding failed — skip this line. The text is invisible anyway.
+        // Character encoding failed — skip this line.
       }
       y -= lineHeight;
     }

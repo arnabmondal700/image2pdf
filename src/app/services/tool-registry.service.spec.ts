@@ -104,10 +104,11 @@ describe('ToolRegistryService', () => {
 
   it('should have image-to-searchable-pdf and pdf-to-image as enabled tools', () => {
     const enabledTools = service.getEnabledTools();
-    expect(enabledTools.length).toBe(8);
+    expect(enabledTools.length).toBe(9);
     const toolIds = enabledTools.map((t) => t.id);
     expect(toolIds).toContain('image-to-searchable-pdf');
     expect(toolIds).toContain('pdf-to-image');
+    expect(toolIds).toContain('ocr-text-export');
   });
 
   it('should have pdf-to-image as enabled with priority 58', () => {

@@ -130,7 +130,7 @@ export class ToolRegistryService {
       icon: 'fa-solid fa-file-lines',
       path: 'ocr-text-export',
       category: 'extract',
-      enabled: false,
+      enabled: true,
       priority: 48
     });
 
