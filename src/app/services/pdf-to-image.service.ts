@@ -44,7 +44,7 @@ export class PdfToImageService {
    */
   private initializePdfWorker(): void {
     try {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/build/pdf.worker.min.mjs';
       this.pdfWorkerInitialized = true;
     } catch (error) {
       console.error('Failed to initialize PDF worker:', error);

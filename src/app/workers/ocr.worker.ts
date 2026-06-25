@@ -145,7 +145,8 @@ async function recognizeImageFile(
   const langPath = 'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast';
   console.log('[ocr.worker] Using tessdata CDN:', langPath);
 
-  const worker = await (tesseract as any).createWorker(language, {
+  const createWorker = ((tesseract as any).default || tesseract).createWorker;
+  const worker = await createWorker(language, {
     langPath
   });
   activeTesseractWorker = worker;

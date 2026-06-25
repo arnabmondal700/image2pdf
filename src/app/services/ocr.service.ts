@@ -282,14 +282,15 @@ export class OcrService {
 
   private async recognizeImageFile(file: FileObject, language: string, _preserveLayout: boolean): Promise<{ text: string; confidence: number }> {
     console.log('[ocr.service] recognizeImageFile:', file.name, 'lang:', language);
-    const tesseract = await import('tesseract.js');
-    const langPath = 'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast';
-    console.log('[ocr.service] Using tessdata CDN:', langPath);
+  const tesseract = await import('tesseract.js');
+  const langPath = 'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast';
+  console.log('[ocr.service] Using tessdata CDN:', langPath);
 
-    const worker = await (tesseract as any).createWorker(language, {
-      langPath,
-      logger: () => {} // Suppress tesseract's own logging on main thread
-    });
+  const createWorker = ((tesseract as any).default || tesseract).createWorker;
+  const worker = await (createWorker as any)(language, {
+    langPath,
+    logger: () => {} // Suppress tesseract's own logging on main thread
+  });
     this.activeTesseractWorker = worker;
 
     try {
