@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OcrService } from '../../services/ocr.service';
@@ -9,10 +9,12 @@ import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop
   standalone: true,
   imports: [CommonModule, FormsModule, DragDropZoneComponent],
   templateUrl: './ocr-text-export.component.html',
-  styleUrl: './ocr-text-export.component.scss'
+  styleUrl: './ocr-text-export.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OcrTextExportComponent {
   private readonly ocrService = inject(OcrService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   file: { name: string; url: string; size: number; type: string } | null = null;
   isProcessing = false;
@@ -25,9 +27,41 @@ export class OcrTextExportComponent {
   language = 'eng';
   preserveLayout = true;
 
+  readonly availableLanguages: { code: string; label: string }[] = [
+    { code: 'eng', label: 'English' },
+    { code: 'hin', label: 'Hindi' },
+    { code: 'ben', label: 'Bengali' },
+    { code: 'ara', label: 'Arabic' },
+    { code: 'spa', label: 'Spanish' },
+    { code: 'fra', label: 'French' },
+    { code: 'deu', label: 'German' },
+    { code: 'ita', label: 'Italian' },
+    { code: 'por', label: 'Portuguese' },
+    { code: 'rus', label: 'Russian' },
+    { code: 'jpn', label: 'Japanese' },
+    { code: 'kor', label: 'Korean' },
+    { code: 'chi_sim', label: 'Chinese (Simplified)' },
+    { code: 'chi_tra', label: 'Chinese (Traditional)' },
+    { code: 'tur', label: 'Turkish' },
+    { code: 'nld', label: 'Dutch' },
+    { code: 'pol', label: 'Polish' },
+    { code: 'swe', label: 'Swedish' },
+    { code: 'dan', label: 'Danish' },
+    { code: 'fin', label: 'Finnish' },
+    { code: 'ces', label: 'Czech' },
+    { code: 'ron', label: 'Romanian' },
+    { code: 'hun', label: 'Hungarian' },
+    { code: 'tha', label: 'Thai' },
+    { code: 'vie', label: 'Vietnamese' },
+    { code: 'ukr', label: 'Ukrainian' },
+    { code: 'ell', label: 'Greek' },
+    { code: 'heb', label: 'Hebrew' },
+  ];
+
   constructor() {
     this.ocrService.getProgress().subscribe((p) => {
       this.progress = p;
+      this.cdr.markForCheck();
     });
   }
 

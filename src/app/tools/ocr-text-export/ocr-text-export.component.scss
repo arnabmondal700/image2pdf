@@ -26,7 +26,8 @@
       font-size: 0.9rem;
     }
 
-    input[type='text'] {
+    input[type='text'],
+    select {
       padding: 0.4rem 0.6rem;
       border-radius: 6px;
       border: 1px solid var(--input-border);
@@ -35,8 +36,22 @@
       min-width: 8rem;
     }
 
+    select {
+      cursor: pointer;
+      appearance: auto;
+    }
+
     .checkbox {
       cursor: pointer;
+    }
+
+    :host-context([data-theme="dark"]) & {
+      input[type='text'],
+      select {
+        background: rgba(30, 41, 59, 0.82);
+        border-color: rgba(255, 255, 255, 0.14);
+        color: #d1d5db;
+      }
     }
   }
 
@@ -44,6 +59,77 @@
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
+  }
+
+  .primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.25rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s, transform 0.15s;
+    user-select: none;
+
+    &:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: scale(0.98);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.25rem;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-body);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+    user-select: none;
+
+    &:hover:not(:disabled) {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    :host-context([data-theme="dark"]) & {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-body);
+      border-color: rgba(255, 255, 255, 0.14);
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.18);
+      }
+    }
   }
 
   .progress {
@@ -93,6 +179,14 @@
       border-radius: 8px;
       white-space: pre-wrap;
       font-family: inherit;
+    }
+  }
+
+  :host-context([data-theme='dark']) & {
+    .error {
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.35);
     }
   }
 }

@@ -5,7 +5,9 @@
   <div class="settings">
     <label>
       <span>Language</span>
-      <input type="text" [(ngModel)]="language" placeholder="eng" />
+      <select [(ngModel)]="language">
+        <option *ngFor="let lang of availableLanguages" [value]="lang.code">{{ lang.label }}</option>
+      </select>
     </label>
     <label class="checkbox">
       <input type="checkbox" [(ngModel)]="preserveLayout" />
