@@ -4,17 +4,21 @@ import { FormsModule } from '@angular/forms';
 import { OcrResult, OcrService } from '../../services/ocr.service';
 import { FileObject } from '../../services/file.service';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 @Component({
   selector: 'app-image-to-searchable-pdf',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropZoneComponent],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent, SeoContentComponent],
   templateUrl: './image-to-searchable-pdf.component.html',
   styleUrl: './image-to-searchable-pdf.component.scss'
 })
 export class ImageToSearchablePdfComponent {
   private readonly ocrService = inject(OcrService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly seoContentConfigService = inject(SeoContentConfigService);
 
   file: FileObject | null = null;
   isProcessing = false;
@@ -23,6 +27,7 @@ export class ImageToSearchablePdfComponent {
   progress: { current: number; total: number; status: string } | null = null;
 
   result: { blob: Blob; name: string } | null = null;
+  seoContentConfig: SeoContentConfig | null = null;
 
   language = 'eng';
   preserveLayout = true;
@@ -65,6 +70,7 @@ export class ImageToSearchablePdfComponent {
       this.progress = p;
       this.cdr.markForCheck();
     });
+    this.seoContentConfig = this.seoContentConfigService.getConfig('image-to-searchable-pdf') ?? null;
   }
 
   onFilesSelected(files: File[]): void {
@@ -132,7 +138,6 @@ export class ImageToSearchablePdfComponent {
       console.log('[ocr.component] Error caught:', e);
       if (e instanceof Error && e.name === 'OcrCancelledError') {
         console.log('[ocr.component] OCR was cancelled - not showing error');
-        // Don't show error for cancellation
         return;
       }
       this.error = e instanceof Error ? e.message : 'Failed to create searchable PDF';
@@ -254,5 +259,4 @@ export class ImageToSearchablePdfComponent {
     const buffer = await response.arrayBuffer();
     return new Uint8Array(buffer);
   }
-
 }

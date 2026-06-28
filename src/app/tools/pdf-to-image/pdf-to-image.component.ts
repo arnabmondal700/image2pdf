@@ -7,11 +7,14 @@ import { PdfToImageService, PdfToImageOptions, PdfToImageResult, ImageFormat, Ex
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 @Component({
   selector: 'app-pdf-to-image',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropZoneComponent],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent, SeoContentComponent],
   templateUrl: './pdf-to-image.component.html',
   styleUrls: ['./pdf-to-image.component.scss']
 })
@@ -35,6 +38,7 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
 
   // Results
   exportedImages: PdfToImageResult[] = [];
+  seoContentConfig: SeoContentConfig | null = null;
 
     toolDefinition: ToolDefinition = {
       id: 'pdf-to-image',
@@ -60,13 +64,15 @@ export class PdfToImageComponent implements OnInit, OnDestroy {
   constructor(
     private fileService: FileService,
     private pdfToImageService: PdfToImageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private seoContentConfigService: SeoContentConfigService
   ) {
     this.options = this.pdfToImageService.getDefaultOptions();
   }
 
   ngOnInit(): void {
     this.restoreSessionFiles();
+    this.seoContentConfig = this.seoContentConfigService.getConfig('pdf-to-image') ?? null;
   }
 
   ngOnDestroy(): void {

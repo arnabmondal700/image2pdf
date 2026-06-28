@@ -8,11 +8,14 @@ import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
 import { PdfPreviewComponent } from '../../components/pdf-preview/pdf-preview.component';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 @Component({
   selector: 'app-pdf-merge',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule, DragDropZoneComponent, PdfPreviewComponent],
+  imports: [CommonModule, FormsModule, DragDropModule, DragDropZoneComponent, PdfPreviewComponent, SeoContentComponent],
   templateUrl: './pdf-merge.component.html',
   styleUrls: ['./pdf-merge.component.scss']
 })
@@ -25,6 +28,7 @@ export class PdfMergeComponent implements OnInit {
   isDragging = false;
   previewBlob: Blob | null = null;
   selectedPreviewIndex = 0;
+  seoContentConfig: SeoContentConfig | null = null;
 
   toolDefinition: ToolDefinition = {
     id: 'pdf-merge',
@@ -42,11 +46,13 @@ export class PdfMergeComponent implements OnInit {
   constructor(
     private fileService: FileService,
     private pdfMergeService: PDFMergeService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private seoContentConfigService: SeoContentConfigService
   ) {}
 
   ngOnInit(): void {
     this.restoreSessionFiles();
+    this.seoContentConfig = this.seoContentConfigService.getConfig('pdf-merge') ?? null;
   }
 
   /**

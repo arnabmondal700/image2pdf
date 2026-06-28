@@ -15,6 +15,9 @@ import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { PdfSettingsPanelComponent } from '../../components/pdf-settings-panel/pdf-settings-panel.component';
 import { DocumentQueueComponent } from './document-queue/document-queue.component';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 /**
  * Mixed PDF Builder Component
@@ -33,6 +36,7 @@ import { DocumentQueueComponent } from './document-queue/document-queue.componen
     DragDropZoneComponent,
     PdfSettingsPanelComponent,
     DocumentQueueComponent,
+    SeoContentComponent,
   ],
   template: `
         <!-- Error display -->
@@ -109,6 +113,8 @@ import { DocumentQueueComponent } from './document-queue/document-queue.componen
             (cancelClicked)="onCancelGeneration()"
           ></pdf-settings-panel>
         </div>
+
+        <seo-content [config]="seoContentConfig"></seo-content>
   `,
   styles: [`
     .selection-controls {
@@ -159,6 +165,7 @@ export class MixedBuilderComponent implements OnInit, OnDestroy {
 
   /** Subscriptions */
   private progressSubscription?: Subscription;
+  seoContentConfig: SeoContentConfig | null = null;
 
   /** Track if all items are selected (for UI toggle) */
   get allSelected(): boolean {
@@ -171,6 +178,7 @@ export class MixedBuilderComponent implements OnInit, OnDestroy {
   private readonly pdfWorkerService = inject(PdfWorkerService);
   private readonly settingsStorage = inject(PdfSettingsStorageService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly seoContentConfigService = inject(SeoContentConfigService);
 
   // Tool metadata
   toolDefinition: ToolDefinition = {
@@ -185,6 +193,7 @@ export class MixedBuilderComponent implements OnInit, OnDestroy {
   };
 
   constructor() {
+    this.seoContentConfig = this.seoContentConfigService.getConfig('mixed-builder') ?? null;
     // Start with defaults; load persisted settings asynchronously
     this.pdfSettings = {
       pageSize: 'a4',

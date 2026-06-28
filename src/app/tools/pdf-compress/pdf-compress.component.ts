@@ -8,11 +8,14 @@ import { ToolDefinition } from '../tool.interface';
 import { CompressionProgress } from '../../services/pdf-compression-worker.service';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 @Component({
   selector: 'app-pdf-compress',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropZoneComponent],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent, SeoContentComponent],
   templateUrl: './pdf-compress.component.html',
   styleUrls: ['./pdf-compress.component.scss']
 })
@@ -32,6 +35,7 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
 
   // Results
   compressionResult: CompressionResult | null = null;
+  seoContentConfig: SeoContentConfig | null = null;
 
   toolDefinition: ToolDefinition = {
     id: 'pdf-compress',
@@ -49,11 +53,13 @@ export class PdfCompressComponent implements OnInit, OnDestroy {
   constructor(
     private fileService: FileService,
     private pdfCompressService: PDFCompressService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private seoContentConfigService: SeoContentConfigService
   ) {}
 
   ngOnInit(): void {
     this.restoreSessionFiles();
+    this.seoContentConfig = this.seoContentConfigService.getConfig('pdf-compress') ?? null;
   }
 
   ngOnDestroy(): void {

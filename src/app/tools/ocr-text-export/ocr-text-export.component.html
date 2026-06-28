@@ -1,45 +1,58 @@
-<div class="ocr-tool">
-  <h2>OCR Text Export</h2>
-  <p class="description">Upload an image or scanned PDF to extract text and download as .txt.</p>
-
-  <div class="settings">
-    <label>
-      <span>Language</span>
-      <select [(ngModel)]="language">
-        <option *ngFor="let lang of availableLanguages" [value]="lang.code">{{ lang.label }}</option>
-      </select>
-    </label>
-    <label class="checkbox">
-      <input type="checkbox" [(ngModel)]="preserveLayout" />
-      <span>Preserve layout</span>
-    </label>
+<div class="ocr-text-export-container">
+  <div class="header">
+    <h1>OCR Text Export</h1>
+    <p>Extract text from images or scanned PDFs using OCR technology</p>
   </div>
 
   <drag-drop-zone
+    [isDragging]="false"
     [accept]="'image/png, image/jpeg, image/jpg, application/pdf'"
-    (filesSelected)="onFilesSelected($event)"
-  ></drag-drop-zone>
+    dropTitle="Drop images to build your PDF"
+    dropText="Tap to browse or drag image files here."
+    (filesSelected)="onFilesSelected($event)">
+  </drag-drop-zone>
 
-  <div class="actions" *ngIf="file && !result">
-    <button class="primary" (click)="extractText()" [disabled]="isProcessing">Extract Text</button>
-    <button class="secondary" (click)="clear()">Clear</button>
+  <div *ngIf="error" class="error-message">
+    <strong>Error:</strong> {{ error }}
   </div>
 
-  <div class="progress" *ngIf="progress">
-    <div class="progress-bar">
-      <div class="progress-fill" [style.width.%]="progress.total ? (progress.current / progress.total) * 100 : 0"></div>
+  <div *ngIf="file" class="export-section">
+    <div class="file-info">
+      <h3>Selected File</h3>
+      <p>{{ file.name }}</p>
     </div>
-    <div class="progress-text">{{ progress.status }} ({{ progress.current }}/{{ progress.total }})</div>
-    <button class="secondary" (click)="cancel()" *ngIf="isProcessing">Cancel</button>
-  </div>
 
-  <div class="error" *ngIf="error">{{ error }}</div>
+    <div class="settings-group">
+      <label class="setting-item">
+        <span>Language</span>
+        <select [(ngModel)]="language">
+          <option value="eng">English</option>
+          <option value="hin">Hindi</option>
+          <option value="ben">Bengali</option>
+          <option value="ara">Arabic</option>
+          <option value="spa">Spanish</option>
+        </select>
+      </label>
+    </div>
 
-  <div class="result" *ngIf="result">
-    <pre class="text-output">{{ result.text }}</pre>
-    <div class="actions">
-      <button class="primary" (click)="downloadTxt()">Download .txt</button>
-      <button class="secondary" (click)="copyToClipboard()">Copy to clipboard</button>
+    <div class="button-group">
+      <button class="extract-button" (click)="extractText()" [disabled]="isProcessing">
+        {{ isProcessing ? 'Extracting...' : 'Extract Text' }}
+      </button>
+      <button class="clear-button" (click)="clearAll()" [disabled]="isProcessing">Clear</button>
+    </div>
+
+    <div *ngIf="text" class="result-section">
+      <div class="result-header">
+        <h3>Extracted Text</h3>
+        <div class="result-actions">
+          <button class="action-button" (click)="copyText()">Copy</button>
+          <button class="action-button" (click)="downloadTxt()">Download .txt</button>
+        </div>
+      </div>
+      <div class="text-preview">{{ text }}</div>
     </div>
   </div>
+
+  <seo-content [config]="seoContentConfig"></seo-content>
 </div>

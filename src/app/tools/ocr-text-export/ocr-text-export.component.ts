@@ -1,88 +1,44 @@
-import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OcrService } from '../../services/ocr.service';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 @Component({
   selector: 'app-ocr-text-export',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropZoneComponent],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent, SeoContentComponent],
   templateUrl: './ocr-text-export.component.html',
-  styleUrl: './ocr-text-export.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./ocr-text-export.component.scss']
 })
 export class OcrTextExportComponent {
-  private readonly ocrService = inject(OcrService);
-  private readonly cdr = inject(ChangeDetectorRef);
-
-  file: { name: string; url: string; size: number; type: string } | null = null;
+  file: File | null = null;
+  text: string = '';
   isProcessing = false;
   error: string | null = null;
+  fileName: string = '';
+  language: string = 'eng';
+  seoContentConfig: SeoContentConfig | null = null;
 
-  progress: { current: number; total: number; status: string } | null = null;
-
-  result: { text: string; durationMs: number } | null = null;
-
-  language = 'eng';
-  preserveLayout = true;
-
-  readonly availableLanguages: { code: string; label: string }[] = [
-    { code: 'eng', label: 'English' },
-    { code: 'hin', label: 'Hindi' },
-    { code: 'ben', label: 'Bengali' },
-    { code: 'ara', label: 'Arabic' },
-    { code: 'spa', label: 'Spanish' },
-    { code: 'fra', label: 'French' },
-    { code: 'deu', label: 'German' },
-    { code: 'ita', label: 'Italian' },
-    { code: 'por', label: 'Portuguese' },
-    { code: 'rus', label: 'Russian' },
-    { code: 'jpn', label: 'Japanese' },
-    { code: 'kor', label: 'Korean' },
-    { code: 'chi_sim', label: 'Chinese (Simplified)' },
-    { code: 'chi_tra', label: 'Chinese (Traditional)' },
-    { code: 'tur', label: 'Turkish' },
-    { code: 'nld', label: 'Dutch' },
-    { code: 'pol', label: 'Polish' },
-    { code: 'swe', label: 'Swedish' },
-    { code: 'dan', label: 'Danish' },
-    { code: 'fin', label: 'Finnish' },
-    { code: 'ces', label: 'Czech' },
-    { code: 'ron', label: 'Romanian' },
-    { code: 'hun', label: 'Hungarian' },
-    { code: 'tha', label: 'Thai' },
-    { code: 'vie', label: 'Vietnamese' },
-    { code: 'ukr', label: 'Ukrainian' },
-    { code: 'ell', label: 'Greek' },
-    { code: 'heb', label: 'Hebrew' },
-  ];
-
-  constructor() {
-    this.ocrService.getProgress().subscribe((p) => {
-      this.progress = p;
-      this.cdr.markForCheck();
-    });
+  constructor(
+    private ocrService: OcrService,
+    private cdr: ChangeDetectorRef,
+    private seoContentConfigService: SeoContentConfigService
+  ) {
+    this.seoContentConfig = this.seoContentConfigService.getConfig('ocr-text-export') ?? null;
   }
 
   onFilesSelected(files: File[]): void {
-    if (files.length === 0) return;
-    const selected = files[0];
-    this.file = {
-      name: selected.name,
-      url: URL.createObjectURL(selected),
-      size: selected.size,
-      type: selected.type
-    };
-    this.result = null;
-    this.error = null;
-  }
-
-  clear(): void {
-    this.file = null;
-    this.result = null;
-    this.error = null;
-    this.progress = null;
+    if (files.length > 0) {
+      this.file = files[0];
+      this.fileName = this.file.name.replace(/\.[^/.]+$/, '');
+      this.text = '';
+      this.error = null;
+      this.cdr.markForCheck();
+    }
   }
 
   async extractText(): Promise<void> {
@@ -90,47 +46,43 @@ export class OcrTextExportComponent {
 
     this.isProcessing = true;
     this.error = null;
-    this.result = null;
+    this.cdr.markForCheck();
 
     try {
-      const ocrResult = await this.ocrService.recognize(this.file, {
+      const result = await this.ocrService.recognize(this.file as any, {
         language: this.language,
-        preserveLayout: this.preserveLayout
+        preserveLayout: true
       });
-
-      const combined = ocrResult.pages.map((p) => p.text).join('\n\n');
-      this.result = { text: combined, durationMs: ocrResult.durationMs };
+      this.text = result.pages.map(p => p.text).join('\n\n');
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Failed to extract text';
     } finally {
       this.isProcessing = false;
-      this.progress = null;
+      this.cdr.markForCheck();
     }
-  }
-
-  cancel(): void {
-    this.ocrService.cancel();
-    this.isProcessing = false;
-    this.progress = null;
   }
 
   downloadTxt(): void {
-    if (!this.result) return;
-    const blob = new Blob([this.result.text], { type: 'text/plain' });
+    if (!this.text) return;
+    const blob = new Blob([this.text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = (this.file?.name.replace(/\.[^/.]+$/, '') || 'ocr') + '.txt';
-    link.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${this.fileName || 'extracted'}_text.txt`;
+    a.click();
     URL.revokeObjectURL(url);
   }
 
-  async copyToClipboard(): Promise<void> {
-    if (!this.result) return;
-    try {
-      await navigator.clipboard.writeText(this.result.text);
-    } catch {
-      this.error = 'Failed to copy text to clipboard';
-    }
+  copyText(): void {
+    if (!this.text) return;
+    navigator.clipboard.writeText(this.text);
+  }
+
+  clearAll(): void {
+    this.file = null;
+    this.text = '';
+    this.error = null;
+    this.fileName = '';
+    this.cdr.markForCheck();
   }
 }

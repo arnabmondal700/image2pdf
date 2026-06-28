@@ -7,11 +7,14 @@ import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
 import { PdfPreviewComponent } from '../../components/pdf-preview/pdf-preview.component';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 @Component({
   selector: 'app-pdf-split',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropZoneComponent, PdfPreviewComponent],
+  imports: [CommonModule, FormsModule, DragDropZoneComponent, PdfPreviewComponent, SeoContentComponent],
   templateUrl: './pdf-split.component.html',
   styleUrls: ['./pdf-split.component.scss']
 })
@@ -26,6 +29,7 @@ export class PdfSplitComponent implements OnInit {
   splitFileName: string = 'split-document';
   isDragging = false;
   previewBlob: Blob | null = null;
+  seoContentConfig: SeoContentConfig | null = null;
 
   toolDefinition: ToolDefinition = {
     id: 'pdf-split',
@@ -43,11 +47,13 @@ export class PdfSplitComponent implements OnInit {
   constructor(
     private fileService: FileService,
     private pdfSplitService: PDFSplitService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private seoContentConfigService: SeoContentConfigService
   ) {}
 
   ngOnInit(): void {
     this.restoreSessionFiles();
+    this.seoContentConfig = this.seoContentConfigService.getConfig('pdf-split') ?? null;
   }
 
   /**

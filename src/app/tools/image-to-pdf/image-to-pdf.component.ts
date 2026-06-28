@@ -21,6 +21,9 @@ import { FileListComponent } from '../../components/file-list/file-list.componen
 import { PdfSettingsPanelComponent } from '../../components/pdf-settings-panel/pdf-settings-panel.component';
 import { PdfPreviewComponent } from '../../components/pdf-preview/pdf-preview.component';
 import { ImageEditorModalComponent } from '../../components/image-editor-modal/image-editor-modal.component';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 @Component({
   selector: 'app-image-to-pdf',
@@ -33,7 +36,8 @@ import { ImageEditorModalComponent } from '../../components/image-editor-modal/i
     FileListComponent,
     PdfSettingsPanelComponent,
     PdfPreviewComponent,
-    ImageEditorModalComponent
+    ImageEditorModalComponent,
+    SeoContentComponent
   ],
   templateUrl: '../../app.html',
   styleUrls: ['../../app.scss']
@@ -49,6 +53,7 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
   validationErrors: FileValidationError[] = [];
   generalError: string | null = null;
   generationProgress: GenerationProgress | null = null;
+  seoContentConfig: SeoContentConfig | null = null;
   private progressSubscription?: Subscription;
 
   // Tool metadata for integration
@@ -72,7 +77,8 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
     private pdfExtraction: PdfExtractionService,
     private exportService: ExportService,
     private sessionStorage: SessionStorageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private seoContentConfigService: SeoContentConfigService
   ) {
     // Start with defaults; load persisted settings asynchronously
     this.pdfSettings = {
@@ -100,6 +106,7 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
     });
     // Restore persisted files after component is visible
     this.restoreSessionFiles();
+    this.seoContentConfig = this.seoContentConfigService.getConfig('image-to-pdf') ?? null;
   }
 
   ngOnDestroy(): void {

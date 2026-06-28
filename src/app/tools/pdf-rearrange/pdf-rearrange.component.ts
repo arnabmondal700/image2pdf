@@ -8,6 +8,9 @@ import { PdfToImageService } from '../../services/pdf-to-image.service';
 import { ToolDefinition } from '../tool.interface';
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
+import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
+import { SeoContentConfigService } from '../../services/seo-content-config.service';
+import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
 
 /**
  * Represents a page in the rearrangement UI
@@ -33,7 +36,7 @@ interface PageItem {
 @Component({
   selector: 'app-pdf-rearrange',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule, DragDropZoneComponent],
+  imports: [CommonModule, FormsModule, DragDropModule, DragDropZoneComponent, SeoContentComponent],
   templateUrl: './pdf-rearrange.component.html',
   styleUrl: './pdf-rearrange.component.scss'
 })
@@ -87,6 +90,7 @@ export class PdfRearrangeComponent implements OnInit {
    * Whether thumbnail generation is in progress
    */
   isGeneratingThumbnails = false;
+  seoContentConfig: SeoContentConfig | null = null;
 
   /**
    * AbortController for cancelling in-progress thumbnail generation
@@ -113,11 +117,13 @@ export class PdfRearrangeComponent implements OnInit {
     private fileService: FileService,
     private pdfRearrangeService: PdfRearrangeService,
     private pdfToImageService: PdfToImageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private seoContentConfigService: SeoContentConfigService
   ) {}
 
   ngOnInit(): void {
     this.restoreSessionFiles();
+    this.seoContentConfig = this.seoContentConfigService.getConfig('pdf-rearrange') ?? null;
   }
 
   /**
