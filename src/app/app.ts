@@ -57,6 +57,8 @@ export class App {
     private seoService: SeoService,
     public imageEditorState: ImageEditorStateService
   ) {
+    this.lockOrientation();
+
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
@@ -88,5 +90,28 @@ export class App {
 
   onImageEdited(event: { index: number; url: string }): void {
     this.imageEditorState.close();
+  }
+
+  private lockOrientation(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+
+    if (!isStandalone) {
+      return;
+    }
+
+    const screenOrientation = (screen as any).orientation;
+    if (!screenOrientation || typeof screenOrientation.lock !== 'function') {
+      return;
+    }
+
+    screenOrientation.lock('portrait').catch(() => {
+      // Orientation lock is not supported or was denied.
+      // The manifest orientation setting provides the primary control.
+    });
   }
 }
