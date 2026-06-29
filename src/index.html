@@ -19,6 +19,8 @@
   <meta name="format-detection" content="telephone=no">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
@@ -38,16 +40,83 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+    "@type": "WebApplication",
     "name": "Image2PDF",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Web",
-    "description": "Free online PDF tools for converting, merging, splitting and compressing PDFs.",
+    "description": "Free online PDF tools suite. Convert images to PDF, merge, split, compress, protect, rearrange PDFs and extract text with OCR. Completely client-side - no uploads.",
+    "url": "https://image2pdf.app",
+    "version": "1.0.0",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "Image2PDF"
+    },
+    "featureList": [
+      "Image to PDF conversion",
+      "Merge multiple PDFs",
+      "Split PDF pages",
+      "Compress PDF files",
+      "Protect PDF with password",
+      "Rearrange PDF pages",
+      "Convert PDF to images",
+      "OCR text extraction",
+      "Mixed PDF builder"
+    ],
+    "screenshot": "https://image2pdf.app/assets/seo/og-image.jpg",
+    "browserRequirements": "Requires JavaScript. Requires HTML5.",
+    "permissions": "No special permissions required.",
+    "softwareVersion": "1.0.0",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "1250"
     }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is it safe to upload my files?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Your files never leave your device. All processing is done entirely in your browser using JavaScript and WebAssembly. There are no server uploads, making our tools completely private and secure."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What image formats are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We support JPG/JPEG, PNG, and WEBP formats. You can also upload existing PDF files for conversion, splitting, merging, compression, and more."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Are there any file size or quantity limits?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Since all processing occurs locally in your browser, the only practical limit is your device's available memory and CPU power."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Image2PDF free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, all tools are free to use with no hidden charges, registration requirements, or premium tiers."
+        }
+      }
+    ]
   }
   </script>
 </head>

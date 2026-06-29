@@ -20,7 +20,14 @@ export const routes: Routes = [
       title: 'Image to PDF - Convert JPG, PNG to PDF Online Free',
       description: 'Convert images JPG, PNG, WEBP to PDF online for free. Fast, secure client-side processing. No uploads required.',
       keywords: 'image to pdf, jpg to pdf, png to pdf, convert images to pdf, online image converter',
-      toolId: 'image-to-pdf'
+      toolId: 'image-to-pdf',
+      ogTitle: 'Image to PDF - Convert JPG, PNG to PDF Online Free',
+      ogDescription: 'Convert images JPG, PNG, WEBP to PDF online for free. Fast, secure client-side processing. No uploads required.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/image-to-pdf',
+      twitterTitle: 'Image to PDF - Convert JPG, PNG to PDF Online Free',
+      twitterDescription: 'Convert images JPG, PNG, WEBP to PDF online for free. Fast, secure client-side processing. No uploads required.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -33,7 +40,14 @@ export const routes: Routes = [
       title: 'PDF Preview - View PDF Files Online',
       description: 'Preview PDF files online quickly and securely. No software installation required.',
       keywords: 'pdf preview, view pdf online, pdf reader',
-      toolId: 'pdf-preview'
+      toolId: 'pdf-preview',
+      ogTitle: 'PDF Preview - View PDF Files Online',
+      ogDescription: 'Preview PDF files online quickly and securely. No software installation required.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/pdf-preview',
+      twitterTitle: 'PDF Preview - View PDF Files Online',
+      twitterDescription: 'Preview PDF files online quickly and securely. No software installation required.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -46,7 +60,14 @@ export const routes: Routes = [
       title: 'Merge PDF Online Free - Combine Multiple PDFs',
       description: 'Merge multiple PDF files into one document online for free. Fast, secure and works completely in your browser.',
       keywords: 'merge pdf, combine pdf, join pdf, online pdf merger, merge pdf files',
-      toolId: 'pdf-merge'
+      toolId: 'pdf-merge',
+      ogTitle: 'Merge PDF Online Free - Combine Multiple PDFs',
+      ogDescription: 'Merge multiple PDF files into one document online for free. Fast, secure and works completely in your browser.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/merge',
+      twitterTitle: 'Merge PDF Online Free - Combine Multiple PDFs',
+      twitterDescription: 'Merge multiple PDF files into one document online for free. Fast, secure and works completely in your browser.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -59,7 +80,14 @@ export const routes: Routes = [
       title: 'Split PDF Online Free - Extract Pages from PDF',
       description: 'Split PDF files and extract specific pages online for free. Easy-to-use browser-based tool.',
       keywords: 'split pdf, extract pdf pages, divide pdf, pdf splitter online',
-      toolId: 'pdf-split'
+      toolId: 'pdf-split',
+      ogTitle: 'Split PDF Online Free - Extract Pages from PDF',
+      ogDescription: 'Split PDF files and extract specific pages online for free. Easy-to-use browser-based tool.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/split',
+      twitterTitle: 'Split PDF Online Free - Extract Pages from PDF',
+      twitterDescription: 'Split PDF files and extract specific pages online for free. Easy-to-use browser-based tool.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -72,7 +100,14 @@ export const routes: Routes = [
       title: 'Rearrange PDF Pages - Reorder PDF Online',
       description: 'Rearrange PDF pages online for free. Change page order and organize your PDF documents.',
       keywords: 'rearrange pdf, reorder pdf pages, organize pdf, change pdf page order',
-      toolId: 'pdf-rearrange'
+      toolId: 'pdf-rearrange',
+      ogTitle: 'Rearrange PDF Pages - Reorder PDF Online',
+      ogDescription: 'Rearrange PDF pages online for free. Change page order and organize your PDF documents.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/rearrange',
+      twitterTitle: 'Rearrange PDF Pages - Reorder PDF Online',
+      twitterDescription: 'Rearrange PDF pages online for free. Change page order and organize your PDF documents.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -85,7 +120,14 @@ export const routes: Routes = [
       title: 'Compress PDF Online Free - Reduce PDF File Size',
       description: 'Compress PDF files and reduce file size online for free. Maintain quality while shrinking your PDF documents.',
       keywords: 'compress pdf, reduce pdf size, pdf compressor, shrink pdf file',
-      toolId: 'pdf-compress'
+      toolId: 'pdf-compress',
+      ogTitle: 'Compress PDF Online Free - Reduce PDF File Size',
+      ogDescription: 'Compress PDF files and reduce file size online for free. Maintain quality while shrinking your PDF documents.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/compress',
+      twitterTitle: 'Compress PDF Online Free - Reduce PDF File Size',
+      twitterDescription: 'Compress PDF files and reduce file size online for free. Maintain quality while shrinking your PDF documents.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -98,7 +140,14 @@ export const routes: Routes = [
       title: 'Protect PDF Online Free - Password Protect PDF',
       description: 'Password protect PDF files online for free. Secure your PDF documents with encryption.',
       keywords: 'protect pdf, password protect pdf, secure pdf, pdf encryption',
-      toolId: 'pdf-protect'
+      toolId: 'pdf-protect',
+      ogTitle: 'Protect PDF Online Free - Password Protect PDF',
+      ogDescription: 'Password protect PDF files online for free. Secure your PDF documents with encryption.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/protect',
+      twitterTitle: 'Protect PDF Online Free - Password Protect PDF',
+      twitterDescription: 'Password protect PDF files online for free. Secure your PDF documents with encryption.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -111,7 +160,14 @@ export const routes: Routes = [
       title: 'Mixed PDF Builder - Combine Images and PDFs',
       description: 'Build mixed PDF documents by combining images and PDF files online for free.',
       keywords: 'mixed pdf builder, combine images and pdf, create mixed pdf',
-      toolId: 'mixed-builder'
+      toolId: 'mixed-builder',
+      ogTitle: 'Mixed PDF Builder - Combine Images and PDFs',
+      ogDescription: 'Build mixed PDF documents by combining images and PDF files online for free.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/mixed-builder',
+      twitterTitle: 'Mixed PDF Builder - Combine Images and PDFs',
+      twitterDescription: 'Build mixed PDF documents by combining images and PDF files online for free.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -124,7 +180,14 @@ export const routes: Routes = [
       title: 'PDF to Image - Convert PDF to JPG, PNG Online',
       description: 'Convert PDF files to JPG, PNG images online for free. Extract images from PDF documents.',
       keywords: 'pdf to image, pdf to jpg, pdf to png, convert pdf to image',
-      toolId: 'pdf-to-image'
+      toolId: 'pdf-to-image',
+      ogTitle: 'PDF to Image - Convert PDF to JPG, PNG Online',
+      ogDescription: 'Convert PDF files to JPG, PNG images online for free. Extract images from PDF documents.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/pdf-to-image',
+      twitterTitle: 'PDF to Image - Convert PDF to JPG, PNG Online',
+      twitterDescription: 'Convert PDF files to JPG, PNG images online for free. Extract images from PDF documents.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -137,7 +200,14 @@ export const routes: Routes = [
       title: 'OCR to Searchable PDF - Make PDF Searchable Online',
       description: 'Convert scanned PDF or images to searchable PDF using OCR technology. Free online OCR tool.',
       keywords: 'ocr, searchable pdf, ocr to pdf, scanned pdf, ocr online',
-      toolId: 'image-to-searchable-pdf'
+      toolId: 'image-to-searchable-pdf',
+      ogTitle: 'OCR to Searchable PDF - Make PDF Searchable Online',
+      ogDescription: 'Convert scanned PDF or images to searchable PDF using OCR technology. Free online OCR tool.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/ocr-to-searchable-pdf',
+      twitterTitle: 'OCR to Searchable PDF - Make PDF Searchable Online',
+      twitterDescription: 'Convert scanned PDF or images to searchable PDF using OCR technology. Free online OCR tool.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   {
@@ -150,7 +220,14 @@ export const routes: Routes = [
       title: 'OCR Text Export - Extract Text from Images',
       description: 'Extract text from images using OCR technology. Export scanned text to TXT, DOCX or copy to clipboard.',
       keywords: 'ocr text export, extract text from image, ocr scanner, image to text',
-      toolId: 'ocr-text-export'
+      toolId: 'ocr-text-export',
+      ogTitle: 'OCR Text Export - Extract Text from Images',
+      ogDescription: 'Extract text from images using OCR technology. Export scanned text to TXT, DOCX or copy to clipboard.',
+      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
+      ogUrl: 'https://image2pdf.app/ocr-text-export',
+      twitterTitle: 'OCR Text Export - Extract Text from Images',
+      twitterDescription: 'Extract text from images using OCR technology. Export scanned text to TXT, DOCX or copy to clipboard.',
+      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
     }
   },
   // Catch-all redirect

@@ -68,8 +68,22 @@ export class App {
             description: data['description'] || 'Convert images to PDF, merge, split, compress and edit PDF files entirely in your browser',
             keywords: data['keywords']
           });
+
+          this.seoService.updateSocialTags({
+            ogTitle: data['ogTitle'] || data['title'],
+            ogDescription: data['ogDescription'] || data['description'],
+            ogImage: data['ogImage'],
+            ogUrl: data['ogUrl'] || this.buildCurrentUrl(),
+            twitterTitle: data['twitterTitle'] || data['title'],
+            twitterDescription: data['twitterDescription'] || data['description'],
+            twitterImage: data['twitterImage'] || data['ogImage']
+          });
         }
       });
+  }
+
+  private buildCurrentUrl(): string {
+    return this.router.url.startsWith('http') ? this.router.url : `https://image2pdf.app${this.router.url}`;
   }
 
   onImageEdited(event: { index: number; url: string }): void {

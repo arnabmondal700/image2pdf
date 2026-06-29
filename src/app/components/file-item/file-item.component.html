@@ -3,7 +3,7 @@
 >
   <div class="thumb-wrap">
     @if (file?.url) {
-      <img [src]="file?.url" [alt]="file?.name || 'Uploaded image preview'" class="thumb" [ngStyle]="getRotationStyle()">
+      <img [src]="file?.url" [alt]="file?.name || 'Uploaded image preview'" class="thumb" [ngStyle]="getRotationStyle()" loading="lazy">
     }
     <span class="file-index">{{ index + 1 }}</span>
   </div>

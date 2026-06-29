@@ -70,7 +70,7 @@
         class="page-item"
         [class.duplicate]="page.isDuplicate">
         <div class="page-thumbnail">
-          <img *ngIf="thumbnails[i]" [src]="thumbnails[i]" alt="Page {{ page.displayIndex }}" />
+          <img *ngIf="thumbnails[i]" [src]="thumbnails[i]" alt="Page {{ page.displayIndex }}" loading="lazy" />
           <div *ngIf="!thumbnails[i] && isGeneratingThumbnails" class="thumbnail-placeholder">
             Loading...
           </div>

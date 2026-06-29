@@ -46,7 +46,7 @@
               (click)="selectPage(thumbnail.pageNumber)"
               [title]="'Preview page ' + thumbnail.pageNumber"
             >
-              <img [src]="thumbnail.url" [alt]="'Page ' + thumbnail.pageNumber + ' thumbnail'">
+              <img [src]="thumbnail.url" [alt]="'Page ' + thumbnail.pageNumber + ' thumbnail'" loading="lazy">
               <span>{{ thumbnail.pageNumber }}</span>
             </button>
           }

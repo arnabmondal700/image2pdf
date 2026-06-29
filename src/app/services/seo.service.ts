@@ -36,6 +36,38 @@ export class SeoService {
     }
   }
 
+  updateSocialTags(config: {
+    ogTitle?: string;
+    ogDescription?: string;
+    ogImage?: string;
+    ogUrl?: string;
+    twitterTitle?: string;
+    twitterDescription?: string;
+    twitterImage?: string;
+  }): void {
+    if (config.ogTitle) {
+      this.meta.updateTag({ property: 'og:title', content: config.ogTitle });
+    }
+    if (config.ogDescription) {
+      this.meta.updateTag({ property: 'og:description', content: config.ogDescription });
+    }
+    if (config.ogImage) {
+      this.meta.updateTag({ property: 'og:image', content: config.ogImage });
+    }
+    if (config.ogUrl) {
+      this.meta.updateTag({ property: 'og:url', content: config.ogUrl });
+    }
+    if (config.twitterTitle) {
+      this.meta.updateTag({ name: 'twitter:title', content: config.twitterTitle });
+    }
+    if (config.twitterDescription) {
+      this.meta.updateTag({ name: 'twitter:description', content: config.twitterDescription });
+    }
+    if (config.twitterImage) {
+      this.meta.updateTag({ name: 'twitter:image', content: config.twitterImage });
+    }
+  }
+
   restoreDefaults(): void {
     this.update(this.defaults);
   }
