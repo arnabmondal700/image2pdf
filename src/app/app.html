@@ -79,13 +79,4 @@
   ></pdf-settings-panel>
 </div>
 
-@if (editingFile && editingFileIndex !== null) {
-  <image-editor-modal
-    [file]="editingFile"
-    [index]="editingFileIndex"
-    (editApplied)="onImageEditApplied($event)"
-    (closed)="closeImageEditor()"
-  ></image-editor-modal>
-}
-
 <seo-content [config]="seoContentConfig"></seo-content>

@@ -6,6 +6,8 @@ import { AppHeaderComponent } from './components/app-header/app-header.component
 import { OfflineBannerComponent } from './components/offline-banner/offline-banner.component';
 import { UpdateNotificationComponent } from './components/update-notification/update-notification.component';
 import { SeoService } from './services/seo.service';
+import { ImageEditorModalComponent } from './components/image-editor-modal/image-editor-modal.component';
+import { ImageEditorStateService } from './services/image-editor-state.service';
 
 /**
  * Root application component - Shell for tool-based architecture
@@ -20,7 +22,8 @@ import { SeoService } from './services/seo.service';
     RouterOutlet,
     AppHeaderComponent,
     OfflineBannerComponent,
-    UpdateNotificationComponent
+    UpdateNotificationComponent,
+    ImageEditorModalComponent
   ],
   template: `
     <main class="app-shell">
@@ -34,6 +37,15 @@ import { SeoService } from './services/seo.service';
 
         <router-outlet></router-outlet>
       </section>
+
+      @if (imageEditorState.editingFile() && imageEditorState.editingFileIndex() !== null) {
+        <image-editor-modal
+          [file]="imageEditorState.editingFile()"
+          [index]="imageEditorState.editingFileIndex()"
+          (editApplied)="onImageEdited($event)"
+          (closed)="imageEditorState.close()"
+        ></image-editor-modal>
+      }
     </main>
   `,
   styleUrls: ['./app.scss']
@@ -42,7 +54,8 @@ export class App {
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private seoService: SeoService
+    private seoService: SeoService,
+    public imageEditorState: ImageEditorStateService
   ) {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -57,5 +70,9 @@ export class App {
           });
         }
       });
+  }
+
+  onImageEdited(event: { index: number; url: string }): void {
+    this.imageEditorState.close();
   }
 }

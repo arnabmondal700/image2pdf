@@ -14,13 +14,13 @@ import { ExportService } from '../../services/export.service';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
 import { ToolDefinition } from '../tool.interface';
 import { Subscription } from 'rxjs';
+import { ImageEditorStateService } from '../../services/image-editor-state.service';
 
 // Import shared components
 import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop-zone.component';
 import { FileListComponent } from '../../components/file-list/file-list.component';
 import { PdfSettingsPanelComponent } from '../../components/pdf-settings-panel/pdf-settings-panel.component';
 import { PdfPreviewComponent } from '../../components/pdf-preview/pdf-preview.component';
-import { ImageEditorModalComponent } from '../../components/image-editor-modal/image-editor-modal.component';
 import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
 import { SeoContentConfigService } from '../../services/seo-content-config.service';
 import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
@@ -36,7 +36,6 @@ import type { SeoContentConfig } from '../../components/seo-content/seo-content.
     FileListComponent,
     PdfSettingsPanelComponent,
     PdfPreviewComponent,
-    ImageEditorModalComponent,
     SeoContentComponent
   ],
   templateUrl: '../../app.html',
@@ -49,7 +48,6 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
   isDragging = false;
   isProcessingPdf = false;
   processingPdfFileName = '';
-  editingFileIndex: number | null = null;
   validationErrors: FileValidationError[] = [];
   generalError: string | null = null;
   generationProgress: GenerationProgress | null = null;
@@ -78,7 +76,8 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
     private exportService: ExportService,
     private sessionStorage: SessionStorageService,
     private cdr: ChangeDetectorRef,
-    private seoContentConfigService: SeoContentConfigService
+    private seoContentConfigService: SeoContentConfigService,
+    private imageEditorState: ImageEditorStateService
   ) {
     // Start with defaults; load persisted settings asynchronously
     this.pdfSettings = {
@@ -162,14 +161,6 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
     } catch {
       // Best-effort — storage failure should not block the user
     }
-  }
-
-  /**
-   * Getter for editing file (required by template)
-   */
-  get editingFile(): FileObject | null {
-    if (this.editingFileIndex === null) return null;
-    return this.uploadedFiles[this.editingFileIndex] ?? null;
   }
 
   /**
@@ -301,8 +292,10 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
    * Handle file edit request
    */
   onFileEditRequested(index: number): void {
-    this.editingFileIndex = index;
-    this.cdr.detectChanges();
+    const file = this.uploadedFiles[index] ?? null;
+    if (file) {
+      this.imageEditorState.open(file, index);
+    }
   }
 
   /**
@@ -315,15 +308,7 @@ export class ImageToPdfComponent implements OnInit, OnDestroy {
       index === event.index ? { ...item, url: event.url } : item
     );
     await this.persistSessionFiles();
-    this.closeImageEditor();
-  }
-
-  /**
-   * Close image editor modal
-   */
-  closeImageEditor(): void {
-    this.editingFileIndex = null;
-    this.cdr.detectChanges();
+    this.imageEditorState.close();
   }
 
   /**
