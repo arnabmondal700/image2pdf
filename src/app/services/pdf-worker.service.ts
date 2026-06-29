@@ -247,9 +247,12 @@ export class PdfWorkerService {
   }
 
   /**
-   * Trigger browser download of blob
+   * Trigger browser download of blob (browser-only)
    */
   private downloadBlob(blob: Blob, fileName: string): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
