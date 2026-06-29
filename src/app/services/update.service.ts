@@ -26,6 +26,12 @@ export class UpdateService {
   activateUpdate(): void {
     this.swUpdate
       .activateUpdate()
+      .then(() => {
+        if ('caches' in window) {
+          caches.open('image2pdf-manifest-cache-v1').then((cache) => cache.delete('/manifest.json'));
+        }
+        return Promise.resolve();
+      })
       .then(() => window.location.reload())
       .catch(() => window.location.reload());
   }
