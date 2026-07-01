@@ -1,57 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://image2pdf.app/</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/image-to-pdf</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/image-to-pdf</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/merge</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/merge</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/split</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/split</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/compress</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/compress</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/pdf-to-image</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/pdf-to-image</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/ocr-to-searchable-pdf</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/ocr-to-searchable-pdf</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/ocr-text-export</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/ocr-text-export</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/protect</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/protect</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/rearrange</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/rearrange</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://image2pdf.app/mixed-builder</loc>
+    <loc>https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/mixed-builder</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

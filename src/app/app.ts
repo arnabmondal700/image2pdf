@@ -85,7 +85,7 @@ export class App {
   }
 
   private buildCurrentUrl(): string {
-    return this.router.url.startsWith('http') ? this.router.url : `https://image2pdf.app${this.router.url}`;
+    return this.router.url.startsWith('http') ? this.router.url : `https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf${this.router.url}`;
   }
 
   onImageEdited(event: { index: number; url: string }): void {

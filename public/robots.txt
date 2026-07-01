@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://image2pdf.app/sitemap.xml
+Sitemap: https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/sitemap.xml

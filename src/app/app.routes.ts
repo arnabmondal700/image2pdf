@@ -23,11 +23,11 @@ export const routes: Routes = [
       toolId: 'image-to-pdf',
       ogTitle: 'Image to PDF - Convert JPG, PNG to PDF Online Free',
       ogDescription: 'Convert images JPG, PNG, WEBP to PDF online for free. Fast, secure client-side processing. No uploads required.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/image-to-pdf',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/image-to-pdf',
       twitterTitle: 'Image to PDF - Convert JPG, PNG to PDF Online Free',
       twitterDescription: 'Convert images JPG, PNG, WEBP to PDF online for free. Fast, secure client-side processing. No uploads required.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -43,11 +43,11 @@ export const routes: Routes = [
       toolId: 'pdf-preview',
       ogTitle: 'PDF Preview - View PDF Files Online',
       ogDescription: 'Preview PDF files online quickly and securely. No software installation required.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/pdf-preview',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/pdf-preview',
       twitterTitle: 'PDF Preview - View PDF Files Online',
       twitterDescription: 'Preview PDF files online quickly and securely. No software installation required.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -63,11 +63,11 @@ export const routes: Routes = [
       toolId: 'pdf-merge',
       ogTitle: 'Merge PDF Online Free - Combine Multiple PDFs',
       ogDescription: 'Merge multiple PDF files into one document online for free. Fast, secure and works completely in your browser.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/merge',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/merge',
       twitterTitle: 'Merge PDF Online Free - Combine Multiple PDFs',
       twitterDescription: 'Merge multiple PDF files into one document online for free. Fast, secure and works completely in your browser.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -83,11 +83,11 @@ export const routes: Routes = [
       toolId: 'pdf-split',
       ogTitle: 'Split PDF Online Free - Extract Pages from PDF',
       ogDescription: 'Split PDF files and extract specific pages online for free. Easy-to-use browser-based tool.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/split',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/split',
       twitterTitle: 'Split PDF Online Free - Extract Pages from PDF',
       twitterDescription: 'Split PDF files and extract specific pages online for free. Easy-to-use browser-based tool.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -103,11 +103,11 @@ export const routes: Routes = [
       toolId: 'pdf-rearrange',
       ogTitle: 'Rearrange PDF Pages - Reorder PDF Online',
       ogDescription: 'Rearrange PDF pages online for free. Change page order and organize your PDF documents.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/rearrange',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/rearrange',
       twitterTitle: 'Rearrange PDF Pages - Reorder PDF Online',
       twitterDescription: 'Rearrange PDF pages online for free. Change page order and organize your PDF documents.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -123,11 +123,11 @@ export const routes: Routes = [
       toolId: 'pdf-compress',
       ogTitle: 'Compress PDF Online Free - Reduce PDF File Size',
       ogDescription: 'Compress PDF files and reduce file size online for free. Maintain quality while shrinking your PDF documents.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/compress',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/compress',
       twitterTitle: 'Compress PDF Online Free - Reduce PDF File Size',
       twitterDescription: 'Compress PDF files and reduce file size online for free. Maintain quality while shrinking your PDF documents.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -143,11 +143,11 @@ export const routes: Routes = [
       toolId: 'pdf-protect',
       ogTitle: 'Protect PDF Online Free - Password Protect PDF',
       ogDescription: 'Password protect PDF files online for free. Secure your PDF documents with encryption.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/protect',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/protect',
       twitterTitle: 'Protect PDF Online Free - Password Protect PDF',
       twitterDescription: 'Password protect PDF files online for free. Secure your PDF documents with encryption.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -163,11 +163,11 @@ export const routes: Routes = [
       toolId: 'mixed-builder',
       ogTitle: 'Mixed PDF Builder - Combine Images and PDFs',
       ogDescription: 'Build mixed PDF documents by combining images and PDF files online for free.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/mixed-builder',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/mixed-builder',
       twitterTitle: 'Mixed PDF Builder - Combine Images and PDFs',
       twitterDescription: 'Build mixed PDF documents by combining images and PDF files online for free.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -183,11 +183,11 @@ export const routes: Routes = [
       toolId: 'pdf-to-image',
       ogTitle: 'PDF to Image - Convert PDF to JPG, PNG Online',
       ogDescription: 'Convert PDF files to JPG, PNG images online for free. Extract images from PDF documents.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/pdf-to-image',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/pdf-to-image',
       twitterTitle: 'PDF to Image - Convert PDF to JPG, PNG Online',
       twitterDescription: 'Convert PDF files to JPG, PNG images online for free. Extract images from PDF documents.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -203,11 +203,11 @@ export const routes: Routes = [
       toolId: 'image-to-searchable-pdf',
       ogTitle: 'OCR to Searchable PDF - Make PDF Searchable Online',
       ogDescription: 'Convert scanned PDF or images to searchable PDF using OCR technology. Free online OCR tool.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/ocr-to-searchable-pdf',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/ocr-to-searchable-pdf',
       twitterTitle: 'OCR to Searchable PDF - Make PDF Searchable Online',
       twitterDescription: 'Convert scanned PDF or images to searchable PDF using OCR technology. Free online OCR tool.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   {
@@ -223,11 +223,11 @@ export const routes: Routes = [
       toolId: 'ocr-text-export',
       ogTitle: 'OCR Text Export - Extract Text from Images',
       ogDescription: 'Extract text from images using OCR technology. Export scanned text to TXT, DOCX or copy to clipboard.',
-      ogImage: 'https://image2pdf.app/assets/seo/og-image.jpg',
-      ogUrl: 'https://image2pdf.app/ocr-text-export',
+      ogImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg',
+      ogUrl: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/ocr-text-export',
       twitterTitle: 'OCR Text Export - Extract Text from Images',
       twitterDescription: 'Extract text from images using OCR technology. Export scanned text to TXT, DOCX or copy to clipboard.',
-      twitterImage: 'https://image2pdf.app/assets/seo/og-image.jpg'
+      twitterImage: 'https://image-to-pdf-47b6.arnabmondal700.workers.dev/image-to-pdf/assets/seo/og-image.jpg'
     }
   },
   // Catch-all redirect
