@@ -6,6 +6,7 @@ import { DragDropZoneComponent } from '../../components/drag-drop-zone/drag-drop
 import { SeoContentComponent } from '../../components/seo-content/seo-content.component';
 import { SeoContentConfigService } from '../../services/seo-content-config.service';
 import type { SeoContentConfig } from '../../components/seo-content/seo-content.component';
+import type { FileObject } from '../../services/file.service';
 
 @Component({
   selector: 'app-ocr-text-export',
@@ -15,12 +16,13 @@ import type { SeoContentConfig } from '../../components/seo-content/seo-content.
   styleUrls: ['./ocr-text-export.component.scss']
 })
 export class OcrTextExportComponent {
-  file: File | null = null;
+  file: FileObject | null = null;
   text: string = '';
   isProcessing = false;
   error: string | null = null;
   fileName: string = '';
   language: string = 'eng';
+  progress: { current: number; total: number; status: string } | null = null;
   seoContentConfig: SeoContentConfig | null = null;
 
   constructor(
@@ -28,13 +30,23 @@ export class OcrTextExportComponent {
     private cdr: ChangeDetectorRef,
     private seoContentConfigService: SeoContentConfigService
   ) {
+    this.ocrService.getProgress().subscribe((p) => {
+      this.progress = p;
+      this.cdr.markForCheck();
+    });
     this.seoContentConfig = this.seoContentConfigService.getConfig('ocr-text-export') ?? null;
   }
 
   onFilesSelected(files: File[]): void {
     if (files.length > 0) {
-      this.file = files[0];
-      this.fileName = this.file.name.replace(/\.[^/.]+$/, '');
+      const selected = files[0];
+      this.file = {
+        name: selected.name,
+        url: URL.createObjectURL(selected),
+        size: selected.size,
+        type: selected.type
+      };
+      this.fileName = selected.name.replace(/\.[^/.]+$/, '');
       this.text = '';
       this.error = null;
       this.cdr.markForCheck();
@@ -49,7 +61,7 @@ export class OcrTextExportComponent {
     this.cdr.markForCheck();
 
     try {
-      const result = await this.ocrService.recognize(this.file as any, {
+      const result = await this.ocrService.recognize(this.file, {
         language: this.language,
         preserveLayout: true
       });
@@ -78,11 +90,25 @@ export class OcrTextExportComponent {
     navigator.clipboard.writeText(this.text);
   }
 
+  cancel(): void {
+    this.ocrService.cancel();
+    this.isProcessing = false;
+    this.progress = null;
+    this.cdr.markForCheck();
+  }
+
   clearAll(): void {
+    if (this.isProcessing) {
+      this.ocrService.cancel();
+    }
+    if (this.file?.url?.startsWith('blob:')) {
+      URL.revokeObjectURL(this.file.url);
+    }
     this.file = null;
     this.text = '';
     this.error = null;
     this.fileName = '';
+    this.progress = null;
     this.cdr.markForCheck();
   }
 }

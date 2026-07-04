@@ -22,8 +22,8 @@
       <p>{{ file.name }}</p>
     </div>
 
-    <div class="settings-group">
-      <label class="setting-item">
+    <div class="settings" *ngIf="!text">
+      <label>
         <span>Language</span>
         <select [(ngModel)]="language">
           <option value="eng">English</option>
@@ -35,22 +35,30 @@
       </label>
     </div>
 
-    <div class="button-group">
-      <button class="extract-button" (click)="extractText()" [disabled]="isProcessing">
+    <div class="actions" *ngIf="!text">
+      <button class="primary" (click)="extractText()" [disabled]="isProcessing">
         {{ isProcessing ? 'Extracting...' : 'Extract Text' }}
       </button>
-      <button class="clear-button" (click)="clearAll()" [disabled]="isProcessing">Clear</button>
+      <button class="secondary" (click)="clearAll()" [disabled]="isProcessing">Clear</button>
+    </div>
+
+    <div class="progress" *ngIf="progress">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progress.total ? (progress.current / progress.total) * 100 : 0"></div>
+      </div>
+      <div class="progress-text">{{ progress.status }} ({{ (progress.current / progress.total) * 100 | number:'1.0-0' }}%)</div>
+      <button class="secondary" (click)="cancel()" *ngIf="isProcessing">Cancel</button>
     </div>
 
     <div *ngIf="text" class="result-section">
+      <div class="text-preview">{{ text }}</div>
       <div class="result-header">
         <h3>Extracted Text</h3>
-        <div class="result-actions">
-          <button class="action-button" (click)="copyText()">Copy</button>
-          <button class="action-button" (click)="downloadTxt()">Download .txt</button>
+        <div class="result-actions" *ngIf="text">
+          <button class="secondary" (click)="copyText()">Copy</button>
+          <button class="secondary" (click)="downloadTxt()">Download .txt</button>
         </div>
       </div>
-      <div class="text-preview">{{ text }}</div>
     </div>
   </div>
 

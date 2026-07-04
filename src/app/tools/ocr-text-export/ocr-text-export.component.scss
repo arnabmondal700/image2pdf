@@ -8,6 +8,12 @@
     font-size: 1.25rem;
   }
 
+  .export-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
   .description {
     margin: 0;
     color: var(--secondary-text);
@@ -55,7 +61,8 @@
     }
   }
 
-  .actions {
+  .actions,
+  .result-actions {
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
