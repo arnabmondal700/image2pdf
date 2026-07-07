@@ -1,11 +1,20 @@
 # Image2PDF Project Rules
 
+## Memory Bank Initialization
+Before starting any task, ALWAYS:
+1. Read `memory-bank/projectbrief.md` — Core requirements and goals
+2. Read `memory-bank/productContext.md` — Why the project exists
+3. Read `memory-bank/activeContext.md` — Current focus and state
+4. Read `memory-bank/systemPatterns.md` — Architecture and patterns
+5. Read `memory-bank/techContext.md` — Technologies and constraints
+6. Read `memory-bank/progress.md` — Feature status and known issues
+
 ## Project Context
 This is an Angular 21 application that converts images into PDF documents.
 
 Core technologies:
 - Angular 21 (Standalone Components)
-- TypeScript (strict mode)
+- TypeScript 5.9 (strict mode)
 - Angular Signals
 - Web Workers for PDF generation
 - Vitest for testing
@@ -40,3 +49,17 @@ interface PdfGenerationOptions {
   dpi: number;
   quality: PdfQuality;
 }
+```
+
+### Testing Standards
+- Run `ng test` before committing changes.
+- New services should include unit tests.
+- Pure utility functions must have tests.
+- Use Angular TestBed for component/injection tests.
+
+## Memory Bank Update Protocol
+After completing any task:
+1. Update `activeContext.md` with session summary and changes made.
+2. Update `progress.md` if feature statuses changed (checkmark/warning/red).
+3. Update `techContext.md` if dependencies were added/removed.
+4. Update `systemPatterns.md` if architecture or patterns changed.
