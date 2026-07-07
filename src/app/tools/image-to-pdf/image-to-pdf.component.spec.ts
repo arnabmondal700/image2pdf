@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
 import { ImageToPdfComponent } from './image-to-pdf.component';
@@ -21,6 +22,7 @@ import { PdfSettingsStorageService } from '../../services/pdf-settings-storage.s
 import { PdfExtractionService } from '../../services/pdf-extraction.service';
 import { ExportService } from '../../services/export.service';
 import { SessionStorageService } from '../../services/storage/session-storage.service';
+import { ImageEditorStateService } from '../../services/image-editor-state.service';
 
 describe('ImageToPdfComponent', () => {
   let component: ImageToPdfComponent;
@@ -76,7 +78,15 @@ describe('ImageToPdfComponent', () => {
         { provide: PdfSettingsStorageService, useValue: settingsStorageSpy },
         { provide: PdfExtractionService, useValue: pdfExtractionSpy },
         { provide: ExportService, useValue: exportServiceSpy },
-        { provide: SessionStorageService, useValue: sessionStorageSpy as any }
+        { provide: SessionStorageService, useValue: sessionStorageSpy as any },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => null } } }
+        },
+        {
+          provide: ImageEditorStateService,
+          useValue: { openEditor: vi.fn(), closeEditor: vi.fn(), isEditorOpen: vi.fn() }
+        }
       ]
     }).compileComponents();
 

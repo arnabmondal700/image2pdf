@@ -6,7 +6,10 @@ const tesseractMock = vi.hoisted(() => ({
   createWorker: vi.fn()
 }));
 
-vi.mock('tesseract.js', () => tesseractMock);
+vi.mock('tesseract.js', () => ({
+  default: tesseractMock,
+  ...tesseractMock
+}));
 
 describe('OcrService', () => {
   let service: OcrService;
@@ -71,7 +74,7 @@ describe('OcrService', () => {
     });
 
     expect(tesseractMock.createWorker).toHaveBeenCalledWith('eng', {
-      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+      langPath: 'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast',
       logger: expect.any(Function)
     });
     expect(mockWorker.recognize).toHaveBeenCalledWith('data:image/png;base64,abc');

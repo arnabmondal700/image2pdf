@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
+import { ActivatedRoute } from '@angular/router';
 import { OcrProgress, OcrService } from '../../services/ocr.service';
 import { ImageToSearchablePdfComponent } from './image-to-searchable-pdf.component';
 
@@ -27,14 +28,22 @@ describe('ImageToSearchablePdfComponent', () => {
       cancel: vi.fn()
     };
 
-    vi.stubGlobal('URL', {
-      createObjectURL: vi.fn(() => 'blob:test-url'),
-      revokeObjectURL: vi.fn()
-    });
+    class FakeURL {
+      static createObjectURL = vi.fn(() => 'blob:test-url');
+      static revokeObjectURL = vi.fn();
+      constructor() {}
+    }
+    vi.stubGlobal('URL', FakeURL as any);
 
     await TestBed.configureTestingModule({
       imports: [ImageToSearchablePdfComponent],
-      providers: [{ provide: OcrService, useValue: ocrService }]
+      providers: [
+        { provide: OcrService, useValue: ocrService },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => null } } }
+        }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ImageToSearchablePdfComponent);

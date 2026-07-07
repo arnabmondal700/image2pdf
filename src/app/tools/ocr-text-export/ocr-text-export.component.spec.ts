@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
+import { ActivatedRoute } from '@angular/router';
 import { OcrProgress, OcrService } from '../../services/ocr.service';
 import { OcrTextExportComponent } from './ocr-text-export.component';
 
@@ -30,10 +31,12 @@ describe('OcrTextExportComponent', () => {
       cancel: vi.fn()
     };
 
-    vi.stubGlobal('URL', {
-      createObjectURL: vi.fn(() => 'blob:txt-url'),
-      revokeObjectURL: vi.fn()
-    });
+    class FakeURL {
+      static createObjectURL = vi.fn(() => 'blob:txt-url');
+      static revokeObjectURL = vi.fn();
+      constructor() {}
+    }
+    vi.stubGlobal('URL', FakeURL as any);
 
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -42,7 +45,13 @@ describe('OcrTextExportComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [OcrTextExportComponent],
-      providers: [{ provide: OcrService, useValue: ocrService }]
+      providers: [
+        { provide: OcrService, useValue: ocrService },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => null } } }
+        }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(OcrTextExportComponent);
@@ -55,14 +64,14 @@ describe('OcrTextExportComponent', () => {
   });
 
   it('should store selected file and reset result state', () => {
-    component.result = { text: 'old', durationMs: 1 };
+    component.text = 'old';
     component.error = 'Old error';
 
     component.onFilesSelected([new File(['image'], 'scan.jpg', { type: 'image/jpeg' })]);
 
     expect(component.file?.name).toBe('scan.jpg');
     expect(component.file?.url).toBe('blob:txt-url');
-    expect(component.result).toBeNull();
+    expect(component.text).toBe('');
     expect(component.error).toBeNull();
   });
 
@@ -80,7 +89,7 @@ describe('OcrTextExportComponent', () => {
       language: 'eng',
       preserveLayout: true
     });
-    expect(component.result).toEqual({ text: 'First page\n\nSecond page', durationMs: 25 });
+    expect(component.text).toBe('First page\n\nSecond page');
     expect(component.isProcessing).toBe(false);
   });
 
@@ -96,7 +105,7 @@ describe('OcrTextExportComponent', () => {
     await component.extractText();
 
     expect(component.error).toBe('OCR failed');
-    expect(component.result).toBeNull();
+    expect(component.text).toBe('');
     expect(component.isProcessing).toBe(false);
   });
 
@@ -130,7 +139,7 @@ describe('OcrTextExportComponent', () => {
       size: 100,
       type: 'image/png'
     };
-    component.result = { text: 'Extracted text', durationMs: 10 };
+    component.text = 'Extracted text';
 
     component.downloadTxt();
 
@@ -140,9 +149,9 @@ describe('OcrTextExportComponent', () => {
   });
 
   it('should copy extracted text to the clipboard', async () => {
-    component.result = { text: 'Extracted text', durationMs: 10 };
+    component.text = 'Extracted text';
 
-    await component.copyToClipboard();
+    await component.copyText();
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Extracted text');
   });

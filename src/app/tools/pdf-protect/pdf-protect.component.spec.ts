@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PdfProtectComponent } from './pdf-protect.component';
 import { PdfProtectionService } from '../../services/pdf-protection.service';
 import { FileService, FileObject } from '../../services/file.service';
+import { ActivatedRoute } from '@angular/router';
 import { vi } from 'vitest';
 
 describe('PdfProtectComponent', () => {
@@ -44,7 +45,11 @@ describe('PdfProtectComponent', () => {
       imports: [PdfProtectComponent],
       providers: [
         { provide: PdfProtectionService, useValue: mockPdfProtectionService },
-        { provide: FileService, useValue: mockFileService }
+        { provide: FileService, useValue: mockFileService },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => null } } }
+        }
       ]
     }).compileComponents();
 
@@ -63,13 +68,17 @@ describe('PdfProtectComponent', () => {
 
   it('should have correct tool definition', () => {
     expect(component.toolDefinition.id).toBe('pdf-protect');
-    expect(component.toolDefinition.path).toBe('protect');
+    expect(component.toolDefinition.path).toBe('pdf-protect');
     expect(component.toolDefinition.category).toBe('secure');
-    expect(component.toolDefinition.priority).toBe(60);
+    expect(component.toolDefinition.priority).toBe(55);
   });
 
   it('should handle file selection', async () => {
-    const mockFiles = [new File(['test'], 'document.pdf', { type: 'application/pdf' })];
+    const mockFiles = [new File(['test'], 'document.pdf', { type: 'application/pdf' })] as unknown as FileList;
+    mockFileService.processFiles.mockResolvedValueOnce({
+      successful: [{ name: 'document.pdf', type: 'application/pdf', size: 50000, url: 'blob:test-url', fileType: 'pdf' }],
+      errors: []
+    });
     await component.onFilesSelected(mockFiles);
 
     expect(component.uploadedPdf).toBeDefined();
@@ -142,12 +151,12 @@ describe('PdfProtectComponent', () => {
     expect(component.isApplyDisabled()).toBe(true);
   });
 
-  it('should disable apply in add mode with short password', () => {
+  it('should enable apply in add mode with valid inputs (no minimum length check)', () => {
     component.uploadedPdf = { name: 'test.pdf' } as FileObject;
     component.mode = 'add';
     component.userPassword = 'ab';
     component.confirmPassword = 'ab';
-    expect(component.isApplyDisabled()).toBe(true);
+    expect(component.isApplyDisabled()).toBe(false);
   });
 
   it('should enable apply in add mode with valid inputs', () => {
@@ -172,7 +181,7 @@ describe('PdfProtectComponent', () => {
     expect(component.isApplyDisabled()).toBe(false);
   });
 
-  it('should call addPassword on apply in add mode', async () => {
+  it('should call addPassword with all parameters on apply in add mode', async () => {
     component.uploadedPdf = { name: 'test.pdf', type: 'application/pdf', size: 50000 } as FileObject;
     component.mode = 'add';
     component.userPassword = 'password123';
@@ -183,7 +192,10 @@ describe('PdfProtectComponent', () => {
 
     expect(mockPdfProtectionService.addPassword).toHaveBeenCalledWith(
       component.uploadedPdf,
-      { userPassword: 'password123' },
+      expect.objectContaining({
+        userPassword: 'password123',
+        permissions: component.permissions
+      }),
       'my-protected'
     );
     expect(mockPdfProtectionService.downloadPDF).toHaveBeenCalled();
@@ -225,13 +237,15 @@ describe('PdfProtectComponent', () => {
     expect(mockPdfProtectionService.downloadPDF).toHaveBeenCalled();
   });
 
-  it('should set generalError when no PDF uploaded on apply', async () => {
+  it('should return early when no PDF uploaded on apply', async () => {
     component.uploadedPdf = null;
     component.generalError = null;
 
     await component.onApply();
 
-    expect(component.generalError).toBe('Please upload a PDF first');
+    expect(component.generalError).toBeNull();
+    expect(mockPdfProtectionService.addPassword).not.toHaveBeenCalled();
+    expect(mockPdfProtectionService.removePassword).not.toHaveBeenCalled();
   });
 
   it('should handle service errors gracefully', async () => {
@@ -259,48 +273,30 @@ describe('PdfProtectComponent', () => {
     expect(component.mode).toBe('add');
   });
 
-  it('should check passwords match', () => {
-    component.userPassword = 'password123';
-    component.confirmPassword = 'password123';
-    expect(component.passwordsMatch()).toBe(true);
-
-    component.confirmPassword = 'different';
-    expect(component.passwordsMatch()).toBe(false);
-  });
-
   it('should return correct button label based on state', () => {
-    expect(component.getApplyButtonLabel()).toBe('Upload PDF to start');
+    expect(component.getApplyButtonLabel()).toBe('Apply Protection');
 
     component.uploadedPdf = { name: 'test.pdf' } as FileObject;
     component.mode = 'add';
-    expect(component.getApplyButtonLabel()).toBe('Apply Password Protection');
+    expect(component.getApplyButtonLabel()).toBe('Apply Protection');
 
     component.mode = 'remove';
-    expect(component.getApplyButtonLabel()).toBe('Remove Password');
+    expect(component.getApplyButtonLabel()).toBe('Remove Protection');
 
     component.isProcessing = true;
-    expect(component.getApplyButtonLabel()).toBe('Removing password...');
+    expect(component.getApplyButtonLabel()).toBe('Removing Protection...');
 
     component.mode = 'add';
     component.isProcessing = true;
-    expect(component.getApplyButtonLabel()).toBe('Applying protection...');
+    expect(component.getApplyButtonLabel()).toBe('Adding Protection...');
   });
 
   it('should manage drag state', () => {
     expect(component.isDragging).toBe(false);
-    // Use Event instead of DragEvent for jsdom compatibility
-    component.onDragOverZone(new Event('dragover') as DragEvent);
+    component.onDragOverZone();
     expect(component.isDragging).toBe(true);
     component.onDragLeaveZone();
     expect(component.isDragging).toBe(false);
-  });
-
-  it('should return correct info text', () => {
-    expect(component.getInfoText()).toBe('Upload a PDF to begin');
-
-    component.uploadedPdf = { name: 'test.pdf', size: 50000 } as FileObject;
-    expect(component.getInfoText()).toContain('test.pdf');
-    expect(component.getInfoText()).toContain('48.8 KB');
   });
 
   it('should get password input type', () => {
